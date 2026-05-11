@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { JsonLd, productSchema, breadcrumbSchema } from "@/components/JsonLd";
+import { CompleteOLook } from "@/components/CompleteOLook";
 import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield, Check } from "lucide-react";
 import productsData from "@/data/products.json";
 
@@ -402,6 +403,13 @@ export default function ProductPage() {
             </div>
           </div>
         </div>
+
+        {/* Complete o Look */}
+        <CompleteOLook
+          currentProductId={product.id}
+          category={product.category}
+          allProducts={productsData}
+        />
 
         {/* Product Description */}
         <div className="mt-16 max-w-4xl">
