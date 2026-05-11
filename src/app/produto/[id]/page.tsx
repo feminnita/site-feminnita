@@ -8,6 +8,8 @@ import { Header } from "@/components/Header";
 import { JsonLd, productSchema, breadcrumbSchema } from "@/components/JsonLd";
 import { CompleteOLook } from "@/components/CompleteOLook";
 import { ReviewSection } from "@/components/ReviewSection";
+import { SizeRecommender } from "@/components/SizeRecommender";
+import { PersonalizedRecommendations } from "@/components/PersonalizedRecommendations";
 import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield, Check } from "lucide-react";
 import productsData from "@/data/products.json";
 
@@ -299,7 +301,7 @@ export default function ProductPage() {
               <label className="block text-sm font-medium mb-3">
                 Tamanho: {selectedSize && <span className="font-normal text-gray-600">{selectedSize}</span>}
               </label>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3 mb-3">
                 {product.sizes.map((size) => (
                   <button
                     key={size}
@@ -314,6 +316,7 @@ export default function ProductPage() {
                   </button>
                 ))}
               </div>
+              <SizeRecommender onSizeSelect={(size) => setSelectedSize(size)} />
             </div>
 
             {/* Quantity */}
@@ -410,6 +413,12 @@ export default function ProductPage() {
           currentProductId={product.id}
           category={product.category}
           allProducts={productsData}
+        />
+
+        <PersonalizedRecommendations
+          allProducts={productsData as any}
+          currentProductId={product.id}
+          title="Você também pode gostar"
         />
 
         {/* Product Description */}
