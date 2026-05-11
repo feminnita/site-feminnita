@@ -1,0 +1,54 @@
+[
+  {
+    "id": "1",
+    "code": "TP10527",
+    "name": "Top Rose Drift",
+    "price": 119.50,
+    "pixPrice": 107.55,
+    "installments": 10,
+    "installmentPrice": 13.28,
+    "category": "tops",
+    "images": ["https://ext.same-assets.com/2738959979/254087678.webp", "https://ext.same-assets.com/2738959979/1316290870.webp"],
+    "colors": ["rose", "mint", "preto", "branco"],
+    "sizes": ["PP", "P", "M", "G", "GG"]
+  },
+  {
+    "id": "2",
+    "code": "LG18459",
+    "name": "Calça Legging Mint Breeze",
+    "price": 135.39,
+    "pixPrice": 121.85,
+    "installments": 10,
+    "installmentPrice": 15.04,
+    "category": "leggings",
+    "images": ["https://ext.same-assets.com/2738959979/3118241062.webp", "https://ext.same-assets.com/2738959979/1271190456.webp"],
+    "colors": ["mint", "hazel", "preto"],
+    "sizes": ["PP", "P", "M", "G", "GG"]
+  },
+  {
+    "id": "3",
+    "code": "TP10521",
+    "name": "Top Mint Soul",
+    "price": 80.96,
+    "pixPrice": 72.86,
+    "installments": 10,
+    "installmentPrice": 9.00,
+    "category": "tops",
+    "images": ["https://ext.same-assets.com/2738959979/962659951.webp", "https://ext.same-assets.com/2738959979/2862107894.webp"],
+    "colors": ["mint", "rose", "aloe"],
+    "sizes": ["PP", "P", "M", "G", "GG"]
+  },
+  {
+    "id": "4",
+    "code": "TP10526",
+    "name": "Top Hazel PureCore",
+    "price": 89.15,
+    "pixPrice": 80.24,
+    "installments": 10,
+    "installmentPrice": 9.91,
+    "category": "tops",
+    "images": ["https://ext.same-assets.com/2738959979/1709762124.webp", "https://ext.same-assets.com/2738959979/3282728844.webp"],
+    "colors": ["hazel", "preto", "branco"],
+    "sizes": ["PP", "P", "M", "G", "GG"]
+  }
+]
