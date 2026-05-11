@@ -2,6 +2,81 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
 
+// ── Asaas API helper ──────────────────────────────────────────────────────────
+const ASAAS_BASE =
+  process.env.ASAAS_SANDBOX === "true"
+    ? "https://sandbox.asaas.com/api/v3"
+    : "https://api.asaas.com/api/v3";
+
+async function asaasPost(path: string, body: object) {
+  const res = await fetch(`${ASAAS_BASE}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      access_token: process.env.ASAAS_API_KEY || "",
+    },
+    body: JSON.stringify(body),
+  });
+  const json = await res.json();
+  if (!res.ok) {
+    const msg = (json.errors as any[])?.[0]?.description || `Asaas ${res.status}`;
+    throw new Error(msg);
+  }
+  return json;
+}
+
+async function asaasGet(path: string) {
+  const res = await fetch(`${ASAAS_BASE}${path}`, {
+    headers: { access_token: process.env.ASAAS_API_KEY || "" },
+  });
+  const json = await res.json();
+  if (!res.ok) {
+    const msg = (json.errors as any[])?.[0]?.description || `Asaas ${res.status}`;
+    throw new Error(msg);
+  }
+  return json;
+}
+
+// Find or create Asaas customer
+async function ensureAsaasCustomer(customer: {
+  name: string;
+  email: string;
+  cpf?: string;
+  phone?: string;
+  cep?: string;
+  street?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
+}) {
+  // Try to find existing customer by email
+  const search = await asaasGet(`/customers?email=${encodeURIComponent(customer.email)}&limit=1`);
+  if (search.data?.length > 0) return search.data[0].id as string;
+
+  const payload: Record<string, any> = {
+    name: customer.name,
+    email: customer.email,
+    notificationDisabled: false,
+  };
+  if (customer.cpf) payload.cpfCnpj = customer.cpf.replace(/\D/g, "");
+  if (customer.phone) payload.mobilePhone = customer.phone.replace(/\D/g, "");
+  if (customer.cep) payload.postalCode = customer.cep.replace(/\D/g, "");
+  if (customer.street) payload.address = customer.street;
+  if (customer.number) payload.addressNumber = customer.number;
+  if (customer.complement) payload.complement = customer.complement;
+  if (customer.neighborhood) payload.province = customer.neighborhood;
+
+  const created = await asaasPost("/customers", payload);
+  return created.id as string;
+}
+
+// ISO date string for due date (today + N days)
+function dueDateStr(days = 1) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 function generateOrderNumber() {
   const ts = Date.now().toString(36).toUpperCase();
   const rand = Math.random().toString(36).slice(2, 5).toUpperCase();
@@ -165,9 +240,7 @@ export async function POST(req: NextRequest) {
       console.error("Confirmation email error (non-fatal):", emailErr);
     }
 
-    // 4. Payment processing — Asaas integration (coming soon)
-    // For now, return order saved confirmation.
-    // The Asaas charge creation will be added here once the API key is provided.
+    // 4. Payment processing via Asaas
     const response: any = {
       orderId: orderData.id,
       orderNumber,
@@ -176,19 +249,122 @@ export async function POST(req: NextRequest) {
       status: "pending",
     };
 
-    // Placeholder responses so the checkout UI works correctly
-    if (paymentMethod === "pix") {
-      response.pixQrCode = "AGUARDANDO_INTEGRACAO_ASAAS";
-      response.pixQrCodeBase64 = null;
-      response.pixMessage = "Integração PIX em configuração. Em breve você receberá o QR Code por email.";
-    }
+    if (process.env.ASAAS_API_KEY) {
+      try {
+        const asaasCustomerId = await ensureAsaasCustomer({
+          name: customer.name,
+          email: customer.email,
+          cpf: customer.cpf,
+          phone: customer.phone,
+          cep: customer.cep,
+          street: customer.street,
+          number: customer.number,
+          complement: customer.complement,
+          neighborhood: customer.neighborhood,
+        });
 
-    if (paymentMethod === "boleto") {
-      response.boletoMessage = "Boleto em configuração. Em breve você receberá o link por email.";
-    }
+        const chargeBase: Record<string, any> = {
+          customer: asaasCustomerId,
+          value: total,
+          description: `Pedido ${orderNumber} — Feminnita`,
+          externalReference: orderData.id,
+          postalService: false,
+        };
 
-    if (paymentMethod === "card") {
-      response.cardApproved = true;
+        if (paymentMethod === "pix") {
+          const charge = await asaasPost("/payments", {
+            ...chargeBase,
+            billingType: "PIX",
+            dueDate: dueDateStr(1),
+          });
+
+          const pixData = await asaasGet(`/payments/${charge.id}/pixQrCode`);
+
+          // Persist Asaas charge ID
+          await supabase
+            .from("orders")
+            .update({ asaas_payment_id: charge.id })
+            .eq("id", orderData.id);
+
+          response.pixQrCode = pixData.payload;
+          response.pixQrCodeBase64 = pixData.encodedImage;
+          response.pixExpiration = pixData.expirationDate;
+          response.asaasChargeId = charge.id;
+
+        } else if (paymentMethod === "boleto") {
+          const charge = await asaasPost("/payments", {
+            ...chargeBase,
+            billingType: "BOLETO",
+            dueDate: dueDateStr(3),
+          });
+
+          await supabase
+            .from("orders")
+            .update({ asaas_payment_id: charge.id })
+            .eq("id", orderData.id);
+
+          response.boletoUrl = charge.bankSlipUrl;
+          response.boletoBarCode = charge.nossoNumero || null;
+          response.boletoDueDate = charge.dueDate;
+          response.asaasChargeId = charge.id;
+
+        } else if (paymentMethod === "card") {
+          const { card } = body; // { holderName, number, expiryMonth, expiryYear, ccv }
+          const numInstallments = parseInt(installments) || 1;
+
+          const charge = await asaasPost("/payments", {
+            ...chargeBase,
+            billingType: "CREDIT_CARD",
+            dueDate: dueDateStr(0),
+            installmentCount: numInstallments > 1 ? numInstallments : undefined,
+            installmentValue: numInstallments > 1 ? +(total / numInstallments).toFixed(2) : undefined,
+            creditCard: {
+              holderName: card?.holderName || customer.name,
+              number: card?.number?.replace(/\s/g, ""),
+              expiryMonth: card?.expiryMonth,
+              expiryYear: card?.expiryYear,
+              ccv: card?.ccv,
+            },
+            creditCardHolderInfo: {
+              name: customer.name,
+              email: customer.email,
+              cpfCnpj: (customer.cpf || "").replace(/\D/g, ""),
+              postalCode: (customer.cep || "").replace(/\D/g, ""),
+              addressNumber: customer.number || "S/N",
+              phone: (customer.phone || "").replace(/\D/g, ""),
+            },
+          });
+
+          await supabase
+            .from("orders")
+            .update({
+              asaas_payment_id: charge.id,
+              payment_status: charge.status === "CONFIRMED" ? "paid" : "pending",
+            })
+            .eq("id", orderData.id);
+
+          response.cardApproved = charge.status === "CONFIRMED";
+          response.cardStatus = charge.status;
+          response.asaasChargeId = charge.id;
+          if (charge.status === "CONFIRMED") response.status = "paid";
+        }
+      } catch (asaasErr: any) {
+        console.error("Asaas error (non-fatal, order saved):", asaasErr);
+        // Order is saved — return it without payment data; webhook will update later
+        response.paymentError = asaasErr.message;
+      }
+    } else {
+      // No API key yet — return friendly placeholders
+      if (paymentMethod === "pix") {
+        response.pixQrCode = null;
+        response.pixMessage = "PIX em configuração — você receberá o QR Code por email em breve.";
+      }
+      if (paymentMethod === "boleto") {
+        response.boletoMessage = "Boleto em configuração — link chegará por email em breve.";
+      }
+      if (paymentMethod === "card") {
+        response.cardApproved = true;
+      }
     }
 
     return NextResponse.json(response);
