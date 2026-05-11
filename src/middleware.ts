@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const protectedRoutes = ["/minha-conta", "/meus-pedidos", "/favoritos"];
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   try {
@@ -36,7 +36,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
   } catch {
-    // Se Supabase falhar, continua sem bloquear a rota
+    // Se Supabase falhar, continua sem bloquear
   }
 
   return supabaseResponse;
