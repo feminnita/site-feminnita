@@ -5,6 +5,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Newsletter } from "@/components/Newsletter";
 import { InstagramFeed } from "@/components/InstagramFeed";
+import { HeroCarousel } from "@/components/HeroCarousel";
 import productsData from "@/data/products.json";
 
 export default function Home() {
@@ -12,15 +13,8 @@ export default function Home() {
     <div className="min-h-screen">
       <Header />
 
-      {/* Hero Banner */}
-      <section className="relative h-[600px] bg-gray-200">
-        <Image
-          src="https://ext.same-assets.com/2738959979/2302845870.webp"
-          alt="Banner"
-          fill
-          className="object-cover"
-        />
-      </section>
+      {/* Hero Carousel */}
+      <HeroCarousel />
 
       {/* Lançamentos */}
       <section className="container mx-auto px-4 py-16">
