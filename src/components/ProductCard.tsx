@@ -174,7 +174,7 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Add to Cart Button */}
         <button
           onClick={addToCart}
-          className="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 mt-3"
+          className="w-full bg-[#8C2F39] text-[#FAF6F2] py-3 rounded-lg font-medium hover:bg-[#7a2832] transition-colors flex items-center justify-center gap-2 mt-3"
         >
           <ShoppingCart size={18} />
           Adicionar ao Carrinho
@@ -182,9 +182,9 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* Virtual Fitting Room Button */}
         <Link href={`/provador?produto=${product.id}`}>
-          <button className="w-full mt-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2">
+          <button className="w-full mt-2 border-2 border-[#8C2F39] text-[#8C2F39] py-3 rounded-lg font-medium hover:bg-[#8C2F39] hover:text-[#FAF6F2] transition-all flex items-center justify-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            Experimentar Virtual
+            Provador Virtual
           </button>
         </Link>
       </div>
