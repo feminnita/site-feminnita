@@ -179,6 +179,14 @@ export function ProductCard({ product }: ProductCardProps) {
           <ShoppingCart size={18} />
           Adicionar ao Carrinho
         </button>
+
+        {/* Virtual Fitting Room Button */}
+        <Link href={`/provador?produto=${product.id}`}>
+          <button className="w-full mt-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Experimentar Virtual
+          </button>
+        </Link>
       </div>
     </div>
   );
