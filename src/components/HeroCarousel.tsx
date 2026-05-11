@@ -89,8 +89,10 @@ export function HeroCarousel() {
             src={slide.src}
             alt={slide.alt}
             fill
+            sizes="100vw"
             className="object-cover"
             priority={current === 0}
+            quality={85}
           />
         ) : (
           <video

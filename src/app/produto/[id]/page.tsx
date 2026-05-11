@@ -205,8 +205,10 @@ export default function ProductPage() {
                 src={product.images[selectedImage]}
                 alt={product.name}
                 fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover"
                 priority
+                quality={85}
               />
             </div>
             {product.images.length > 1 && (
@@ -225,6 +227,7 @@ export default function ProductPage() {
                       src={image}
                       alt={`${product.name} ${index + 1}`}
                       fill
+                      sizes="128px"
                       className="object-cover"
                     />
                   </button>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, ShoppingCart, Plus, Minus } from "lucide-react";
+import { Heart, ShoppingCart, Plus, Minus, Check } from "lucide-react";
 
 interface ProductCardProps {
   product: {
@@ -38,30 +38,23 @@ export function ProductCard({ product }: ProductCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedColor, setSelectedColor] = useState(product.colors[0] || "");
   const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
 
   const addToCart = () => {
-    const cartItem = {
-      ...product,
-      selectedColor,
-      quantity,
-    };
-
+    const cartItem = { ...product, selectedColor, quantity };
     const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
     const existingItemIndex = existingCart.findIndex(
-      (item: any) =>
-        item.id === product.id && item.selectedColor === selectedColor
+      (item: any) => item.id === product.id && item.selectedColor === selectedColor
     );
-
     if (existingItemIndex > -1) {
       existingCart[existingItemIndex].quantity += quantity;
     } else {
       existingCart.push(cartItem);
     }
-
     localStorage.setItem("cart", JSON.stringify(existingCart));
     window.dispatchEvent(new Event("cartUpdated"));
-
-    alert(`${quantity}x ${product.name} (${selectedColor}) adicionado ao carrinho!`);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
   };
 
   return (
@@ -74,13 +67,10 @@ export function ProductCard({ product }: ProductCardProps) {
       <Link href={`/produto/${product.id}`}>
         <div className="relative aspect-[2/3] overflow-hidden bg-gray-100 mb-3">
           <Image
-            src={
-              isHovered && product.images[1]
-                ? product.images[1]
-                : product.images[0]
-            }
+            src={isHovered && product.images[1] ? product.images[1] : product.images[0]}
             alt={product.name}
             fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover transition-opacity duration-300"
           />
 
@@ -174,10 +164,14 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Add to Cart Button */}
         <button
           onClick={addToCart}
-          className="w-full bg-[#8C2F39] text-[#FAF6F2] py-3 rounded-lg font-medium hover:bg-[#7a2832] transition-colors flex items-center justify-center gap-2 mt-3"
+          className={`w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 mt-3 ${
+            added
+              ? "bg-green-600 text-white"
+              : "bg-[#8C2F39] text-[#FAF6F2] hover:bg-[#7a2832]"
+          }`}
         >
-          <ShoppingCart size={18} />
-          Adicionar ao Carrinho
+          {added ? <Check size={18} /> : <ShoppingCart size={18} />}
+          {added ? "Adicionado!" : "Adicionar ao Carrinho"}
         </button>
 
         {/* Virtual Fitting Room Button */}
