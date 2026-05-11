@@ -12,16 +12,24 @@ import {
   Users,
   ChevronRight,
   LogOut,
+  Megaphone,
+  Truck,
+  BarChart2,
+  ShoppingBag,
 } from "lucide-react";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/vendas", label: "Vendas", icon: BarChart2 },
   { href: "/admin/produtos", label: "Produtos", icon: Package },
-  { href: "/admin/categorias", label: "Categorias", icon: Tag },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
+  { href: "/admin/carrinhos", label: "Carrinhos Abandonados", icon: ShoppingBag },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
-  { href: "/admin/slides", label: "Carrossel Hero", icon: Image },
+  { href: "/admin/categorias", label: "Categorias", icon: Tag },
   { href: "/admin/cupons", label: "Cupons", icon: Tag },
+  { href: "/admin/marketing", label: "Marketing", icon: Megaphone },
+  { href: "/admin/frete", label: "Frete", icon: Truck },
+  { href: "/admin/slides", label: "Carrossel Hero", icon: Image },
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
 ];
 
