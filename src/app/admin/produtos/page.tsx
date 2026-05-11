@@ -7,6 +7,8 @@ import {
   Plus, Search, Edit, Trash2, Save, X, Package,
   ChevronLeft, Star, Sparkles, TrendingUp, Eye, EyeOff,
   Weight, Ruler, Palette, Tag, Upload, Globe, Filter,
+  LayoutGrid, List, ArrowUpDown, CheckSquare, Square,
+  Download,
 } from "lucide-react";
 
 const DEFAULT_SIZES = ["PP", "P", "M", "G", "GG", "XG", "Único"];
@@ -79,6 +81,12 @@ export default function ProdutosPage() {
   // List filters
   const [filterCategory, setFilterCategory] = useState("");
   const [filterStatus, setFilterStatus] = useState<"" | "active" | "inactive">("");
+  // View mode & sort
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+  const [sortBy, setSortBy] = useState<"created_at" | "name" | "base_price" | "stock">("created_at");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  // Bulk selection
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const supabase = createClient();
 
@@ -111,13 +119,63 @@ export default function ProdutosPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const filtered = products.filter((p) => {
-    if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !(p.code || "").toLowerCase().includes(search.toLowerCase())) return false;
-    if (filterCategory && p.category_id !== filterCategory) return false;
-    if (filterStatus === "active" && !p.active) return false;
-    if (filterStatus === "inactive" && p.active) return false;
-    return true;
+  const filtered = products
+    .filter((p) => {
+      if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !(p.code || "").toLowerCase().includes(search.toLowerCase())) return false;
+      if (filterCategory && p.category_id !== filterCategory) return false;
+      if (filterStatus === "active" && !p.active) return false;
+      if (filterStatus === "inactive" && p.active) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      let va: any = a[sortBy], vb: any = b[sortBy];
+      if (typeof va === "string") va = va.toLowerCase();
+      if (typeof vb === "string") vb = vb.toLowerCase();
+      if (va < vb) return sortDir === "asc" ? -1 : 1;
+      if (va > vb) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  const toggleSort = (col: typeof sortBy) => {
+    if (sortBy === col) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortBy(col); setSortDir("asc"); }
+  };
+
+  const toggleSelect = (id: string) => setSelected(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
   });
+
+  const selectAll = () => setSelected(
+    selected.size === filtered.length ? new Set() : new Set(filtered.map(p => p.id))
+  );
+
+  const bulkActivate = async (active: boolean) => {
+    await Promise.all([...selected].map(id => supabase.from("products").update({ active }).eq("id", id)));
+    setSelected(new Set());
+    load();
+  };
+
+  const bulkDelete = async () => {
+    if (!confirm(`Excluir ${selected.size} produto(s)?`)) return;
+    await Promise.all([...selected].map(id => supabase.from("products").delete().eq("id", id)));
+    setSelected(new Set());
+    load();
+  };
+
+  const exportCSV = () => {
+    const rows = [
+      ["Nome", "Código", "Preço", "PIX", "Estoque", "Status", "Tamanhos", "Cores"],
+      ...filtered.map(p => [
+        p.name, p.code || "", p.base_price, p.pix_price ?? (p.base_price * 0.9).toFixed(2),
+        p.stock, p.active ? "Ativo" : "Inativo",
+        (p.sizes || []).join("/"), (p.colors || []).join("/"),
+      ])
+    ];
+    const blob = new Blob(["﻿" + rows.map(r => r.join(";")).join("\n")], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "produtos.csv"; a.click();
+  };
 
   const openNew = () => {
     setEditing(emptyProduct());
@@ -626,54 +684,75 @@ export default function ProdutosPage() {
   // ── LIST VIEW ──────────────────────────────────────────────────────────────
   return (
     <div className="p-6">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Produtos</h1>
           <p className="text-gray-500 mt-1">{products.length} produtos cadastrados</p>
         </div>
-        <button onClick={openNew} className="flex items-center gap-2 bg-[#8C2F39] text-white px-5 py-3 rounded-lg font-semibold hover:bg-[#7a2832]">
-          <Plus size={18} /> Novo Produto
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={exportCSV} className="flex items-center gap-1.5 border border-gray-200 bg-white text-gray-600 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-50">
+            <Download size={15} /> CSV
+          </button>
+          <button onClick={openNew} className="flex items-center gap-2 bg-[#8C2F39] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#7a2832]">
+            <Plus size={18} /> Novo Produto
+          </button>
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-3">
+      {/* Filters bar */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4 flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Buscar por nome ou código..."
             className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#8C2F39]"
           />
         </div>
-        <select
-          value={filterCategory}
-          onChange={(e) => setFilterCategory(e.target.value)}
-          className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#8C2F39] text-gray-600"
-        >
+        <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}
+          className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#8C2F39] text-gray-600">
           <option value="">Todas as categorias</option>
           {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value as "" | "active" | "inactive")}
-          className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#8C2F39] text-gray-600"
-        >
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as "" | "active" | "inactive")}
+          className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#8C2F39] text-gray-600">
           <option value="">Todos os status</option>
           <option value="active">Ativos</option>
           <option value="inactive">Inativos</option>
         </select>
         {(search || filterCategory || filterStatus) && (
-          <button
-            onClick={() => { setSearch(""); setFilterCategory(""); setFilterStatus(""); }}
-            className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 px-2"
-          >
+          <button onClick={() => { setSearch(""); setFilterCategory(""); setFilterStatus(""); }}
+            className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 px-2">
             <X size={14} /> Limpar
           </button>
         )}
-        <span className="ml-auto text-sm text-gray-400 self-center">{filtered.length} produto{filtered.length !== 1 ? "s" : ""}</span>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-sm text-gray-400">{filtered.length} produto{filtered.length !== 1 ? "s" : ""}</span>
+          {/* View toggle */}
+          <div className="flex border border-gray-200 rounded-lg overflow-hidden">
+            <button onClick={() => setViewMode("list")} className={`p-2 ${viewMode === "list" ? "bg-gray-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+              <List size={15} />
+            </button>
+            <button onClick={() => setViewMode("grid")} className={`p-2 ${viewMode === "grid" ? "bg-gray-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+              <LayoutGrid size={15} />
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div className="bg-gray-900 text-white rounded-xl px-5 py-3 mb-4 flex items-center gap-4">
+          <span className="text-sm font-medium">{selected.size} selecionado{selected.size !== 1 ? "s" : ""}</span>
+          <div className="flex items-center gap-2 ml-auto">
+            <button onClick={() => bulkActivate(true)} className="text-xs bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded-lg">Ativar</button>
+            <button onClick={() => bulkActivate(false)} className="text-xs bg-yellow-600 hover:bg-yellow-700 px-3 py-1.5 rounded-lg">Desativar</button>
+            <button onClick={bulkDelete} className="text-xs bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg">Excluir</button>
+            <button onClick={() => setSelected(new Set())} className="text-xs text-gray-400 hover:text-white px-2 ml-1"><X size={14} /></button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-20">
@@ -684,54 +763,131 @@ export default function ProdutosPage() {
           <Package size={56} className="mx-auto mb-4" />
           <p className="text-lg font-medium">Nenhum produto encontrado</p>
         </div>
+      ) : viewMode === "list" ? (
+        /* ── TABLE VIEW ── */
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50">
+              <tr className="text-xs text-gray-500">
+                <th className="w-10 px-4 py-3">
+                  <button onClick={selectAll}>
+                    {selected.size === filtered.length && filtered.length > 0
+                      ? <CheckSquare size={16} className="text-[#8C2F39]" />
+                      : <Square size={16} className="text-gray-400" />}
+                  </button>
+                </th>
+                <th className="text-left px-3 py-3 w-12"></th>
+                <th className="text-left px-3 py-3 cursor-pointer hover:text-gray-700" onClick={() => toggleSort("name")}>
+                  <span className="flex items-center gap-1">Nome <ArrowUpDown size={12} /></span>
+                </th>
+                <th className="text-left px-3 py-3 hidden md:table-cell">Código</th>
+                <th className="text-left px-3 py-3 hidden lg:table-cell">Categoria</th>
+                <th className="text-right px-3 py-3 cursor-pointer hover:text-gray-700" onClick={() => toggleSort("base_price")}>
+                  <span className="flex items-center justify-end gap-1">Preço <ArrowUpDown size={12} /></span>
+                </th>
+                <th className="text-right px-3 py-3 cursor-pointer hover:text-gray-700 hidden md:table-cell" onClick={() => toggleSort("stock")}>
+                  <span className="flex items-center justify-end gap-1">Estoque <ArrowUpDown size={12} /></span>
+                </th>
+                <th className="text-center px-3 py-3">Status</th>
+                <th className="px-3 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map(product => {
+                const imgs = Array.isArray(product.images) ? product.images : [];
+                const catName = categories.find(c => c.id === product.category_id)?.name;
+                const isSelected = selected.has(product.id);
+                return (
+                  <tr key={product.id} className={`hover:bg-gray-50 ${isSelected ? "bg-rose-50" : ""}`}>
+                    <td className="px-4 py-3">
+                      <button onClick={() => toggleSelect(product.id)}>
+                        {isSelected ? <CheckSquare size={16} className="text-[#8C2F39]" /> : <Square size={16} className="text-gray-300" />}
+                      </button>
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="w-10 h-12 bg-gray-100 rounded-lg overflow-hidden relative shrink-0">
+                        {imgs[0]
+                          ? <Image src={imgs[0]} alt={product.name} fill className="object-cover" />
+                          : <Package size={16} className="text-gray-300 absolute inset-0 m-auto" />}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3">
+                      <p className="font-medium text-gray-900 line-clamp-1">{product.name}</p>
+                      <div className="flex gap-1 mt-0.5">
+                        {product.is_new && <span className="text-[10px] bg-[#8C2F39] text-white px-1.5 py-0.5 rounded font-semibold">NOVO</span>}
+                        {product.featured && <span className="text-[10px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-semibold">DESTAQUE</span>}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 text-gray-400 text-xs hidden md:table-cell">{product.code || "—"}</td>
+                    <td className="px-3 py-3 text-gray-500 text-xs hidden lg:table-cell">{catName || "—"}</td>
+                    <td className="px-3 py-3 text-right">
+                      <p className="font-semibold text-gray-900">R$ {product.base_price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                      <p className="text-xs text-gray-400">PIX R$ {(product.pix_price ?? product.base_price * 0.9).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                    </td>
+                    <td className="px-3 py-3 text-right text-gray-700 hidden md:table-cell">
+                      <span className={product.stock === 0 ? "text-red-500 font-medium" : ""}>{product.stock}</span>
+                    </td>
+                    <td className="px-3 py-3 text-center">
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${product.active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                        {product.active ? "Ativo" : "Inativo"}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex items-center gap-1 justify-end">
+                        <button onClick={() => openEdit(product)} className="p-1.5 hover:bg-gray-100 rounded-lg" title="Editar">
+                          <Edit size={14} className="text-gray-500" />
+                        </button>
+                        <button onClick={() => toggleActive(product)} className="p-1.5 hover:bg-gray-100 rounded-lg" title={product.active ? "Desativar" : "Ativar"}>
+                          {product.active ? <Eye size={14} className="text-green-600" /> : <EyeOff size={14} className="text-gray-400" />}
+                        </button>
+                        <button onClick={() => handleDelete(product.id)} className="p-1.5 hover:bg-red-50 rounded-lg" title="Excluir">
+                          <Trash2 size={14} className="text-red-400" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       ) : (
+        /* ── GRID VIEW ── */
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((product) => {
             const imgs = Array.isArray(product.images) ? product.images : [];
+            const isSelected = selected.has(product.id);
             return (
-              <div key={product.id} className={`bg-white rounded-xl shadow-sm border overflow-hidden ${product.active ? "border-gray-100" : "border-gray-200 opacity-60"}`}>
+              <div key={product.id} className={`bg-white rounded-xl shadow-sm border overflow-hidden ${isSelected ? "ring-2 ring-[#8C2F39]" : ""} ${product.active ? "border-gray-100" : "border-gray-200 opacity-60"}`}>
                 <div className="relative aspect-[3/4] bg-gray-100">
-                  {imgs[0] ? (
-                    <Image src={imgs[0]} alt={product.name} fill className="object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Package size={40} className="text-gray-300" />
-                    </div>
+                  <button onClick={() => toggleSelect(product.id)} className="absolute top-2 right-2 z-10 p-1 bg-white/80 rounded-lg">
+                    {isSelected ? <CheckSquare size={16} className="text-[#8C2F39]" /> : <Square size={16} className="text-gray-400" />}
+                  </button>
+                  {imgs[0] ? <Image src={imgs[0]} alt={product.name} fill className="object-cover" /> : (
+                    <div className="w-full h-full flex items-center justify-center"><Package size={40} className="text-gray-300" /></div>
                   )}
-                  {!product.active && (
-                    <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-                      <EyeOff size={24} className="text-gray-500" />
-                    </div>
-                  )}
+                  {!product.active && <div className="absolute inset-0 bg-white/60 flex items-center justify-center"><EyeOff size={24} className="text-gray-500" /></div>}
                   <div className="absolute top-2 left-2 flex flex-col gap-1">
                     {product.is_new && <span className="bg-[#8C2F39] text-white text-xs px-2 py-0.5 rounded font-semibold">NOVO</span>}
                     {product.featured && <span className="bg-[#D4A956] text-white text-xs px-2 py-0.5 rounded font-semibold">DESTAQUE</span>}
                   </div>
                   {product.sizes?.length > 0 && (
                     <div className="absolute bottom-2 left-2 flex gap-1 flex-wrap">
-                      {product.sizes.slice(0, 4).map((s) => (
-                        <span key={s} className="bg-white/90 text-gray-700 text-[10px] px-1.5 py-0.5 rounded font-medium">{s}</span>
-                      ))}
+                      {product.sizes.slice(0, 4).map(s => <span key={s} className="bg-white/90 text-gray-700 text-[10px] px-1.5 py-0.5 rounded font-medium">{s}</span>)}
                     </div>
                   )}
                 </div>
                 <div className="p-4">
                   {product.code && <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">{product.code}</p>}
                   <h3 className="font-semibold text-sm mb-1 line-clamp-2">{product.name}</h3>
-                  {product.colors?.length > 0 && (
-                    <p className="text-xs text-gray-400 mb-1">{product.colors.length} cor{product.colors.length > 1 ? "es" : ""}</p>
-                  )}
-                  <p className="text-base font-bold text-[#8C2F39]">
-                    R$ {product.base_price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    PIX: R$ {(product.pix_price ?? product.base_price * 0.9).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </p>
+                  {product.colors?.length > 0 && <p className="text-xs text-gray-400 mb-1">{product.colors.length} cor{product.colors.length > 1 ? "es" : ""}</p>}
+                  <p className="text-base font-bold text-[#8C2F39]">R$ {product.base_price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+                  <p className="text-xs text-gray-500">PIX: R$ {(product.pix_price ?? product.base_price * 0.9).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
                   <div className="flex gap-2 mt-3">
                     <button onClick={() => openEdit(product)} className="flex-1 flex items-center justify-center gap-1 text-sm bg-gray-900 text-white py-2 rounded-lg hover:bg-gray-700">
                       <Edit size={14} /> Editar
                     </button>
-                    <button onClick={() => toggleActive(product)} className="p-2 border rounded-lg hover:bg-gray-50" title={product.active ? "Desativar" : "Ativar"}>
+                    <button onClick={() => toggleActive(product)} className="p-2 border rounded-lg hover:bg-gray-50">
                       {product.active ? <Eye size={14} className="text-green-600" /> : <EyeOff size={14} className="text-gray-400" />}
                     </button>
                     <button onClick={() => handleDelete(product.id)} className="p-2 border border-red-200 rounded-lg hover:bg-red-50">
