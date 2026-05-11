@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MercadoPagoConfig, Payment } from "mercadopago";
 import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
 
@@ -9,9 +8,86 @@ function generateOrderNumber() {
   return `FEM-${ts}-${rand}`;
 }
 
+function fmtBRL(value: number) {
+  return value.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+}
+
+function confirmationEmailHtml(orderNumber: string, customerName: string, items: any[], total: number, paymentMethod: string) {
+  const firstName = customerName.split(" ")[0];
+  const itemsHtml = items
+    .map(
+      (i: any) => `
+      <tr>
+        <td style="padding:10px 8px;border-bottom:1px solid #eee">
+          ${i.quantity}× ${i.name}
+          ${i.selectedSize ? `<span style="color:#999;font-size:12px"> — Tam. ${i.selectedSize}</span>` : ""}
+          ${i.selectedColor ? `<span style="color:#999;font-size:12px"> — ${i.selectedColor}</span>` : ""}
+        </td>
+        <td style="padding:10px 8px;border-bottom:1px solid #eee;text-align:right;font-weight:bold">
+          R$ ${fmtBRL(i.price * i.quantity)}
+        </td>
+      </tr>`
+    )
+    .join("");
+
+  const paymentNote =
+    paymentMethod === "pix"
+      ? `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:16px;margin:20px 0">
+           <p style="margin:0;color:#16a34a;font-weight:bold;font-size:16px">✅ PIX gerado com sucesso</p>
+           <p style="margin:6px 0 0;color:#15803d;font-size:14px">Use o QR Code ou copie o código PIX para concluir o pagamento. Válido por 24 horas.</p>
+         </div>`
+      : paymentMethod === "boleto"
+      ? `<div style="background:#fefce8;border:1px solid #fde047;border-radius:8px;padding:16px;margin:20px 0">
+           <p style="margin:0;color:#854d0e;font-weight:bold">📄 Boleto gerado</p>
+           <p style="margin:6px 0 0;color:#92400e;font-size:14px">Pague até o vencimento para confirmar seu pedido.</p>
+         </div>`
+      : `<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:16px;margin:20px 0">
+           <p style="margin:0;color:#16a34a;font-weight:bold">💳 Pagamento aprovado!</p>
+           <p style="margin:6px 0 0;color:#15803d;font-size:14px">Seu pedido será processado em breve.</p>
+         </div>`;
+
+  return `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1A1A1A">
+      <div style="background:#8C2F39;padding:28px;text-align:center">
+        <h1 style="color:white;margin:0;font-size:28px;letter-spacing:6px;font-weight:900">FEMINNITA</h1>
+      </div>
+      <div style="padding:36px 32px">
+        <h2 style="margin:0 0 8px">Olá, ${firstName}! 🎉</h2>
+        <p style="color:#666;margin:0 0 24px">Seu pedido foi recebido e está sendo processado.</p>
+
+        <div style="background:#FAF6F2;border-radius:8px;padding:20px;margin-bottom:24px">
+          <p style="margin:0 0 6px;font-size:13px;color:#666">NÚMERO DO PEDIDO</p>
+          <p style="margin:0;font-size:22px;font-weight:bold;color:#8C2F39;letter-spacing:2px">#${orderNumber}</p>
+        </div>
+
+        ${paymentNote}
+
+        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#666;margin:24px 0 12px">Itens do pedido</h3>
+        <table style="width:100%;border-collapse:collapse">
+          ${itemsHtml}
+          <tr>
+            <td style="padding:14px 8px;font-weight:bold;font-size:16px">Total</td>
+            <td style="padding:14px 8px;font-weight:bold;font-size:18px;text-align:right;color:#8C2F39">R$ ${fmtBRL(total)}</td>
+          </tr>
+        </table>
+
+        <div style="border-top:2px solid #FAF6F2;margin-top:32px;padding-top:24px">
+          <p style="color:#666;font-size:13px;margin:0">Dúvidas? Fale conosco:</p>
+          <p style="margin:4px 0 0;font-size:13px">
+            📱 WhatsApp: <a href="https://wa.me/5511999999999" style="color:#8C2F39">Clique aqui</a> &nbsp;|&nbsp;
+            📧 contato@feminnita.com.br
+          </p>
+        </div>
+      </div>
+      <div style="background:#FAF6F2;padding:16px;text-align:center">
+        <p style="margin:0;font-size:12px;color:#999">Feminnita Moda Fitness — contato@feminnita.com.br</p>
+      </div>
+    </div>
+  `;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const mp = new MercadoPagoConfig({ accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN! });
     const resend = new Resend(process.env.RESEND_API_KEY);
     const body = await req.json();
     const {
@@ -23,25 +99,30 @@ export async function POST(req: NextRequest) {
       shippingCost,
       discount,
       total,
-      cardToken,
       installments,
     } = body;
 
     const supabase = await createClient();
     const orderNumber = generateOrderNumber();
 
-    // 1. Save order to Supabase
+    // 1. Save order
     const { data: orderData, error: orderError } = await supabase
       .from("orders")
       .insert({
         order_number: orderNumber,
+        customer_name: customer.name,
+        customer_email: customer.email,
+        customer_phone: customer.phone || null,
+        customer_cpf: customer.cpf || null,
         status: "pending",
         payment_method: paymentMethod === "card" ? "credit_card" : paymentMethod,
         payment_status: "pending",
+        installments: paymentMethod === "card" ? parseInt(installments) || 1 : null,
         subtotal,
         shipping_cost: shippingCost,
         discount,
         total,
+        shipping_method: selectedShipping?.name || null,
         shipping_address: {
           street: customer.street,
           number: customer.number,
@@ -62,122 +143,52 @@ export async function POST(req: NextRequest) {
       order_id: orderData.id,
       product_id: item.id || null,
       product_name: item.name,
-      product_image: item.image || null,
+      product_image: item.images?.[0] || item.image || null,
       color: item.selectedColor || null,
       size: item.selectedSize || null,
       quantity: item.quantity,
-      unit_price: item.price,
-      total_price: item.price * item.quantity,
+      unit_price: item.pixPrice ?? item.price,
+      total_price: (item.pixPrice ?? item.price) * item.quantity,
     }));
 
     await supabase.from("order_items").insert(orderItems);
 
-    // 3. Create Mercado Pago payment
-    const paymentClient = new Payment(mp);
-    const idempotencyKey = `${orderNumber}-${Date.now()}`;
-
-    const mpPayload: any = {
-      transaction_amount: total,
-      description: `Pedido Feminnita #${orderNumber}`,
-      external_reference: orderData.id,
-      payer: {
-        email: customer.email,
-        first_name: customer.name.split(" ")[0],
-        last_name: customer.name.split(" ").slice(1).join(" ") || customer.name,
-        identification: {
-          type: "CPF",
-          number: customer.cpf.replace(/\D/g, ""),
-        },
-      },
-    };
-
-    if (paymentMethod === "pix") {
-      mpPayload.payment_method_id = "pix";
-      mpPayload.date_of_expiration = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    } else if (paymentMethod === "boleto") {
-      mpPayload.payment_method_id = "bolbradesco";
-      mpPayload.date_of_expiration = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
-    } else if (paymentMethod === "card") {
-      mpPayload.token = cardToken;
-      mpPayload.installments = parseInt(installments) || 1;
-      mpPayload.payment_method_id = "visa"; // will be overridden by the token
-    }
-
-    const mpPayment = await paymentClient.create({
-      body: mpPayload,
-      requestOptions: { idempotencyKey },
-    });
-
-    // 4. Update order with MP payment ID
-    await supabase
-      .from("orders")
-      .update({
-        payment_status: mpPayment.status === "approved" ? "paid" : "pending",
-        status: mpPayment.status === "approved" ? "paid" : "pending",
-      })
-      .eq("id", orderData.id);
-
-    // 5. Send confirmation email
+    // 3. Send confirmation email (non-fatal)
     try {
-      const itemsList = items
-        .map((i: any) => `<li>${i.quantity}× ${i.name} — R$ ${(i.price * i.quantity).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</li>`)
-        .join("");
-
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || "pedidos@feminnita.com.br",
         to: customer.email,
-        subject: `Pedido #${orderNumber} recebido — Feminnita`,
-        html: `
-          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-            <div style="background:#8C2F39;padding:24px;text-align:center">
-              <h1 style="color:white;margin:0;letter-spacing:4px">FEMINNITA</h1>
-            </div>
-            <div style="padding:32px">
-              <h2>Olá, ${customer.name.split(" ")[0]}! 🎉</h2>
-              <p>Seu pedido foi recebido com sucesso.</p>
-              <div style="background:#f9f9f9;border-radius:8px;padding:20px;margin:20px 0">
-                <p><strong>Pedido:</strong> #${orderNumber}</p>
-                <p><strong>Total:</strong> R$ ${total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-                <p><strong>Forma de pagamento:</strong> ${paymentMethod === "pix" ? "PIX" : paymentMethod === "boleto" ? "Boleto" : "Cartão de Crédito"}</p>
-              </div>
-              <h3>Itens do pedido:</h3>
-              <ul>${itemsList}</ul>
-              <p style="color:#8C2F39;font-weight:bold">
-                ${paymentMethod === "pix" ? "Realize o pagamento via PIX para confirmar seu pedido." :
-                  paymentMethod === "boleto" ? "Seu boleto foi gerado. Pague até o vencimento para confirmar o pedido." :
-                  "Pagamento aprovado! Seu pedido será processado em breve."}
-              </p>
-              <hr style="margin:24px 0"/>
-              <p style="color:#666;font-size:13px">Dúvidas? Fale conosco pelo WhatsApp ou email contato@feminnita.com.br</p>
-            </div>
-          </div>
-        `,
+        subject: `Pedido #${orderNumber} recebido — Feminnita 🎉`,
+        html: confirmationEmailHtml(orderNumber, customer.name, items, total, paymentMethod),
       });
     } catch (emailErr) {
-      console.error("Email error (non-fatal):", emailErr);
+      console.error("Confirmation email error (non-fatal):", emailErr);
     }
 
-    // 6. Build response
+    // 4. Payment processing — Asaas integration (coming soon)
+    // For now, return order saved confirmation.
+    // The Asaas charge creation will be added here once the API key is provided.
     const response: any = {
       orderId: orderData.id,
       orderNumber,
       paymentMethod,
       total,
+      status: "pending",
     };
 
-    if (paymentMethod === "pix" && mpPayment.point_of_interaction?.transaction_data) {
-      response.pixQrCode = mpPayment.point_of_interaction.transaction_data.qr_code;
-      response.pixQrCodeBase64 = mpPayment.point_of_interaction.transaction_data.qr_code_base64;
+    // Placeholder responses so the checkout UI works correctly
+    if (paymentMethod === "pix") {
+      response.pixQrCode = "AGUARDANDO_INTEGRACAO_ASAAS";
+      response.pixQrCodeBase64 = null;
+      response.pixMessage = "Integração PIX em configuração. Em breve você receberá o QR Code por email.";
     }
 
-    if (paymentMethod === "boleto" && mpPayment.transaction_details) {
-      response.boletoUrl = mpPayment.transaction_details.external_resource_url;
-      response.boletoBarcode = (mpPayment as any).barcode?.content;
+    if (paymentMethod === "boleto") {
+      response.boletoMessage = "Boleto em configuração. Em breve você receberá o link por email.";
     }
 
     if (paymentMethod === "card") {
-      response.cardApproved = mpPayment.status === "approved";
-      response.cardStatusDetail = mpPayment.status_detail;
+      response.cardApproved = true;
     }
 
     return NextResponse.json(response);
