@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/Header";
+import { JsonLd, productSchema, breadcrumbSchema } from "@/components/JsonLd";
 import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield, Check } from "lucide-react";
 import productsData from "@/data/products.json";
 
@@ -151,6 +152,12 @@ export default function ProductPage() {
 
   return (
     <div className="min-h-screen bg-white pb-24 md:pb-0">
+      <JsonLd data={productSchema(product)} />
+      <JsonLd data={breadcrumbSchema([
+        { name: "Home", url: "https://feminnita.com.br/" },
+        { name: product.category, url: `https://feminnita.com.br/categoria/${product.category}` },
+        { name: product.name, url: `https://feminnita.com.br/produto/${product.id}` },
+      ])} />
       <Header />
 
       {/* Toast */}

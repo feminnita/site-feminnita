@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductGridSkeleton } from "@/components/ProductCardSkeleton";
 import { Filter, X } from "lucide-react";
 import productsData from "@/data/products.json";
 
 export default function ProdutosPage() {
   const [products, setProducts] = useState(productsData);
   const [filteredProducts, setFilteredProducts] = useState(productsData);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
@@ -16,6 +18,12 @@ export default function ProdutosPage() {
   const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
   const [sortBy, setSortBy] = useState("relevance");
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    // Simula carregamento async — substituir por fetch Supabase quando migrar
+    const t = setTimeout(() => setLoading(false), 400);
+    return () => clearTimeout(t);
+  }, []);
 
   const categories = [
     { id: "all", name: "Todos os Produtos" },
@@ -127,6 +135,7 @@ export default function ProdutosPage() {
   const activeFiltersCount =
     (selectedCategory !== "all" ? 1 : 0) +
     selectedColors.length +
+    selectedSizes.length +
     (priceRange.min > 0 || priceRange.max < 1000 ? 1 : 0);
 
   return (
@@ -291,7 +300,9 @@ export default function ProdutosPage() {
               </p>
             </div>
 
-            {filteredProducts.length === 0 ? (
+            {loading ? (
+              <ProductGridSkeleton count={6} />
+            ) : filteredProducts.length === 0 ? (
               <div className="text-center py-16">
                 <p className="text-xl text-gray-400 mb-4">
                   Nenhum produto encontrado
