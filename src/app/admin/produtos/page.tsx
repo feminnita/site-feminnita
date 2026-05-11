@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   Plus, Search, Edit, Trash2, Save, X, Package,
   ChevronLeft, Star, Sparkles, TrendingUp, Eye, EyeOff,
-  Weight, Ruler, Palette, Tag,
+  Weight, Ruler, Palette, Tag, Upload, Globe, Filter,
 } from "lucide-react";
 
 const DEFAULT_SIZES = ["PP", "P", "M", "G", "GG", "XG", "Único"];
@@ -35,6 +35,8 @@ type Product = {
   colors: string[];
   sizes: string[];
   size_chart: Record<string, Record<string, string>>;
+  meta_title: string | null;
+  meta_description: string | null;
   created_at: string;
 };
 
@@ -54,6 +56,7 @@ function emptyProduct(): Omit<Product, "id" | "created_at"> {
     weight_kg: 0.3, pkg_height_cm: 5, pkg_width_cm: 15, pkg_length_cm: 20,
     colors: [], sizes: [],
     size_chart: {},
+    meta_title: null, meta_description: null,
   };
 }
 
@@ -71,8 +74,29 @@ export default function ProdutosPage() {
   const [colorInput, setColorInput] = useState("");
   // SKUs (size×color grid)
   const [skus, setSkus] = useState<Sku[]>([]);
+  // Image upload state
+  const [uploading, setUploading] = useState(false);
+  // List filters
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"" | "active" | "inactive">("");
 
   const supabase = createClient();
+
+  const uploadImages = async (files: FileList) => {
+    setUploading(true);
+    const urls: string[] = [];
+    for (const file of Array.from(files)) {
+      const ext = file.name.split(".").pop();
+      const path = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+      if (!error) {
+        const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+        urls.push(urlData.publicUrl);
+      }
+    }
+    setImagesInput(prev => [...prev.split("\n").filter(Boolean), ...urls].join("\n"));
+    setUploading(false);
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -87,10 +111,13 @@ export default function ProdutosPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    (p.code || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = products.filter((p) => {
+    if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !(p.code || "").toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterCategory && p.category_id !== filterCategory) return false;
+    if (filterStatus === "active" && !p.active) return false;
+    if (filterStatus === "inactive" && p.active) return false;
+    return true;
+  });
 
   const openNew = () => {
     setEditing(emptyProduct());
@@ -171,6 +198,8 @@ export default function ProdutosPage() {
       colors,
       sizes: editing.sizes || [],
       size_chart: editing.size_chart || {},
+      meta_title: editing.meta_title || null,
+      meta_description: editing.meta_description || null,
     };
 
     let productId = editing.id;
@@ -442,26 +471,96 @@ export default function ProdutosPage() {
           {/* ── IMAGENS ── */}
           <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
             <h3 className="font-semibold text-gray-700 mb-4">Imagens</h3>
-            <p className="text-xs text-gray-400 mb-2">Primeira linha = frente · Segunda linha = costas · demais = detalhes</p>
+            <p className="text-xs text-gray-400 mb-3">Primeira = frente · Segunda = costas · demais = detalhes</p>
+
+            {/* File upload */}
+            <label className={`flex items-center justify-center gap-2 w-full border-2 border-dashed rounded-xl py-5 cursor-pointer transition-colors ${uploading ? "border-gray-200 bg-gray-50" : "border-gray-300 hover:border-[#8C2F39] hover:bg-red-50/30"}`}>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                disabled={uploading}
+                onChange={(e) => e.target.files && uploadImages(e.target.files)}
+              />
+              <Upload size={18} className={uploading ? "text-gray-400 animate-pulse" : "text-gray-500"} />
+              <span className="text-sm text-gray-500">{uploading ? "Enviando..." : "Clique para enviar fotos"}</span>
+            </label>
+
+            <div className="flex items-center gap-3 my-3">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400">ou cole URLs</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
             <textarea
               value={imagesInput}
               onChange={(e) => setImagesInput(e.target.value)}
-              rows={5}
-              className="input font-mono text-sm"
-              placeholder={"https://exemplo.com/frente.jpg\nhttps://exemplo.com/costas.jpg\nhttps://exemplo.com/detalhe.jpg"}
+              rows={3}
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:border-[#8C2F39]"
+              placeholder={"https://exemplo.com/frente.jpg\nhttps://exemplo.com/costas.jpg"}
             />
             {imagesInput.split("\n").filter(Boolean).length > 0 && (
               <div className="flex flex-wrap gap-2 mt-3">
                 {imagesInput.split("\n").filter(Boolean).map((url, i) => (
-                  <div key={i} className="relative w-20 h-24 bg-gray-100 rounded-lg overflow-hidden">
+                  <div key={i} className="relative group w-20 h-24 bg-gray-100 rounded-lg overflow-hidden">
                     <Image src={url.trim()} alt="" fill className="object-cover" onError={() => {}} />
                     <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[9px] text-center py-0.5">
                       {i === 0 ? "Frente" : i === 1 ? "Costas" : `Foto ${i + 1}`}
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => setImagesInput(imagesInput.split("\n").filter((_, idx) => idx !== i).join("\n"))}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >✕</button>
                   </div>
                 ))}
               </div>
             )}
+          </section>
+
+          {/* ── SEO ── */}
+          <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2"><Globe size={16} /> SEO</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="label">URL (slug)</label>
+                <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden focus-within:border-[#8C2F39]">
+                  <span className="px-3 py-2 bg-gray-50 text-gray-400 text-sm border-r border-gray-200 whitespace-nowrap">/produto/</span>
+                  <input
+                    type="text"
+                    value={editing.slug}
+                    onChange={(e) => setEditing({ ...editing, slug: e.target.value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") })}
+                    className="flex-1 px-3 py-2 text-sm focus:outline-none"
+                    placeholder="nome-do-produto"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="label">Meta title</label>
+                <input
+                  type="text"
+                  value={editing.meta_title || ""}
+                  onChange={(e) => setEditing({ ...editing, meta_title: e.target.value || null })}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#8C2F39]"
+                  placeholder={editing.name || "Título para o Google"}
+                  maxLength={70}
+                />
+                <p className="text-xs text-gray-400 mt-1">{(editing.meta_title || "").length}/70 caracteres</p>
+              </div>
+              <div>
+                <label className="label">Meta description</label>
+                <textarea
+                  value={editing.meta_description || ""}
+                  onChange={(e) => setEditing({ ...editing, meta_description: e.target.value || null })}
+                  rows={2}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#8C2F39]"
+                  placeholder="Descrição que aparece no resultado de busca do Google"
+                  maxLength={160}
+                />
+                <p className="text-xs text-gray-400 mt-1">{(editing.meta_description || "").length}/160 caracteres</p>
+              </div>
+            </div>
           </section>
 
           {/* ── ESTOQUE GERAL + BADGES ── */}
@@ -519,7 +618,7 @@ export default function ProdutosPage() {
           </div>
         </div>
 
-        <style>{`.label{display:block;font-size:.75rem;font-weight:500;color:#374151;margin-bottom:.25rem}.input{width:100%;padding:.5rem 1rem;border:1px solid #e5e7eb;border-radius:.5rem;font-size:.875rem;outline:none}.input:focus{ring-color:#8C2F39;border-color:#8C2F39;box-shadow:0 0 0 2px rgba(140,47,57,.2)}`}</style>
+        <style>{`.label{display:block;font-size:.75rem;font-weight:500;color:#374151;margin-bottom:.25rem}.input{width:100%;padding:.5rem 1rem;border:1px solid #e5e7eb;border-radius:.5rem;font-size:.875rem;outline:none}.input:focus{border-color:#8C2F39;box-shadow:0 0 0 2px rgba(140,47,57,.15)}`}</style>
       </div>
     );
   }
@@ -537,17 +636,43 @@ export default function ProdutosPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-3">
+        <div className="relative flex-1 min-w-48">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nome ou código..."
-            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#8C2F39]"
+            className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#8C2F39]"
           />
         </div>
+        <select
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+          className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#8C2F39] text-gray-600"
+        >
+          <option value="">Todas as categorias</option>
+          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value as "" | "active" | "inactive")}
+          className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#8C2F39] text-gray-600"
+        >
+          <option value="">Todos os status</option>
+          <option value="active">Ativos</option>
+          <option value="inactive">Inativos</option>
+        </select>
+        {(search || filterCategory || filterStatus) && (
+          <button
+            onClick={() => { setSearch(""); setFilterCategory(""); setFilterStatus(""); }}
+            className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 px-2"
+          >
+            <X size={14} /> Limpar
+          </button>
+        )}
+        <span className="ml-auto text-sm text-gray-400 self-center">{filtered.length} produto{filtered.length !== 1 ? "s" : ""}</span>
       </div>
 
       {loading ? (
