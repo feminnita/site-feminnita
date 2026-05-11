@@ -76,8 +76,8 @@ export default function RootLayout({
           />
         </noscript>
 
-        {/* Hotjar */}
-        <Script id="hotjar" strategy="afterInteractive">
+        {/* Hotjar - Desabilitado temporariamente (adicione seu hjid no lugar de XXXXXX) */}
+        {/* <Script id="hotjar" strategy="afterInteractive">
           {`
             (function(h,o,t,j,a,r){
               h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
@@ -88,7 +88,7 @@ export default function RootLayout({
               a.appendChild(r);
             })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
           `}
-        </Script>
+        </Script> */}
 
         {/* Meta Tags for SEO */}
         <meta name="keywords" content="moda fitness, roupas fitness feminina, legging, top fitness, atacado fitness, shorts fitness" />
