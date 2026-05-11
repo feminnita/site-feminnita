@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
 
     if (paymentMethod === "boleto" && mpPayment.transaction_details) {
       response.boletoUrl = mpPayment.transaction_details.external_resource_url;
-      response.boletoBarcode = mpPayment.barcode?.content;
+      response.boletoBarcode = (mpPayment as any).barcode?.content;
     }
 
     if (paymentMethod === "card") {
