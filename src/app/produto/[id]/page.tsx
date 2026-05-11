@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/Header";
-import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield } from "lucide-react";
+import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield, Check } from "lucide-react";
 import productsData from "@/data/products.json";
 
 const colorMap: { [key: string]: string } = {
@@ -27,8 +27,26 @@ export default function ProductPage() {
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [toast, setToast] = useState("");
+  const [stickyVisible, setStickyVisible] = useState(false);
+  const mainCTARef = useRef<HTMLDivElement>(null);
 
   const product = productsData.find((p) => p.id === params.id);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 2800);
+  };
+
+  useEffect(() => {
+    if (!mainCTARef.current) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setStickyVisible(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    obs.observe(mainCTARef.current);
+    return () => obs.disconnect();
+  }, [product]);
 
   useEffect(() => {
     if (product) {
@@ -76,7 +94,7 @@ export default function ProductPage() {
 
   const handleAddToCart = () => {
     if (!selectedSize) {
-      alert("Por favor, selecione um tamanho");
+      showToast("Selecione um tamanho");
       return;
     }
 
@@ -128,12 +146,44 @@ export default function ProductPage() {
       });
     }
 
-    alert(`${quantity}x ${product.name} adicionado ao carrinho!`);
+    showToast(`${quantity}x adicionado ao carrinho!`);
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pb-24 md:pb-0">
       <Header />
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-gray-900 text-white px-5 py-3 rounded-full text-sm shadow-lg animate-fade-in">
+          <Check size={16} className="text-green-400" />
+          {toast}
+        </div>
+      )}
+
+      {/* Sticky CTA — mobile only */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white border-t shadow-lg px-4 py-3 transition-transform duration-300 ${
+          stickyVisible ? "translate-y-0" : "translate-y-full"
+        }`}
+        style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-gray-500 truncate">{product?.name}</p>
+            <p className="font-bold text-[#8C2F39]">
+              R$ {product?.pixPrice.toFixed(2).replace(".", ",")}
+            </p>
+          </div>
+          <button
+            onClick={handleAddToCart}
+            className="flex items-center gap-2 bg-[#8C2F39] text-white px-5 py-3 rounded-xl font-semibold text-sm active:scale-95 transition-transform"
+          >
+            <ShoppingCart size={18} />
+            Adicionar
+          </button>
+        </div>
+      </div>
 
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
@@ -283,7 +333,7 @@ export default function ProductPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4">
+            <div ref={mainCTARef} className="flex gap-4">
               <button
                 onClick={handleAddToCart}
                 className="flex-1 bg-[#8C2F39] text-[#FAF6F2] py-4 rounded-lg font-semibold hover:bg-[#7a2832] transition-colors flex items-center justify-center gap-2"
