@@ -3,15 +3,42 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const protectedRoutes = ["/minha-conta", "/meus-pedidos", "/favoritos"];
 
+// A/B test experiment definitions
+const EXPERIMENTS = [
+  {
+    id: "hero_cta",
+    variants: [
+      { id: "control", weight: 50 },   // CTA padrão
+      { id: "variant_a", weight: 50 }, // CTA alternativo
+    ],
+  },
+  {
+    id: "product_layout",
+    variants: [
+      { id: "control", weight: 50 },   // layout atual
+      { id: "variant_a", weight: 50 }, // layout com trust badges em destaque
+    ],
+  },
+];
+
+function assignVariant(variants: { id: string; weight: number }[]): string {
+  const rand = Math.random() * 100;
+  let acc = 0;
+  for (const v of variants) {
+    acc += v.weight;
+    if (rand < acc) return v.id;
+  }
+  return variants[variants.length - 1].id;
+}
+
 export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey =
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-  // Se as variáveis de ambiente não estiverem configuradas, passa sem bloquear
   if (!supabaseUrl || !supabaseKey) {
-    return NextResponse.next({ request });
+    return assignABCookies(request, NextResponse.next({ request }));
   }
 
   let supabaseResponse = NextResponse.next({ request });
@@ -42,11 +69,30 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
   } catch {
-    // Se Supabase falhar, continua sem bloquear
     return NextResponse.next({ request });
   }
 
-  return supabaseResponse;
+  return assignABCookies(request, supabaseResponse);
+}
+
+function assignABCookies(req: NextRequest, res: NextResponse): NextResponse {
+  const accept = req.headers.get("accept") || "";
+  if (!accept.includes("text/html")) return res;
+
+  for (const exp of EXPERIMENTS) {
+    const cookieName = `ab_${exp.id}`;
+    if (!req.cookies.has(cookieName)) {
+      const variant = assignVariant(exp.variants);
+      res.cookies.set(cookieName, variant, {
+        maxAge: 60 * 60 * 24 * 30,
+        httpOnly: false,
+        sameSite: "lax",
+        path: "/",
+      });
+    }
+  }
+
+  return res;
 }
 
 export const config = {
