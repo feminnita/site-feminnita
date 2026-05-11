@@ -16,6 +16,8 @@ import {
   Truck,
   BarChart2,
   ShoppingBag,
+  Mail,
+  Star,
 } from "lucide-react";
 
 const navItems = [
@@ -27,6 +29,8 @@ const navItems = [
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/categorias", label: "Categorias", icon: Tag },
   { href: "/admin/cupons", label: "Cupons", icon: Tag },
+  { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
+  { href: "/admin/avaliacoes", label: "Avaliações", icon: Star },
   { href: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { href: "/admin/frete", label: "Frete", icon: Truck },
   { href: "/admin/slides", label: "Carrossel Hero", icon: Image },
