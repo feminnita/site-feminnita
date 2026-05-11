@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Header } from "@/components/Header";
 import { ProductCard } from "@/components/ProductCard";
 import { Search } from "lucide-react";
 import productsData from "@/data/products.json";
 
-export default function BuscaPage() {
+function BuscaContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
 
@@ -104,5 +104,13 @@ export default function BuscaPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function BuscaPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center"><Search size={32} className="animate-pulse" /></div>}>
+      <BuscaContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -54,7 +54,7 @@ const sizeGuide = {
   ]
 };
 
-export default function ProvadorPage() {
+function ProvadorContent() {
   const searchParams = useSearchParams();
   const productId = searchParams.get("produto");
 
@@ -378,5 +378,13 @@ export default function ProvadorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProvadorPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p>Carregando...</p></div>}>
+      <ProvadorContent />
+    </Suspense>
   );
 }
