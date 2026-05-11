@@ -35,6 +35,7 @@ const navItems = [
   { href: "/admin/avaliacoes", label: "Avaliações", icon: Star },
   { href: "/admin/blog", label: "Blog", icon: BookOpen },
   { href: "/admin/lookbook", label: "Lookbook", icon: Camera },
+  { href: "/admin/estoque", label: "Estoque SKU", icon: Package },
   { href: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { href: "/admin/frete", label: "Frete", icon: Truck },
   { href: "/admin/slides", label: "Carrossel Hero", icon: Image },

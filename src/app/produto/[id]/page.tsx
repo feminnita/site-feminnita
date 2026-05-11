@@ -9,6 +9,7 @@ import { JsonLd, productSchema, breadcrumbSchema } from "@/components/JsonLd";
 import { CompleteOLook } from "@/components/CompleteOLook";
 import { ReviewSection } from "@/components/ReviewSection";
 import { SizeRecommender } from "@/components/SizeRecommender";
+import { StockIndicator } from "@/components/StockIndicator";
 import { PersonalizedRecommendations } from "@/components/PersonalizedRecommendations";
 import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield, Check } from "lucide-react";
 import productsData from "@/data/products.json";
@@ -316,6 +317,7 @@ export default function ProductPage() {
                   </button>
                 ))}
               </div>
+              <StockIndicator productId={product.id} selectedSize={selectedSize} selectedColor={selectedColor} />
               <SizeRecommender onSizeSelect={(size) => setSelectedSize(size)} />
             </div>
 
