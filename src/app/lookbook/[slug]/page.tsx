@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
+import { ShopTheLook } from "@/components/ShopTheLook";
 import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 
@@ -32,14 +33,18 @@ export default async function LookbookEntryPage({ params }: Props) {
 
   const { data: look } = await supabase
     .from("lookbook_entries")
-    .select("*, lookbook_products(product_id, products(id, name, pixPrice, images, category))")
+    .select("*, lookbook_products(product_id, hotspot_x, hotspot_y, products(id, name, pix_price, images, category))")
     .eq("slug", slug)
     .eq("published", true)
     .single();
 
   if (!look) notFound();
 
-  const products = look.lookbook_products?.map((lp: any) => lp.products).filter(Boolean) || [];
+  const products = (look.lookbook_products || [])
+    .map((lp: any) => lp.products ? { ...lp.products, hotspot_x: lp.hotspot_x, hotspot_y: lp.hotspot_y } : null)
+    .filter(Boolean);
+
+  const hasHotspots = products.some((p: any) => p.hotspot_x != null && p.hotspot_y != null);
 
   return (
     <div className="min-h-screen bg-white">
@@ -55,18 +60,24 @@ export default async function LookbookEntryPage({ params }: Props) {
         </nav>
 
         <div className="grid md:grid-cols-2 gap-12 mb-12">
-          <div className="relative aspect-[2/3] rounded-2xl overflow-hidden">
-            {look.cover_image && (
-              <Image
-                src={look.cover_image}
-                alt={look.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover"
-                priority
-              />
-            )}
-          </div>
+          {/* Image — with hotspots if available, plain otherwise */}
+          {look.cover_image && (
+            hasHotspots ? (
+              <ShopTheLook image={look.cover_image} alt={look.title} products={products} />
+            ) : (
+              <div className="relative aspect-[2/3] rounded-2xl overflow-hidden">
+                <Image
+                  src={look.cover_image}
+                  alt={look.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover"
+                  priority
+                />
+              </div>
+            )
+          )}
+
           <div className="flex flex-col justify-center">
             {look.season && (
               <p className="text-xs font-semibold text-[#8C2F39] uppercase tracking-widest mb-3">
@@ -89,6 +100,7 @@ export default async function LookbookEntryPage({ params }: Props) {
           </div>
         </div>
 
+        {/* Products grid (always shown below) */}
         {products.length > 0 && (
           <div>
             <h2 className="text-xl font-light mb-6">Peças do look</h2>
@@ -106,7 +118,7 @@ export default async function LookbookEntryPage({ params }: Props) {
                   </div>
                   <p className="text-sm font-medium truncate">{product.name}</p>
                   <p className="text-sm text-[#8C2F39] font-semibold">
-                    R$ {product.pixPrice.toFixed(2).replace(".", ",")}
+                    R$ {product.pix_price?.toFixed(2).replace(".", ",")}
                   </p>
                 </Link>
               ))}
