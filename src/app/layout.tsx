@@ -97,14 +97,6 @@ export default function RootLayout({
         <meta property="og:description" content="Moda fitness feminina com design inovador" />
         <meta property="og:type" content="website" />
 
-        <Script
-          crossOrigin="anonymous"
-          src="//unpkg.com/react-grab/dist/index.global.js"
-        />
-        <Script
-          crossOrigin="anonymous"
-          src="//unpkg.com/same-runtime/dist/index.global.js"
-        />
       </head>
       <body suppressHydrationWarning className="antialiased">
         {/* Google Tag Manager (noscript) */}
