@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
 import { useCep } from "@/hooks/useCep";
+import { trackBeginCheckout, trackAddShippingInfo, trackAddPaymentInfo, trackPurchase } from "@/lib/analytics";
 import {
   CreditCard, Barcode, QrCode, Truck, Lock,
   Loader2, AlertCircle, ChevronDown, ChevronUp, Check, ShieldCheck,
@@ -34,9 +35,19 @@ export default function CheckoutPage() {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     if (cart.length === 0) { router.push("/carrinho"); return; }
     setCartItems(cart);
+    // GA4: begin_checkout
+    const items = cart.map((i: any) => ({ id: i.id, name: i.name, category: i.category, price: i.pixPrice ?? i.price, quantity: i.quantity }));
+    const val = cart.reduce((s: number, i: any) => s + (i.pixPrice ?? i.price) * i.quantity, 0);
+    trackBeginCheckout(items, val);
   }, [router]);
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  const selectPayment = (method: string) => {
+    setPaymentMethod(method);
+    const items = cartItems.map((i: any) => ({ id: i.id, name: i.name, price: i.pixPrice ?? i.price, quantity: i.quantity }));
+    trackAddPaymentInfo(items, total, method === "pix" ? "PIX" : method === "card" ? "Cartão de Crédito" : "Boleto");
+  };
 
   const handleEmailBlur = (email: string) => {
     if (!email.includes("@")) return;
@@ -77,7 +88,12 @@ export default function CheckoutPage() {
       });
       const data = await res.json();
       setShippingOptions(data.options || []);
-      if (data.options?.[0]) setSelectedShipping(data.options[0]);
+      if (data.options?.[0]) {
+        setSelectedShipping(data.options[0]);
+        // GA4: add_shipping_info on first auto-selection
+        const items = cartItems.map((i: any) => ({ id: i.id, name: i.name, price: i.pixPrice ?? i.price, quantity: i.quantity }));
+        trackAddShippingInfo(items, subtotal, data.options[0].name);
+      }
     } catch {
       setShippingOptions([]);
     } finally {
@@ -129,11 +145,11 @@ export default function CheckoutPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao processar pedido");
 
-      if (typeof window !== "undefined") {
-        (window as any).gtag?.("event", "purchase", { transaction_id: data.orderNumber, value: total, currency: "BRL" });
-        (window as any).fbq?.("track", "Purchase", { value: total, currency: "BRL" });
-        (window as any).ttq?.track("PlaceAnOrder", { value: total, currency: "BRL" });
-      }
+      const analyticsItems = cartItems.map((i: any) => ({
+        id: i.id, name: i.name, category: i.category,
+        price: i.pixPrice ?? i.price, quantity: i.quantity,
+      }));
+      trackPurchase(data.orderNumber, analyticsItems, total, shippingCost, discount);
 
       localStorage.removeItem("cart");
       localStorage.removeItem("abandonedCart");
@@ -288,7 +304,7 @@ export default function CheckoutPage() {
                   paymentMethod === "pix" ? "border-green-500 bg-green-50" : "border-gray-200"
                 }`}>
                   <input type="radio" name="payment" value="pix" checked={paymentMethod === "pix"}
-                    onChange={() => setPaymentMethod("pix")} className="accent-green-600" />
+                    onChange={() => selectPayment("pix")} className="accent-green-600" />
                   <QrCode size={22} className={paymentMethod === "pix" ? "text-green-600" : "text-gray-400"} />
                   <div className="flex-1">
                     <p className="font-semibold">PIX</p>
@@ -309,7 +325,7 @@ export default function CheckoutPage() {
                     paymentMethod === id ? "border-[#8C2F39] bg-rose-50" : "border-gray-200"
                   }`}>
                     <input type="radio" name="payment" value={id} checked={paymentMethod === id}
-                      onChange={() => setPaymentMethod(id)} className="accent-[#8C2F39]" />
+                      onChange={() => selectPayment(id)} className="accent-[#8C2F39]" />
                     <Icon size={22} className={paymentMethod === id ? "text-[#8C2F39]" : "text-gray-400"} />
                     <div>
                       <p className="font-medium">{title}</p>

@@ -45,6 +45,7 @@ const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID;
 const TIKTOK_PIXEL_ID = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID;
 const GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+const HOTJAR_ID = process.env.NEXT_PUBLIC_HOTJAR_ID;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -89,6 +90,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GOOGLE_ADS_ID}');`}
             </Script>
           </>
+        )}
+
+        {/* Hotjar */}
+        {HOTJAR_ID && (
+          <Script id="hotjar" strategy="afterInteractive">
+            {`(function(h,o,t,j,a,r){h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};h._hjSettings={hjid:${HOTJAR_ID},hjsv:6};a=o.getElementsByTagName('head')[0];r=o.createElement('script');r.async=1;r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;a.appendChild(r);})(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');`}
+          </Script>
         )}
       </head>
       <body suppressHydrationWarning className={`antialiased font-sans`} style={{ fontFamily: "var(--font-montserrat), sans-serif" }}>
