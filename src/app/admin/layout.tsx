@@ -21,6 +21,7 @@ const navItems = [
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/slides", label: "Carrossel Hero", icon: Image },
+  { href: "/admin/cupons", label: "Cupons", icon: Tag },
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
 ];
 
