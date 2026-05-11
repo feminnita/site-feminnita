@@ -3,14 +3,10 @@ import { MercadoPagoConfig, Payment } from "mercadopago";
 import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
 
-const mp = new MercadoPagoConfig({
-  accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,
-});
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(req: NextRequest) {
   try {
+    const mp = new MercadoPagoConfig({ accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN! });
+    const resend = new Resend(process.env.RESEND_API_KEY);
     const body = await req.json();
 
     // MP sends notifications for different topics
