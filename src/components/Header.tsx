@@ -58,9 +58,6 @@ export function Header() {
                 </span>
               )}
             </Link>
-            <Link href="/admin" className="text-blue-600 font-semibold text-sm">
-              ADMIN
-            </Link>
           </div>
         </div>
       </div>

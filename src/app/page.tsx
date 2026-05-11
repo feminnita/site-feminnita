@@ -144,11 +144,6 @@ export default function Home() {
                 <li>Email: contato@feminnita.com</li>
                 <li>Seg-Sex: 9h às 18h</li>
               </ul>
-              <div className="mt-4">
-                <Link href="/admin" className="text-blue-600 font-semibold text-sm">
-                  🔐 Painel Admin
-                </Link>
-              </div>
             </div>
           </div>
 
