@@ -25,19 +25,19 @@ export function Header() {
   return (
     <header className="border-b bg-white sticky top-0 z-50">
       <div className="bg-gray-100 py-2 text-center text-sm">
-        10X SEM JUROS nos cartões de crédito
+        3X SEM JUROS nos cartões de crédito
       </div>
       <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between relative">
           <nav className="hidden md:flex gap-6 text-sm font-medium">
             <Link href="/produtos" className="hover:underline">PRODUTOS</Link>
             <Link href="/lancamentos" className="hover:underline">LANÇAMENTOS</Link>
             <Link href="/mais-vendidos" className="hover:underline">MAIS VENDIDOS</Link>
-            <Link href="/outlet" className="hover:underline">OUTLET</Link>
+            <Link href="/promocao" className="hover:underline">PROMOÇÃO</Link>
           </nav>
 
-          <Link href="/">
-            <h1 className="text-2xl font-light tracking-wider">feminnita</h1>
+          <Link href="/" className="absolute left-1/2 -translate-x-1/2">
+            <h1 className="text-2xl font-light tracking-wider text-[#8C2F39]">Feminnita</h1>
           </Link>
 
           <div className="flex items-center gap-4">
