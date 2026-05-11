@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Image from "next/image";
 import { Star, Check, X, Eye } from "lucide-react";
 
 type Review = {
@@ -12,6 +13,7 @@ type Review = {
   rating: number;
   title: string | null;
   body: string;
+  photos: string[] | null;
   approved: boolean;
   created_at: string;
   products: { name: string } | null;
@@ -176,6 +178,22 @@ export default function AdminAvaliacoesPage() {
               <p><span className="font-medium text-gray-600">Produto:</span> {selected.products?.name || "—"}</p>
               <p><span className="font-medium text-gray-600">Data:</span> {new Date(selected.created_at).toLocaleDateString("pt-BR")}</p>
             </div>
+            {/* Review photos */}
+            {selected.photos && selected.photos.length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-medium text-gray-600 mb-2">Fotos da avaliação</p>
+                <div className="flex gap-2 flex-wrap">
+                  {selected.photos.map((url, i) => (
+                    <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                      <div className="relative w-16 h-16 rounded-lg overflow-hidden border hover:opacity-80 transition-opacity">
+                        <Image src={url} alt={`Foto ${i + 1}`} fill className="object-cover" />
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {!selected.approved && (
               <div className="flex gap-2">
                 <button

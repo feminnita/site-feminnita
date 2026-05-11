@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { JsonLd, productSchema, breadcrumbSchema } from "@/components/JsonLd";
 import { CompleteOLook } from "@/components/CompleteOLook";
+import { ReviewSection } from "@/components/ReviewSection";
 import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield, Check } from "lucide-react";
 import productsData from "@/data/products.json";
 
@@ -433,6 +434,8 @@ export default function ProductPage() {
             <p className="text-gray-700">86% Poliamida, 14% Elastano</p>
           </div>
         </div>
+
+        <ReviewSection productId={product.id} />
       </div>
     </div>
   );
