@@ -5,31 +5,33 @@ import { useSearchParams } from "next/navigation";
 import { Header } from "@/components/Header";
 import { ProductCard } from "@/components/ProductCard";
 import { Search } from "lucide-react";
-import productsData from "@/data/products.json";
+import { fetchProducts, type StoreProduct } from "@/lib/products";
 
 function BuscaContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
 
   const [query, setQuery] = useState(initialQuery);
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<StoreProduct[]>([]);
+  const [allProducts, setAllProducts] = useState<StoreProduct[]>([]);
+
+  // Carrega todos os produtos do Supabase uma vez
+  useEffect(() => {
+    fetchProducts().then(setAllProducts).catch(() => {});
+  }, []);
 
   useEffect(() => {
-    if (query) {
-      searchProducts(query);
-    } else {
-      setResults([]);
-    }
-  }, [query]);
+    if (query) searchProducts(query);
+    else setResults([]);
+  }, [query, allProducts]);
 
   const searchProducts = (searchTerm: string) => {
-    const filtered = productsData.filter(
-      (product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setResults(filtered);
+    const term = searchTerm.toLowerCase();
+    setResults(allProducts.filter((p) =>
+      p.name.toLowerCase().includes(term) ||
+      p.code?.toLowerCase().includes(term) ||
+      p.category.toLowerCase().includes(term)
+    ));
   };
 
   const handleSearch = (e: React.FormEvent) => {

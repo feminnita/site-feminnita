@@ -5,27 +5,31 @@ import Link from "next/link";
 import { Header } from "@/components/Header";
 import { ProductCard } from "@/components/ProductCard";
 import { Heart } from "lucide-react";
-import productsData from "@/data/products.json";
+import { fetchProducts, type StoreProduct } from "@/lib/products";
 
 export default function FavoritosPage() {
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [favoriteProducts, setFavoriteProducts] = useState<any[]>([]);
+  const [favoriteProducts, setFavoriteProducts] = useState<StoreProduct[]>([]);
+  const [allProducts, setAllProducts] = useState<StoreProduct[]>([]);
 
   useEffect(() => {
-    loadFavorites();
+    fetchProducts().then((data) => {
+      setAllProducts(data);
+    }).catch(() => {});
 
     const handleFavoritesUpdate = () => loadFavorites();
     window.addEventListener("favoritesUpdated", handleFavoritesUpdate);
-
     return () => window.removeEventListener("favoritesUpdated", handleFavoritesUpdate);
   }, []);
+
+  useEffect(() => {
+    if (allProducts.length) loadFavorites();
+  }, [allProducts]);
 
   const loadFavorites = () => {
     const saved = JSON.parse(localStorage.getItem("favorites") || "[]");
     setFavorites(saved);
-
-    const products = productsData.filter((p) => saved.includes(p.id));
-    setFavoriteProducts(products);
+    setFavoriteProducts(allProducts.filter((p) => saved.includes(p.id)));
   };
 
   const clearAll = () => {

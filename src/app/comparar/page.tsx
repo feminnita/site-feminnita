@@ -5,27 +5,31 @@ import { Header } from "@/components/Header";
 import Link from "next/link";
 import Image from "next/image";
 import { X, ShoppingCart } from "lucide-react";
-import productsData from "@/data/products.json";
+import { fetchProducts, type StoreProduct } from "@/lib/products";
 
 export default function CompararPage() {
   const [compareIds, setCompareIds] = useState<string[]>([]);
-  const [compareProducts, setCompareProducts] = useState<any[]>([]);
+  const [compareProducts, setCompareProducts] = useState<StoreProduct[]>([]);
+  const [allProducts, setAllProducts] = useState<StoreProduct[]>([]);
 
   useEffect(() => {
-    loadComparison();
+    fetchProducts().then((data) => {
+      setAllProducts(data);
+    }).catch(() => {});
 
     const handleCompareUpdate = () => loadComparison();
     window.addEventListener("compareUpdated", handleCompareUpdate);
-
     return () => window.removeEventListener("compareUpdated", handleCompareUpdate);
   }, []);
+
+  useEffect(() => {
+    if (allProducts.length) loadComparison();
+  }, [allProducts]);
 
   const loadComparison = () => {
     const saved = JSON.parse(localStorage.getItem("compare") || "[]");
     setCompareIds(saved);
-
-    const products = productsData.filter((p) => saved.includes(p.id));
-    setCompareProducts(products);
+    setCompareProducts(allProducts.filter((p) => saved.includes(p.id)));
   };
 
   const removeProduct = (productId: string) => {

@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Header } from "@/components/Header";
 import { Ruler, User, Camera, RotateCcw, ShoppingCart, Info } from "lucide-react";
-import productsData from "@/data/products.json";
+import { fetchProduct } from "@/lib/products";
 
 type BodyType = "petite" | "athletic" | "curvy" | "plus";
 
@@ -67,11 +67,12 @@ function ProvadorContent() {
 
   useEffect(() => {
     if (productId) {
-      const foundProduct = productsData.find(p => p.id === productId);
-      if (foundProduct) {
-        setProduct(foundProduct);
-        setSelectedColor(foundProduct.colors[0]);
-      }
+      fetchProduct(productId).then((p) => {
+        if (p) {
+          setProduct(p);
+          setSelectedColor(p.colors[0] || "");
+        }
+      }).catch(() => {});
     }
   }, [productId]);
 
