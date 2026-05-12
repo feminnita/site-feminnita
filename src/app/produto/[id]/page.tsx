@@ -12,7 +12,7 @@ import { SizeRecommender } from "@/components/SizeRecommender";
 import { StockIndicator } from "@/components/StockIndicator";
 import { PersonalizedRecommendations } from "@/components/PersonalizedRecommendations";
 import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield, Check } from "lucide-react";
-import productsData from "@/data/products.json";
+import { fetchProduct, fetchProducts, type StoreProduct } from "@/lib/products";
 
 const colorMap: { [key: string]: string } = {
   rose: "#D4A5A5",
@@ -35,9 +35,23 @@ export default function ProductPage() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [toast, setToast] = useState("");
   const [stickyVisible, setStickyVisible] = useState(false);
+  const [product, setProduct] = useState<StoreProduct | null>(null);
+  const [loadingProduct, setLoadingProduct] = useState(true);
+  const [allProducts, setAllProducts] = useState<StoreProduct[]>([]);
   const mainCTARef = useRef<HTMLDivElement>(null);
 
-  const product = productsData.find((p) => p.id === params.id);
+  // Busca produto do Supabase (por ID ou slug)
+  useEffect(() => {
+    const idOrSlug = Array.isArray(params.id) ? params.id[0] : params.id;
+    if (!idOrSlug) return;
+    setLoadingProduct(true);
+    fetchProduct(idOrSlug).then((p) => {
+      setProduct(p);
+      setLoadingProduct(false);
+    });
+    // Carrega lista completa para recomendações (background)
+    fetchProducts({ limit: 30 }).then(setAllProducts).catch(() => {});
+  }, [params.id]);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -57,6 +71,13 @@ export default function ProductPage() {
   useEffect(() => {
     if (product) {
       setSelectedColor(product.colors[0] || "");
+
+      // Incrementa contador de visitas no Supabase
+      fetch("/api/product/view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.id }),
+      }).catch(() => {});
 
       // Track product view for analytics
       if (typeof window !== "undefined" && (window as any).gtag) {
@@ -83,6 +104,17 @@ export default function ProductPage() {
       }
     }
   }, [product]);
+
+  if (loadingProduct) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <div className="flex justify-center items-center py-32">
+          <div className="w-10 h-10 border-4 border-[#8C2F39] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -414,11 +446,11 @@ export default function ProductPage() {
         <CompleteOLook
           currentProductId={product.id}
           category={product.category}
-          allProducts={productsData}
+          allProducts={allProducts as any}
         />
 
         <PersonalizedRecommendations
-          allProducts={productsData as any}
+          allProducts={allProducts as any}
           currentProductId={product.id}
           title="Você também pode gostar"
         />

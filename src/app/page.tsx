@@ -6,9 +6,50 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Newsletter } from "@/components/Newsletter";
 import { InstagramFeed } from "@/components/InstagramFeed";
 import { HeroCarousel } from "@/components/HeroCarousel";
-import productsData from "@/data/products.json";
+import { createClient } from "@/lib/supabase/server";
 
-export default function Home() {
+async function getHomeProducts() {
+  try {
+    const supabase = await createClient();
+    const { data: products } = await supabase
+      .from("products")
+      .select("*, product_variants(color, size), categories(name,slug)")
+      .eq("active", true)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (!products?.length) return { novidades: [], destaques: [], outlet: [] };
+
+    const map = (p: any) => {
+      const colors = [...new Set((p.product_variants ?? []).map((v: any) => v.color).filter(Boolean))];
+      const sizes  = [...new Set((p.product_variants ?? []).map((v: any) => v.size).filter(Boolean))];
+      const price  = p.base_price ?? 0;
+      const pixPrice = p.pix_price ?? +(price * 0.9).toFixed(2);
+      return {
+        id: p.id, code: p.code ?? "", name: p.name, slug: p.slug,
+        price, pixPrice,
+        installments: price >= 50 ? 6 : 1,
+        installmentPrice: +(price / (price >= 50 ? 6 : 1)).toFixed(2),
+        images: Array.isArray(p.images) ? p.images : [],
+        colors: colors.length ? colors : ["rose"],
+        sizes:  sizes.length  ? sizes  : ["P","M","G"],
+        category: p.categories?.name ?? "",
+      };
+    };
+
+    return {
+      novidades: products.filter((p) => p.is_new).slice(0, 4).map(map),
+      destaques: products.filter((p) => p.featured || p.is_bestseller).slice(0, 4).map(map),
+      outlet:    products.filter((p) => p.sale_price).slice(0, 4).map(map),
+      all:       products.slice(0, 8).map(map),
+    };
+  } catch {
+    return { novidades: [], destaques: [], outlet: [], all: [] };
+  }
+}
+
+export default async function Home() {
+  const { novidades, destaques, outlet, all } = await getHomeProducts() as any;
   return (
     <div className="min-h-screen">
       <Header />
@@ -20,7 +61,7 @@ export default function Home() {
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-light text-center mb-12">lançamentos</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {productsData.slice(0, 4).map((product) => (
+          {(novidades.length ? novidades : all.slice(0,4)).map((product: any) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
@@ -40,7 +81,7 @@ export default function Home() {
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-light text-center mb-12">mais vendidos</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {productsData.map((product) => (
+          {(destaques.length ? destaques : all.slice(0,4)).map((product: any) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
@@ -71,7 +112,7 @@ export default function Home() {
           <p className="text-red-600 font-semibold text-xl">até 50% OFF</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {productsData.slice(0, 4).map((product) => (
+          {(outlet.length ? outlet : all.slice(0,4)).map((product: any) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>

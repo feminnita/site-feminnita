@@ -6,7 +6,7 @@ import { Header } from "@/components/Header";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductGridSkeleton } from "@/components/ProductCardSkeleton";
 import { Filter, X, Search, ChevronDown, SlidersHorizontal } from "lucide-react";
-import productsData from "@/data/products.json";
+import { fetchProducts, type StoreProduct } from "@/lib/products";
 
 // ── NLP query parser ──────────────────────────────────────────────
 const COLOR_ALIASES: Record<string, string[]> = {
@@ -124,8 +124,16 @@ function ProdutosContent() {
   const [sort, setSort] = useState(getParam("ord", "relevance"));
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [results, setResults] = useState(productsData);
+  const [allProducts, setAllProducts] = useState<StoreProduct[]>([]);
+  const [results, setResults] = useState<StoreProduct[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Carrega produtos do Supabase uma vez
+  useEffect(() => {
+    fetchProducts().then((data) => {
+      setAllProducts(data);
+    });
+  }, []);
 
   // Sync URL on filter change
   const pushParams = useCallback((updates: Record<string, string>) => {
@@ -148,7 +156,7 @@ function ProdutosContent() {
       const effectiveSizes = [...new Set([...sizes, ...parsed.sizes])];
       const effectiveCategories = category !== "all" ? [category] : parsed.categories;
 
-      let filtered = productsData.filter((p: any) => {
+      let filtered = allProducts.filter((p: any) => {
         // Text search on name/code
         if (parsed.text && !p.name.toLowerCase().includes(parsed.text.toLowerCase()) &&
             !p.code?.toLowerCase().includes(parsed.text.toLowerCase())) return false;
@@ -174,12 +182,12 @@ function ProdutosContent() {
         case "name": filtered.sort((a: any, b: any) => a.name.localeCompare(b.name)); break;
       }
 
-      setResults(filtered as typeof productsData);
+      setResults(filtered);
       setLoading(false);
     }, 200);
 
     return () => clearTimeout(timer);
-  }, [query, category, colors, sizes, maxPrice, sort]);
+  }, [query, category, colors, sizes, maxPrice, sort, allProducts]);
 
   const toggleColor = (id: string) => setColors((prev) => prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]);
   const toggleSize = (s: string) => setSizes((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]);

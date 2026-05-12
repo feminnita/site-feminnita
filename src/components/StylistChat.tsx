@@ -13,13 +13,14 @@ function parseProductRefs(text: string, products: Product[]) {
   const parts: (string | Product)[] = [];
   const regex = /\[id:([^\]]+)\]/g;
   let last = 0;
-  let match;
+  let match: RegExpExecArray | null;
   while ((match = regex.exec(text)) !== null) {
-    if (match.index > last) parts.push(text.slice(last, match.index));
-    const product = products.find((p) => p.id === match[1]);
+    const m = match;
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    const product = products.find((p) => p.id === m[1]);
     if (product) parts.push(product);
-    else parts.push(match[0]);
-    last = match.index + match[0].length;
+    else parts.push(m[0]);
+    last = m.index + m[0].length;
   }
   if (last < text.length) parts.push(text.slice(last));
   return parts;

@@ -9,6 +9,7 @@ import {
   CreditCard, Barcode, QrCode, Truck, Lock,
   Loader2, AlertCircle, ChevronDown, ChevronUp, Check, ShieldCheck,
 } from "lucide-react";
+import { getAffiliateCode, clearAffiliateCode } from "@/lib/affiliate";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -127,6 +128,7 @@ export default function CheckoutPage() {
         paymentMethod,
         selectedShipping,
         subtotal, shippingCost, discount, total,
+        affiliate_code: getAffiliateCode() ?? undefined,
         installments: form.installments,
         card: paymentMethod === "card" ? {
           number: form.card_number.replace(/\s/g, ""),
@@ -153,6 +155,7 @@ export default function CheckoutPage() {
 
       localStorage.removeItem("cart");
       localStorage.removeItem("abandonedCart");
+      clearAffiliateCode();
       window.dispatchEvent(new Event("cartUpdated"));
 
       const params = new URLSearchParams({ id: data.orderId, method: paymentMethod });

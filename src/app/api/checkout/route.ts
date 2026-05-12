@@ -175,6 +175,7 @@ export async function POST(req: NextRequest) {
       discount,
       total,
       installments,
+      affiliate_code,
     } = body;
 
     const supabase = await createClient();
@@ -198,6 +199,7 @@ export async function POST(req: NextRequest) {
         discount,
         total,
         shipping_method: selectedShipping?.name || null,
+        affiliate_code: affiliate_code || null,
         shipping_address: {
           street: customer.street,
           number: customer.number,
@@ -228,7 +230,30 @@ export async function POST(req: NextRequest) {
 
     await supabase.from("order_items").insert(orderItems);
 
-    // 3. Send confirmation email (non-fatal)
+    // 3. Atualiza totais do afiliado (non-fatal)
+    if (affiliate_code) {
+      try {
+        const { data: aff } = await supabase
+          .from("affiliates")
+          .select("id, total_orders, total_revenue, total_commission, commission_pct")
+          .eq("code", affiliate_code.toUpperCase())
+          .eq("active", true)
+          .single();
+
+        if (aff) {
+          const commission = total * (aff.commission_pct / 100);
+          await supabase.from("affiliates").update({
+            total_orders:    (aff.total_orders    ?? 0) + 1,
+            total_revenue:   (aff.total_revenue   ?? 0) + total,
+            total_commission:(aff.total_commission?? 0) + commission,
+          }).eq("id", aff.id);
+        }
+      } catch (affErr) {
+        console.error("Affiliate update error (non-fatal):", affErr);
+      }
+    }
+
+    // 4. Send confirmation email (non-fatal)
     try {
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || "pedidos@feminnita.com.br",
