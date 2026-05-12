@@ -244,7 +244,7 @@ export default function ProductPage() {
         <div className="grid md:grid-cols-2 gap-12">
           {/* Product Images */}
           <div>
-            <div className="relative aspect-[2/3] bg-gray-100 mb-4 overflow-hidden">
+            <div className="relative aspect-square bg-gray-100 mb-4 overflow-hidden">
               <Image
                 src={product.images[selectedImage]}
                 alt={product.name}
@@ -261,7 +261,7 @@ export default function ProductPage() {
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`relative aspect-[2/3] bg-gray-100 overflow-hidden border-2 ${
+                    className={`relative aspect-square bg-gray-100 overflow-hidden border-2 ${
                       selectedImage === index
                         ? "border-black"
                         : "border-transparent hover:border-gray-300"

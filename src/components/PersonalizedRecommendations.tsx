@@ -101,7 +101,7 @@ export function PersonalizedRecommendations({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="aspect-[2/3] bg-gray-100 rounded-xl mb-2" />
+              <div className="aspect-square bg-gray-100 rounded-xl mb-2" />
               <div className="h-3 bg-gray-100 rounded mb-1" />
               <div className="h-3 bg-gray-100 rounded w-2/3" />
             </div>
@@ -127,7 +127,7 @@ export function PersonalizedRecommendations({
           return (
             <div key={product.id} className="group">
               <Link href={`/produto/${product.id}`}>
-                <div className="relative aspect-[2/3] bg-gray-100 rounded-xl overflow-hidden mb-2">
+                <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden mb-2">
                   <Image
                     src={product.images?.[0] || ""}
                     alt={product.name}

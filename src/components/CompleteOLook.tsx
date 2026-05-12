@@ -46,7 +46,7 @@ export function CompleteOLook({ currentProductId, category, allProducts }: Props
         {suggestions.map((product) => (
           <div key={product.id} className="group">
             <Link href={`/produto/${product.id}`}>
-              <div className="relative aspect-[2/3] bg-gray-100 overflow-hidden mb-3">
+              <div className="relative aspect-square bg-gray-100 overflow-hidden mb-3">
                 <Image
                   src={product.images[0]}
                   alt={product.name}

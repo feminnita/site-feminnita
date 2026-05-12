@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { RefreshCw, CheckCircle, XCircle, AlertCircle, ExternalLink, Zap } from "lucide-react";
-import { BLING_CLIENT_ID, BLING_REDIRECT_URI } from "@/lib/bling";
+import { BLING_CLIENT_ID, BLING_REDIRECT_URI } from "@/lib/bling-config";
 
 type SyncLog = {
   id: string;

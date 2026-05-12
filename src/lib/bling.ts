@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
+import { BLING_CLIENT_ID, BLING_CLIENT_SECRET, BLING_REDIRECT_URI } from "@/lib/bling-config";
+
+export { BLING_CLIENT_ID, BLING_CLIENT_SECRET, BLING_REDIRECT_URI };
 
 const BLING_BASE = "https://www.bling.com.br/Api/v3";
-export const BLING_CLIENT_ID = process.env.BLING_CLIENT_ID || "757c335aa152145b5c5b3cf8041f6042b1b48383";
-export const BLING_CLIENT_SECRET = process.env.BLING_CLIENT_SECRET || "";
-export const BLING_REDIRECT_URI = process.env.BLING_REDIRECT_URI || "https://gestao.feminnita.com.br/setup/bling-callback";
 
 // ── Token management ─────────────────────────────────────────────────────────
 

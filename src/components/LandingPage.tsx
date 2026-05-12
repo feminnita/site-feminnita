@@ -103,7 +103,7 @@ export function LandingPage({ theme, title, subtitle, badge, accentColor, produc
               {products.map((product) => (
                 <div key={product.id} className="group">
                   <Link href={`/produto/${product.id}`}>
-                    <div className="relative aspect-[2/3] bg-gray-100 overflow-hidden rounded-xl mb-3">
+                    <div className="relative aspect-square bg-gray-100 overflow-hidden rounded-xl mb-3">
                       <Image
                         src={product.images?.[0] || ""}
                         alt={product.name}

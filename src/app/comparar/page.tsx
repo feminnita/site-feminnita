@@ -95,7 +95,7 @@ export default function CompararPage() {
                       >
                         <X size={16} />
                       </button>
-                      <div className="relative aspect-[2/3] mb-3">
+                      <div className="relative aspect-square mb-3">
                         <Image
                           src={product.images[0]}
                           alt={product.name}

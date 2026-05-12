@@ -65,7 +65,7 @@ export function ProductCard({ product }: ProductCardProps) {
     >
       {/* Product Image */}
       <Link href={`/produto/${product.id}`}>
-        <div className="relative aspect-[2/3] overflow-hidden bg-gray-100 mb-3">
+        <div className="relative aspect-square overflow-hidden bg-gray-100 mb-3">
           <Image
             src={isHovered && product.images[1] ? product.images[1] : product.images[0]}
             alt={product.name}
