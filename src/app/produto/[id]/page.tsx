@@ -11,6 +11,7 @@ import { ReviewSection } from "@/components/ReviewSection";
 import { SizeRecommender } from "@/components/SizeRecommender";
 import { StockIndicator } from "@/components/StockIndicator";
 import { PersonalizedRecommendations } from "@/components/PersonalizedRecommendations";
+import { SimilarProducts } from "@/components/SimilarProducts";
 import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield, Check } from "lucide-react";
 import { fetchProduct, fetchProducts, type StoreProduct } from "@/lib/products";
 
@@ -477,6 +478,12 @@ export default function ProductPage() {
             <p className="text-gray-700">86% Poliamida, 14% Elastano</p>
           </div>
         </div>
+
+        {/* Quem comprou também comprou / Produtos similares */}
+        <SimilarProducts
+          productId={product.id}
+          categoryId={product.category_id}
+        />
 
         <ReviewSection productId={product.id} />
       </div>
