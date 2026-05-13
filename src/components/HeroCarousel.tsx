@@ -20,13 +20,11 @@ const slides: Slide[] = [
 
 export function HeroCarousel() {
   const [current, setCurrent] = useState(0);
-  const [prev, setPrev] = useState<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const goTo = useCallback((idx: number) => {
-    setPrev(current);
     setCurrent(idx);
-  }, [current]);
+  }, []);
 
   const next = useCallback(() => goTo((current + 1) % slides.length), [current, goTo]);
   const back = useCallback(() => goTo((current - 1 + slides.length) % slides.length), [current, goTo]);
