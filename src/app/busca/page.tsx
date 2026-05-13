@@ -11,14 +11,6 @@ import productsData from "@/data/products.json";
 
 const CATEGORIAS = ["Pijamas", "Camisolas", "Shorts Doll", "Conjuntos", "Outlet"];
 const TAMANHOS   = ["PP", "P", "M", "G", "GG", "XGG"];
-const CORES      = [
-  { label: "Rosa",    hex: "#f4a7b9" },
-  { label: "Branco",  hex: "#ffffff" },
-  { label: "Preto",   hex: "#111111" },
-  { label: "Azul",    hex: "#90caf9" },
-  { label: "Bege",    hex: "#d7c4aa" },
-  { label: "Vinho",   hex: "#8C2F39" },
-];
 
 type SortKey = "relevancia" | "menor-preco" | "maior-preco" | "lancamentos";
 
@@ -30,7 +22,6 @@ function BuscaContent() {
   const [inputVal,     setInputVal]     = useState(initialQuery);
   const [catFiltros,   setCatFiltros]   = useState<string[]>([]);
   const [tamFiltros,   setTamFiltros]   = useState<string[]>([]);
-  const [corFiltros,   setCorFiltros]   = useState<string[]>([]);
   const [sort,         setSort]         = useState<SortKey>("relevancia");
   const [cols,         setCols]         = useState<2 | 3 | 4>(4);
   const [sideOpen,     setSideOpen]     = useState(false);
@@ -44,7 +35,6 @@ function BuscaContent() {
                !p.category.toLowerCase().includes(q)) return false;
       if (catFiltros.length && !catFiltros.some(c => p.category.toLowerCase() === c.toLowerCase())) return false;
       if (tamFiltros.length && !tamFiltros.some(t => p.sizes?.includes(t))) return false;
-      if (corFiltros.length && !corFiltros.some(c => p.colors?.some(pc => pc.toLowerCase().includes(c.toLowerCase())))) return false;
       return true;
     });
     if (sort === "menor-preco")  list = [...list].sort((a, b) => a.price - b.price);
@@ -53,12 +43,11 @@ function BuscaContent() {
     return list;
   })();
 
-  const totalFiltros = catFiltros.length + tamFiltros.length + corFiltros.length;
+  const totalFiltros = catFiltros.length + tamFiltros.length;
 
   const toggleCat = (v: string) => setCatFiltros(f => f.includes(v) ? f.filter(x => x !== v) : [...f, v]);
   const toggleTam = (v: string) => setTamFiltros(f => f.includes(v) ? f.filter(x => x !== v) : [...f, v]);
-  const toggleCor = (v: string) => setCorFiltros(f => f.includes(v) ? f.filter(x => x !== v) : [...f, v]);
-  const clearAll  = () => { setCatFiltros([]); setTamFiltros([]); setCorFiltros([]); };
+  const clearAll  = () => { setCatFiltros([]); setTamFiltros([]); };
 
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setQuery(inputVal.trim()); };
 
@@ -134,7 +123,7 @@ function BuscaContent() {
           </div>
 
           {/* Tamanhos */}
-          <div className="mb-6 border-b border-gray-100 pb-6">
+          <div className="mb-6">
             <p className="text-[11px] uppercase tracking-widest text-gray-500 mb-3">Tamanho</p>
             <div className="flex flex-wrap gap-1.5">
               {TAMANHOS.map(t => (
@@ -149,26 +138,6 @@ function BuscaContent() {
                 >
                   {t}
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Cores */}
-          <div className="mb-6">
-            <p className="text-[11px] uppercase tracking-widest text-gray-500 mb-3">Cor</p>
-            <div className="flex flex-wrap gap-2">
-              {CORES.map(c => (
-                <button
-                  key={c.label}
-                  onClick={() => toggleCor(c.label)}
-                  title={c.label}
-                  className={`w-6 h-6 rounded-full border-2 transition-transform ${
-                    corFiltros.includes(c.label)
-                      ? "border-gray-900 scale-110"
-                      : "border-gray-200 hover:scale-110"
-                  }`}
-                  style={{ background: c.hex }}
-                />
               ))}
             </div>
           </div>
@@ -233,11 +202,6 @@ function BuscaContent() {
                   {t} <X size={10} />
                 </button>
               ))}
-              {corFiltros.map(c => (
-                <button key={c} onClick={() => toggleCor(c)} className="flex items-center gap-1 text-[10px] border border-gray-300 px-2.5 py-1 hover:border-red-400 hover:text-red-500">
-                  {c} <X size={10} />
-                </button>
-              ))}
             </div>
           )}
 
@@ -290,7 +254,7 @@ function BuscaContent() {
             </div>
 
             {/* Tamanhos */}
-            <div className="mb-6 border-b border-gray-100 pb-6">
+            <div className="mb-8">
               <p className="text-[11px] uppercase tracking-widest text-gray-500 mb-3">Tamanho</p>
               <div className="flex flex-wrap gap-1.5">
                 {TAMANHOS.map(t => (
@@ -298,18 +262,6 @@ function BuscaContent() {
                     className={`w-10 h-8 text-[11px] border transition-colors ${tamFiltros.includes(t) ? "border-gray-900 bg-gray-900 text-white" : "border-gray-300 text-gray-600"}`}>
                     {t}
                   </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Cores */}
-            <div className="mb-8">
-              <p className="text-[11px] uppercase tracking-widest text-gray-500 mb-3">Cor</p>
-              <div className="flex flex-wrap gap-2">
-                {CORES.map(c => (
-                  <button key={c.label} onClick={() => toggleCor(c.label)} title={c.label}
-                    className={`w-7 h-7 rounded-full border-2 ${corFiltros.includes(c.label) ? "border-gray-900" : "border-gray-200"}`}
-                    style={{ background: c.hex }} />
                 ))}
               </div>
             </div>

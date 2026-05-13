@@ -8,7 +8,10 @@
     "installments": 10,
     "installmentPrice": 12.99,
     "category": "pijamas",
-    "images": ["https://ext.same-assets.com/2738959979/254087678.webp", "https://ext.same-assets.com/2738959979/1316290870.webp"],
+    "images": [
+      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1617869898823-de9e9a6ff023?w=600&q=80&fit=crop"
+    ],
     "colors": ["rosa", "branco", "lilás"],
     "sizes": ["P", "M", "G", "GG"]
   },
@@ -21,7 +24,10 @@
     "installments": 10,
     "installmentPrice": 15.99,
     "category": "pijamas",
-    "images": ["https://ext.same-assets.com/2738959979/3118241062.webp", "https://ext.same-assets.com/2738959979/1271190456.webp"],
+    "images": [
+      "https://images.unsplash.com/photo-1612424168182-f10dcc50c282?w=600&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80&fit=crop"
+    ],
     "colors": ["nude", "cinza", "branco"],
     "sizes": ["P", "M", "G", "GG"]
   },
@@ -34,7 +40,10 @@
     "installments": 10,
     "installmentPrice": 9.99,
     "category": "camisolas",
-    "images": ["https://ext.same-assets.com/2738959979/962659951.webp", "https://ext.same-assets.com/2738959979/2862107894.webp"],
+    "images": [
+      "https://images.unsplash.com/photo-1617869898823-de9e9a6ff023?w=600&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1612424168182-f10dcc50c282?w=600&q=80&fit=crop"
+    ],
     "colors": ["branco", "rosa", "nude"],
     "sizes": ["P", "M", "G", "GG"]
   },
@@ -47,8 +56,11 @@
     "installments": 10,
     "installmentPrice": 13.99,
     "category": "camisolas",
-    "images": ["https://ext.same-assets.com/2738959979/1709762124.webp", "https://ext.same-assets.com/2738959979/3282728844.webp"],
-    "colors": ["rose", "preto", "lilás"],
+    "images": [
+      "https://images.unsplash.com/photo-1631045885607-2b1a47f44261?w=600&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80&fit=crop"
+    ],
+    "colors": ["nude", "preto", "lilás"],
     "sizes": ["P", "M", "G", "GG"]
   },
   {
@@ -60,7 +72,10 @@
     "installments": 6,
     "installmentPrice": 14.98,
     "category": "shorts-doll",
-    "images": ["https://ext.same-assets.com/2738959979/4171673573.webp", "https://ext.same-assets.com/2738959979/390101413.webp"],
+    "images": [
+      "https://images.unsplash.com/photo-1612424168182-f10dcc50c282?w=600&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1617869898823-de9e9a6ff023?w=600&q=80&fit=crop"
+    ],
     "colors": ["rosa", "branco", "cinza"],
     "sizes": ["P", "M", "G", "GG"]
   },
@@ -73,7 +88,10 @@
     "installments": 10,
     "installmentPrice": 17.99,
     "category": "conjuntos",
-    "images": ["https://ext.same-assets.com/2738959979/2302845870.webp", "https://ext.same-assets.com/2738959979/1774049605.webp"],
+    "images": [
+      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1631045885607-2b1a47f44261?w=600&q=80&fit=crop"
+    ],
     "colors": ["rosa", "azul", "cinza"],
     "sizes": ["P", "M", "G", "GG"]
   },
@@ -86,8 +104,11 @@
     "installments": 10,
     "installmentPrice": 14.99,
     "category": "conjuntos",
-    "images": ["https://ext.same-assets.com/2738959979/1316290870.webp", "https://ext.same-assets.com/2738959979/254087678.webp"],
-    "colors": ["branco", "nude", "rose"],
+    "images": [
+      "https://images.unsplash.com/photo-1617869898823-de9e9a6ff023?w=600&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1612424168182-f10dcc50c282?w=600&q=80&fit=crop"
+    ],
+    "colors": ["branco", "nude", "rosa"],
     "sizes": ["P", "M", "G", "GG"]
   },
   {
@@ -99,8 +120,61 @@
     "installments": 10,
     "installmentPrice": 19.99,
     "category": "pijamas",
-    "images": ["https://ext.same-assets.com/2738959979/3282728844.webp", "https://ext.same-assets.com/2738959979/1709762124.webp"],
+    "images": [
+      "https://images.unsplash.com/photo-1631045885607-2b1a47f44261?w=600&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1612424168182-f10dcc50c282?w=600&q=80&fit=crop"
+    ],
     "colors": ["cinza", "rosa", "branco"],
     "sizes": ["P", "M", "G", "GG"]
+  },
+  {
+    "id": "9",
+    "code": "PJ10004",
+    "name": "Pijama Manga Longa Estampa Floral",
+    "price": 169.90,
+    "pixPrice": 152.91,
+    "installments": 10,
+    "installmentPrice": 16.99,
+    "category": "pijamas",
+    "images": [
+      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1617869898823-de9e9a6ff023?w=600&q=80&fit=crop"
+    ],
+    "colors": ["rosa", "verde", "branco"],
+    "sizes": ["P", "M", "G", "GG"]
+  },
+  {
+    "id": "10",
+    "code": "OL10001",
+    "name": "Pijama Curto Outlet",
+    "price": 69.90,
+    "originalPrice": 129.90,
+    "pixPrice": 62.91,
+    "installments": 6,
+    "installmentPrice": 11.65,
+    "category": "outlet",
+    "images": [
+      "https://images.unsplash.com/photo-1612424168182-f10dcc50c282?w=600&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1631045885607-2b1a47f44261?w=600&q=80&fit=crop"
+    ],
+    "colors": ["nude", "rosa"],
+    "sizes": ["P", "M", "G"]
+  },
+  {
+    "id": "11",
+    "code": "OL10002",
+    "name": "Camisola Outlet Rendada",
+    "price": 49.90,
+    "originalPrice": 99.90,
+    "pixPrice": 44.91,
+    "installments": 4,
+    "installmentPrice": 12.48,
+    "category": "outlet",
+    "images": [
+      "https://images.unsplash.com/photo-1617869898823-de9e9a6ff023?w=600&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80&fit=crop"
+    ],
+    "colors": ["branco", "nude"],
+    "sizes": ["M", "G"]
   }
 ]
