@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -34,8 +34,7 @@ function CarouselCard({ product }: { product: Product }) {
   return (
     <Link
       href={`/produto/${product.slug}`}
-      className="block flex-shrink-0 relative"
-      style={{ width: "calc(25% - 12px)" }}
+      className="block relative"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -69,7 +68,9 @@ function CarouselCard({ product }: { product: Product }) {
               style={{ background: "#8C2F39" }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" />
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
               </svg>
               Comprar
             </div>
@@ -112,20 +113,26 @@ function CarouselCard({ product }: { product: Product }) {
 }
 
 export function ProductCarousel({ products, title, bg = "#fff" }: Props) {
-  const ref = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState(0);
-  const perPage = 4;
+  const [perPage, setPerPage] = useState(4);
+
+  useEffect(() => {
+    const update = () => setPerPage(window.innerWidth < 768 ? 2 : 4);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
   const totalPages = Math.ceil(products.length / perPage);
 
-  const scrollTo = (p: number) => {
-    if (!ref.current) return;
-    const width = ref.current.clientWidth;
-    ref.current.scrollTo({ left: p * width, behavior: "smooth" });
-    setPage(p);
-  };
+  useEffect(() => { setPage(0); }, [perPage]);
 
-  const next = () => scrollTo(Math.min(page + 1, totalPages - 1));
-  const prev = () => scrollTo(Math.max(page - 1, 0));
+  const next = () => setPage((p) => Math.min(p + 1, totalPages - 1));
+  const prev = () => setPage((p) => Math.max(p - 1, 0));
+
+  const pageSlices = Array.from({ length: totalPages }, (_, i) =>
+    products.slice(i * perPage, (i + 1) * perPage)
+  );
 
   return (
     <section className="py-8" style={{ background: bg }}>
@@ -135,24 +142,48 @@ export function ProductCarousel({ products, title, bg = "#fff" }: Props) {
           <h2 className="text-[13px] font-light tracking-[0.35em] uppercase text-gray-600">
             {title}
           </h2>
-          <button
-            onClick={next}
-            className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:border-gray-500 transition-colors text-lg"
-            aria-label="Próximo"
-          >
-            ›
-          </button>
+          {totalPages > 1 && (
+            <div className="flex gap-2">
+              <button
+                onClick={prev}
+                disabled={page === 0}
+                className="w-10 h-10 rounded-full border flex items-center justify-center text-xl transition-all disabled:opacity-25 hover:border-gray-500"
+                style={{ borderColor: "#ddd", color: "#555" }}
+                aria-label="Anterior"
+              >
+                ‹
+              </button>
+              <button
+                onClick={next}
+                disabled={page === totalPages - 1}
+                className="w-10 h-10 rounded-full border flex items-center justify-center text-xl transition-all disabled:opacity-25 hover:border-gray-500"
+                style={{ borderColor: "#ddd", color: "#555" }}
+                aria-label="Próximo"
+              >
+                ›
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Cards row */}
-        <div
-          ref={ref}
-          className="flex gap-4 overflow-x-auto"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none", scrollSnapType: "x mandatory" }}
-        >
-          {products.map((p) => (
-            <CarouselCard key={p.id} product={p} />
-          ))}
+        {/* Carousel track */}
+        <div className="overflow-hidden">
+          <div
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${page * 100}%)` }}
+          >
+            {pageSlices.map((slice, pi) => (
+              <div
+                key={pi}
+                className="grid gap-4 flex-shrink-0 w-full"
+                style={{ gridTemplateColumns: `repeat(${perPage}, 1fr)` }}
+              >
+                {slice.map((p) => (
+                  <CarouselCard key={p.id} product={p} />
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Dots */}
@@ -161,8 +192,8 @@ export function ProductCarousel({ products, title, bg = "#fff" }: Props) {
             {Array.from({ length: totalPages }).map((_, i) => (
               <button
                 key={i}
-                onClick={() => scrollTo(i)}
-                className="rounded-full border-0 transition-all duration-200"
+                onClick={() => setPage(i)}
+                className="rounded-full border-0 cursor-pointer transition-all duration-200"
                 style={{
                   width: i === page ? 20 : 10,
                   height: 10,
