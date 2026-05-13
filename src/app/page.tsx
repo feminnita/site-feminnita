@@ -8,11 +8,11 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import productsData from "@/data/products.json";
 
 const colecoes = [
-  { nome: "PIJAMAS", href: "/colecao/pijamas", img: "/colecoes/pijamas.jpg" },
-  { nome: "CAMISOLAS", href: "/colecao/camisolas", img: "/colecoes/camisolas.jpg" },
-  { nome: "SHORTS DOLL", href: "/colecao/shorts-doll", img: "/colecoes/shorts.jpg" },
-  { nome: "CONJUNTOS", href: "/colecao/conjuntos", img: "/colecoes/conjuntos.jpg" },
-  { nome: "OUTLET", href: "/colecao/outlet", img: "/colecoes/outlet.jpg" },
+  { nome: "PIJAMAS", href: "/colecao/pijamas", img: "https://ext.same-assets.com/2738959979/254087678.webp" },
+  { nome: "CAMISOLAS", href: "/colecao/camisolas", img: "https://ext.same-assets.com/2738959979/962659951.webp" },
+  { nome: "SHORTS DOLL", href: "/colecao/shorts-doll", img: "https://ext.same-assets.com/2738959979/4171673573.webp" },
+  { nome: "CONJUNTOS", href: "/colecao/conjuntos", img: "https://ext.same-assets.com/2738959979/1709762124.webp" },
+  { nome: "OUTLET", href: "/colecao/outlet", img: "https://ext.same-assets.com/2738959979/3118241062.webp" },
 ];
 
 export default function Home() {
@@ -73,7 +73,7 @@ export default function Home() {
       <section className="relative w-full overflow-hidden" style={{ aspectRatio: "16/5" }}>
         <Link href="/colecao/conjuntos">
           <Image
-            src="/banners/banner-colecao.jpg"
+            src="https://ext.same-assets.com/2738959979/1774049605.webp"
             alt="Conjuntos Feminnita"
             fill
             className="object-cover hover:scale-[1.02] transition-transform duration-700"
@@ -115,23 +115,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Instagram strip placeholder */}
+      {/* Instagram strip */}
       <section className="max-w-[1400px] mx-auto px-4 py-10 border-t border-gray-100">
-        <p className="text-center text-[11px] tracking-[0.4em] uppercase text-gray-500 mb-8">
-          @feminnita
-        </p>
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-1">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="relative bg-[#f5f0eb]" style={{ aspectRatio: "1/1" }}>
-              <Image
-                src={`/instagram/${i + 1}.jpg`}
-                alt={`Instagram ${i + 1}`}
-                fill
-                className="object-cover hover:opacity-80 transition-opacity"
-              />
-            </div>
-          ))}
-        </div>
+        <a href="https://instagram.com/feminnita" target="_blank" rel="noopener">
+          <p className="text-center text-[11px] tracking-[0.4em] uppercase text-gray-500 hover:text-[#8C2F39] transition-colors">
+            @feminnita — siga no Instagram
+          </p>
+        </a>
       </section>
 
       <Footer />

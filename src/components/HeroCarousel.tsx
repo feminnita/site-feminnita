@@ -12,10 +12,10 @@ interface Slide {
 }
 
 const slides: Slide[] = [
-  { src: "/banners/banner-1.jpg", alt: "Nova Coleção Feminnita", href: "/colecao/pijamas" },
-  { src: "/banners/banner-2.jpg", alt: "Conjuntos Femininos", href: "/colecao/conjuntos" },
-  { src: "/banners/banner-3.jpg", alt: "Camisolas Especiais", href: "/colecao/camisolas" },
-  { src: "/banners/banner-4.jpg", alt: "Outlet — Até 50% OFF", href: "/colecao/outlet" },
+  { src: "https://ext.same-assets.com/2738959979/2302845870.webp", alt: "Nova Coleção Feminnita", href: "/colecao/pijamas" },
+  { src: "https://ext.same-assets.com/2738959979/1774049605.webp", alt: "Conjuntos Femininos", href: "/colecao/conjuntos" },
+  { src: "https://ext.same-assets.com/2738959979/2302845870.webp", alt: "Camisolas Especiais", href: "/colecao/camisolas" },
+  { src: "https://ext.same-assets.com/2738959979/1774049605.webp", alt: "Outlet — Até 50% OFF", href: "/colecao/outlet" },
 ];
 
 export function HeroCarousel() {

@@ -57,11 +57,11 @@ export function Footer() {
 
       <div className="max-w-[1400px] mx-auto px-6 pt-8 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
         <p className="text-[11px] text-gray-400">© {new Date().getFullYear()} Feminnita. Todos os direitos reservados.</p>
-        <div className="flex items-center gap-3">
-          <img src="/pagamentos/visa.svg" alt="Visa" className="h-5 opacity-60" />
-          <img src="/pagamentos/mastercard.svg" alt="Mastercard" className="h-5 opacity-60" />
-          <img src="/pagamentos/pix.svg" alt="Pix" className="h-5 opacity-60" />
-          <img src="/pagamentos/boleto.svg" alt="Boleto" className="h-5 opacity-60" />
+        <div className="flex items-center gap-2 text-[11px] text-gray-400">
+          <span className="border border-gray-200 px-2 py-0.5 rounded">Visa</span>
+          <span className="border border-gray-200 px-2 py-0.5 rounded">Master</span>
+          <span className="border border-gray-200 px-2 py-0.5 rounded">PIX</span>
+          <span className="border border-gray-200 px-2 py-0.5 rounded">Boleto</span>
         </div>
       </div>
     </footer>

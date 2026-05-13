@@ -8,7 +8,7 @@
     "installments": 10,
     "installmentPrice": 12.99,
     "category": "pijamas",
-    "images": ["/produtos/pj10001-a.jpg", "/produtos/pj10001-b.jpg"],
+    "images": ["https://ext.same-assets.com/2738959979/254087678.webp", "https://ext.same-assets.com/2738959979/1316290870.webp"],
     "colors": ["rosa", "branco", "lilás"],
     "sizes": ["P", "M", "G", "GG"]
   },
@@ -21,7 +21,7 @@
     "installments": 10,
     "installmentPrice": 15.99,
     "category": "pijamas",
-    "images": ["/produtos/pj10002-a.jpg", "/produtos/pj10002-b.jpg"],
+    "images": ["https://ext.same-assets.com/2738959979/3118241062.webp", "https://ext.same-assets.com/2738959979/1271190456.webp"],
     "colors": ["nude", "cinza", "branco"],
     "sizes": ["P", "M", "G", "GG"]
   },
@@ -34,7 +34,7 @@
     "installments": 10,
     "installmentPrice": 9.99,
     "category": "camisolas",
-    "images": ["/produtos/cm10001-a.jpg", "/produtos/cm10001-b.jpg"],
+    "images": ["https://ext.same-assets.com/2738959979/962659951.webp", "https://ext.same-assets.com/2738959979/2862107894.webp"],
     "colors": ["branco", "rosa", "nude"],
     "sizes": ["P", "M", "G", "GG"]
   },
@@ -47,7 +47,7 @@
     "installments": 10,
     "installmentPrice": 13.99,
     "category": "camisolas",
-    "images": ["/produtos/cm10002-a.jpg", "/produtos/cm10002-b.jpg"],
+    "images": ["https://ext.same-assets.com/2738959979/1709762124.webp", "https://ext.same-assets.com/2738959979/3282728844.webp"],
     "colors": ["rose", "preto", "lilás"],
     "sizes": ["P", "M", "G", "GG"]
   },
@@ -60,7 +60,7 @@
     "installments": 6,
     "installmentPrice": 14.98,
     "category": "shorts-doll",
-    "images": ["/produtos/sd10001-a.jpg", "/produtos/sd10001-b.jpg"],
+    "images": ["https://ext.same-assets.com/2738959979/4171673573.webp", "https://ext.same-assets.com/2738959979/390101413.webp"],
     "colors": ["rosa", "branco", "cinza"],
     "sizes": ["P", "M", "G", "GG"]
   },
@@ -73,7 +73,7 @@
     "installments": 10,
     "installmentPrice": 17.99,
     "category": "conjuntos",
-    "images": ["/produtos/cj10001-a.jpg", "/produtos/cj10001-b.jpg"],
+    "images": ["https://ext.same-assets.com/2738959979/2302845870.webp", "https://ext.same-assets.com/2738959979/1774049605.webp"],
     "colors": ["rosa", "azul", "cinza"],
     "sizes": ["P", "M", "G", "GG"]
   },
@@ -86,7 +86,7 @@
     "installments": 10,
     "installmentPrice": 14.99,
     "category": "conjuntos",
-    "images": ["/produtos/cj10002-a.jpg", "/produtos/cj10002-b.jpg"],
+    "images": ["https://ext.same-assets.com/2738959979/1316290870.webp", "https://ext.same-assets.com/2738959979/254087678.webp"],
     "colors": ["branco", "nude", "rose"],
     "sizes": ["P", "M", "G", "GG"]
   },
@@ -99,7 +99,7 @@
     "installments": 10,
     "installmentPrice": 19.99,
     "category": "pijamas",
-    "images": ["/produtos/pj10003-a.jpg", "/produtos/pj10003-b.jpg"],
+    "images": ["https://ext.same-assets.com/2738959979/3282728844.webp", "https://ext.same-assets.com/2738959979/1709762124.webp"],
     "colors": ["cinza", "rosa", "branco"],
     "sizes": ["P", "M", "G", "GG"]
   }
