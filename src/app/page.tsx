@@ -6,43 +6,52 @@ import { ProductCard } from "@/components/ProductCard";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { getProductsServer, adaptProduct } from "@/lib/supabase/products";
+import { createClient } from "@/lib/supabase/server";
 import productsJson from "@/data/products.json";
 
 const categorias = [
-  { nome: "Pijamas",    href: "/colecao/pijamas",    bg: "linear-gradient(160deg,#f5ece6,#e0cfc6)", textColor: "#5a3a2e" },
-  { nome: "Camisolas",  href: "/colecao/camisolas",  bg: "linear-gradient(160deg,#f0ebe8,#d8c9c0)", textColor: "#4a3028" },
-  { nome: "Shorts Doll",href: "/colecao/shorts-doll",bg: "linear-gradient(160deg,#fdf6f0,#eaddd3)", textColor: "#5a3a2e" },
-  { nome: "Conjuntos",  href: "/colecao/conjuntos",  bg: "linear-gradient(160deg,#2e1a20,#8C2F39)",  textColor: "#fff" },
+  { nome: "Pijamas",     href: "/colecao/pijamas",    bg: "linear-gradient(160deg,#f5ece6,#e0cfc6)", textColor: "#5a3a2e" },
+  { nome: "Camisolas",   href: "/colecao/camisolas",  bg: "linear-gradient(160deg,#f0ebe8,#d8c9c0)", textColor: "#4a3028" },
+  { nome: "Shorts Doll", href: "/colecao/shorts-doll",bg: "linear-gradient(160deg,#fdf6f0,#eaddd3)", textColor: "#5a3a2e" },
+  { nome: "Conjuntos",   href: "/colecao/conjuntos",  bg: "linear-gradient(160deg,#2e1a20,#8C2F39)",  textColor: "#fff" },
 ];
+
+async function getSlides() {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("hero_slides")
+      .select("*")
+      .eq("active", true)
+      .order("order_index");
+    return data || [];
+  } catch { return []; }
+}
 
 async function getProducts() {
   try {
     const raw = await getProductsServer();
     if (raw.length > 0) return raw.map(adaptProduct);
   } catch {}
-  // fallback to static JSON
   return productsJson as ReturnType<typeof adaptProduct>[];
 }
 
 export default async function Home() {
-  const todos = await getProducts();
+  const [todos, slides] = await Promise.all([getProducts(), getSlides()]);
 
-  const pijamas    = todos.filter((p) => p.category === "pijamas");
-  const camisolas  = todos.filter((p) => p.category === "camisolas");
+  const pijamas     = todos.filter((p) => p.category === "pijamas");
+  const camisolas   = todos.filter((p) => p.category === "camisolas");
   const lancamentos = todos.filter((p) => p.category !== "outlet").slice(0, 4);
   const maisVendidos = todos.slice(0, 8);
-  const outlet     = todos.filter((p) => p.category === "outlet").slice(0, 4);
+  const outlet      = todos.filter((p) => p.category === "outlet").slice(0, 4);
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <HeroCarousel />
+      <HeroCarousel slides={slides.length > 0 ? slides : undefined} />
 
-      {pijamas.length > 0 && (
-        <ProductCarousel products={pijamas} title="Pijamas" bg="#faf7f4" />
-      )}
+      {pijamas.length > 0 && <ProductCarousel products={pijamas} title="Pijamas" bg="#faf7f4" />}
 
-      {/* Últimos Lançamentos */}
       <section className="py-12 bg-white">
         <div className="max-w-[1200px] mx-auto px-4">
           <h2 className="text-center text-[13px] font-light tracking-[0.3em] uppercase text-gray-600 mb-10">
@@ -59,33 +68,26 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Banner conjuntos */}
       <section className="max-w-[1200px] mx-auto px-4 pb-10">
         <Link href="/colecao/conjuntos" className="group flex items-center justify-center overflow-hidden relative"
           style={{ aspectRatio: "16/5", background: "linear-gradient(135deg,#2e1a20 0%,#8C2F39 60%,#6b2330 100%)" }}>
           <div className="text-center text-white">
             <p className="text-[10px] uppercase tracking-[0.5em] opacity-60 mb-3">nova coleção</p>
             <h3 className="text-3xl md:text-4xl font-extralight tracking-wider mb-6" style={{ fontFamily: "serif" }}>Conjuntos</h3>
-            <span className="text-[11px] uppercase tracking-[0.3em] border border-white/50 px-10 py-3 group-hover:bg-white group-hover:text-[#8C2F39] transition-colors duration-300">
-              Ver Conjuntos
-            </span>
+            <span className="text-[11px] uppercase tracking-[0.3em] border border-white/50 px-10 py-3 group-hover:bg-white group-hover:text-[#8C2F39] transition-colors duration-300">Ver Conjuntos</span>
           </div>
         </Link>
       </section>
 
-      {/* Mais Vendidos */}
       <section className="py-12" style={{ background: "#fafafa" }}>
         <div className="max-w-[1200px] mx-auto px-4">
-          <h2 className="text-center text-[13px] font-light tracking-[0.3em] uppercase text-gray-600 mb-10">
-            Mais Vendidos
-          </h2>
+          <h2 className="text-center text-[13px] font-light tracking-[0.3em] uppercase text-gray-600 mb-10">Mais Vendidos</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {maisVendidos.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
       </section>
 
-      {/* Grade de categorias */}
       <section className="py-12 bg-white">
         <div className="max-w-[1200px] mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -94,9 +96,7 @@ export default async function Home() {
                 style={{ aspectRatio: "3/4", background: cat.bg, borderRadius: 8 }}>
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: "rgba(0,0,0,0.1)" }} />
                 <div className="relative p-5 w-full">
-                  <span className="text-[12px] font-semibold tracking-[0.2em] uppercase" style={{ color: cat.textColor }}>
-                    {cat.nome}
-                  </span>
+                  <span className="text-[12px] font-semibold tracking-[0.2em] uppercase" style={{ color: cat.textColor }}>{cat.nome}</span>
                 </div>
               </Link>
             ))}
@@ -104,21 +104,16 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Banner destaque */}
       <section className="w-full flex flex-col items-center justify-center text-white text-center px-6"
         style={{ aspectRatio: "16/6", background: "linear-gradient(135deg,#1a0d10 0%,#8C2F39 50%,#5a1e27 100%)" }}>
         <p className="text-[10px] tracking-[0.5em] uppercase opacity-60 mb-3">feminnita</p>
-        <h3 className="text-3xl md:text-5xl font-extralight tracking-wider mb-6" style={{ fontFamily: "serif" }}>
-          Dormir bem é se amar
-        </h3>
+        <h3 className="text-3xl md:text-5xl font-extralight tracking-wider mb-6" style={{ fontFamily: "serif" }}>Dormir bem é se amar</h3>
         <Link href="/colecao/pijamas" className="border border-white/50 text-white text-[11px] tracking-[0.3em] uppercase px-10 py-3 hover:bg-white hover:text-[#8C2F39] transition-colors duration-300">
           Ver Coleção
         </Link>
       </section>
 
-      {camisolas.length > 0 && (
-        <ProductCarousel products={camisolas} title="Camisolas" bg="#faf7f4" />
-      )}
+      {camisolas.length > 0 && <ProductCarousel products={camisolas} title="Camisolas" bg="#faf7f4" />}
 
       {outlet.length > 0 && (
         <section className="py-12 border-t border-gray-100">
