@@ -4,21 +4,21 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { CheckCircle, Copy, Barcode, QrCode, Truck, Package, ExternalLink } from "lucide-react";
 
 function OrderConfirmedContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get("id");
-  const method = searchParams.get("method") || "pix";
-  const pixCode = searchParams.get("pix") ? decodeURIComponent(searchParams.get("pix")!) : null;
-  const pixImg = searchParams.get("pixImg") ? decodeURIComponent(searchParams.get("pixImg")!) : null;
+  const orderId  = searchParams.get("id");
+  const method   = searchParams.get("method") || "pix";
+  const pixCode  = searchParams.get("pix")    ? decodeURIComponent(searchParams.get("pix")!)    : null;
+  const pixImg   = searchParams.get("pixImg") ? decodeURIComponent(searchParams.get("pixImg")!) : null;
   const boletoUrl = searchParams.get("boleto") ? decodeURIComponent(searchParams.get("boleto")!) : null;
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && (window as any).gtag && orderId) {
+    if (typeof window !== "undefined" && (window as any).gtag && orderId)
       (window as any).gtag("event", "purchase_confirmed", { order_id: orderId });
-    }
   }, [orderId]);
 
   const copyPix = () => {
@@ -30,156 +30,142 @@ function OrderConfirmedContent() {
 
   if (!orderId) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-white">
         <Header />
-        <div className="container mx-auto px-4 py-24 text-center">
-          <p className="text-gray-500">Pedido não encontrado.</p>
-          <Link href="/" className="mt-4 inline-block text-[#8C2F39] underline">Voltar para a loja</Link>
+        <div className="max-w-[1400px] mx-auto px-6 py-32 text-center">
+          <p className="text-[13px] text-gray-400">Pedido não encontrado.</p>
+          <Link href="/" className="mt-6 inline-block text-[11px] uppercase tracking-widest border border-gray-800 px-8 py-3 hover:bg-gray-800 hover:text-white transition-colors">
+            Voltar para a loja
+          </Link>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header />
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
-              <CheckCircle size={44} className="text-green-600" />
-            </div>
-            <h1 className="text-3xl font-light mb-2">Pedido Recebido!</h1>
-            <p className="text-gray-500">Número do pedido: <strong className="text-gray-800">#{orderId.slice(-8).toUpperCase()}</strong></p>
-          </div>
+      <div className="max-w-[680px] mx-auto px-6 py-16">
 
-          {/* PIX payment */}
-          {method === "pix" && (
-            <div className="bg-white rounded-xl border-2 border-blue-200 p-6 mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <QrCode size={24} className="text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Pague agora com PIX</h3>
-                  <p className="text-sm text-gray-500">O pedido será confirmado em instantes após o pagamento</p>
-                </div>
-              </div>
-
-              {pixImg && (
-                <div className="flex justify-center mb-4">
-                  <img
-                    src={`data:image/png;base64,${pixImg}`}
-                    alt="QR Code PIX"
-                    className="w-48 h-48 border rounded-lg"
-                  />
-                </div>
-              )}
-
-              {pixCode && (
-                <>
-                  <p className="text-xs text-gray-500 mb-2">Ou copie o código PIX:</p>
-                  <div className="bg-gray-50 border rounded-lg p-3 font-mono text-xs break-all mb-3 select-all">
-                    {pixCode}
-                  </div>
-                  <button
-                    onClick={copyPix}
-                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                  >
-                    <Copy size={16} />
-                    {copied ? "Copiado!" : "Copiar código PIX"}
-                  </button>
-                </>
-              )}
-
-              <div className="mt-4 bg-blue-50 rounded-lg p-3 text-sm text-blue-800">
-                ⏱️ O código PIX expira em <strong>24 horas</strong>. Após o pagamento você receberá um e-mail de confirmação.
-              </div>
-            </div>
-          )}
-
-          {/* Boleto */}
-          {method === "boleto" && (
-            <div className="bg-white rounded-xl border-2 border-yellow-200 p-6 mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-yellow-100 p-2 rounded-lg">
-                  <Barcode size={24} className="text-yellow-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Boleto Bancário gerado</h3>
-                  <p className="text-sm text-gray-500">Pague até o vencimento para confirmar o pedido</p>
-                </div>
-              </div>
-
-              {boletoUrl ? (
-                <a
-                  href={boletoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full bg-yellow-500 text-white py-3 rounded-lg font-medium hover:bg-yellow-600 transition-colors"
-                >
-                  <ExternalLink size={16} />
-                  Abrir / Imprimir Boleto
-                </a>
-              ) : (
-                <p className="text-sm text-gray-500">O boleto foi enviado para o seu e-mail.</p>
-              )}
-
-              <p className="mt-4 text-xs text-yellow-700 bg-yellow-50 rounded-lg p-3">
-                ⏱️ Aprovação em até <strong>2 dias úteis</strong> após o pagamento. O boleto vence em 3 dias.
-              </p>
-            </div>
-          )}
-
-          {/* Card approved */}
-          {method === "card" && (
-            <div className="bg-white rounded-xl border-2 border-green-200 p-6 mb-6">
-              <div className="flex items-center gap-3">
-                <div className="bg-green-100 p-2 rounded-lg">
-                  <CheckCircle size={24} className="text-green-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-green-800">Pagamento aprovado!</h3>
-                  <p className="text-sm text-gray-500">Seu pedido será processado e enviado em breve</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Steps */}
-          <div className="bg-white rounded-xl border p-6 mb-6">
-            <h3 className="font-semibold mb-4">Próximas etapas</h3>
-            <ol className="space-y-3">
-              {[
-                { n: 1, icon: CheckCircle, text: method === "card" ? "Pagamento confirmado" : "Realize o pagamento" },
-                { n: 2, icon: Package, text: "Separamos e embalamos seu pedido" },
-                { n: 3, icon: Truck, text: "Enviamos com código de rastreamento por e-mail" },
-              ].map(({ n, icon: Icon, text }) => (
-                <li key={n} className="flex items-center gap-3">
-                  <span className="flex-shrink-0 w-7 h-7 bg-[#8C2F39] text-white rounded-full flex items-center justify-center text-sm font-bold">{n}</span>
-                  <span className="text-gray-700 text-sm">{text}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-3">
-            <Link href="/" className="flex-1">
-              <button className="w-full border-2 border-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-                Continuar comprando
-              </button>
-            </Link>
-            <Link href="/minha-conta" className="flex-1">
-              <button className="w-full bg-[#8C2F39] text-white py-3 rounded-lg font-medium hover:bg-[#7a2832] transition-colors">
-                Ver meus pedidos
-              </button>
-            </Link>
-          </div>
+        {/* Confirmação */}
+        <div className="text-center mb-12">
+          <CheckCircle size={44} strokeWidth={1} className="mx-auto text-green-500 mb-5" />
+          <h1 className="text-[22px] font-light text-gray-900 mb-2">Pedido Recebido!</h1>
+          <p className="text-[12px] text-gray-500 uppercase tracking-widest">
+            Número do pedido: <span className="text-gray-800 font-medium">#{orderId.slice(-8).toUpperCase()}</span>
+          </p>
         </div>
+
+        {/* PIX */}
+        {method === "pix" && (
+          <div className="border border-gray-200 p-6 mb-6">
+            <div className="flex items-center gap-3 mb-5">
+              <QrCode size={18} strokeWidth={1.5} className="text-gray-500" />
+              <div>
+                <p className="text-[13px] font-medium text-gray-800">Pague agora com PIX</p>
+                <p className="text-[11px] text-gray-400">Confirmação imediata após o pagamento</p>
+              </div>
+            </div>
+
+            {pixImg && (
+              <div className="flex justify-center mb-5">
+                <img src={`data:image/png;base64,${pixImg}`} alt="QR Code PIX" className="w-44 h-44 border border-gray-200" />
+              </div>
+            )}
+
+            {pixCode && (
+              <>
+                <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-2">Código PIX copia e cola</p>
+                <div className="bg-gray-50 border border-gray-200 p-3 font-mono text-[11px] break-all mb-3 select-all text-gray-700">
+                  {pixCode}
+                </div>
+                <button
+                  onClick={copyPix}
+                  className="w-full flex items-center justify-center gap-2 border border-gray-800 text-gray-800 text-[11px] uppercase tracking-widest py-3 hover:bg-gray-800 hover:text-white transition-colors"
+                >
+                  <Copy size={13} />
+                  {copied ? "Copiado!" : "Copiar código PIX"}
+                </button>
+              </>
+            )}
+
+            <p className="mt-4 text-[11px] text-gray-400 text-center">
+              Código expira em <strong className="text-gray-600">24 horas</strong>
+            </p>
+          </div>
+        )}
+
+        {/* Boleto */}
+        {method === "boleto" && (
+          <div className="border border-gray-200 p-6 mb-6">
+            <div className="flex items-center gap-3 mb-5">
+              <Barcode size={18} strokeWidth={1.5} className="text-gray-500" />
+              <div>
+                <p className="text-[13px] font-medium text-gray-800">Boleto Bancário gerado</p>
+                <p className="text-[11px] text-gray-400">Aprovação em até 2 dias úteis após o pagamento</p>
+              </div>
+            </div>
+            {boletoUrl ? (
+              <a
+                href={boletoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full border border-gray-800 text-gray-800 text-[11px] uppercase tracking-widest py-3 hover:bg-gray-800 hover:text-white transition-colors"
+              >
+                <ExternalLink size={13} /> Abrir / Imprimir Boleto
+              </a>
+            ) : (
+              <p className="text-[12px] text-gray-500">O boleto foi enviado para o seu e-mail.</p>
+            )}
+            <p className="mt-4 text-[11px] text-gray-400 text-center">Boleto vence em <strong className="text-gray-600">3 dias úteis</strong></p>
+          </div>
+        )}
+
+        {/* Cartão aprovado */}
+        {method === "card" && (
+          <div className="border border-green-200 bg-green-50 p-5 mb-6 flex items-center gap-3">
+            <CheckCircle size={18} strokeWidth={1.5} className="text-green-600 shrink-0" />
+            <div>
+              <p className="text-[13px] font-medium text-green-800">Pagamento aprovado!</p>
+              <p className="text-[11px] text-green-700">Seu pedido será processado e enviado em breve.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Próximas etapas */}
+        <div className="border border-gray-100 p-6 mb-8">
+          <p className="text-[11px] uppercase tracking-widest text-gray-500 mb-5">Próximas Etapas</p>
+          <ol className="space-y-4">
+            {[
+              { n: 1, Icon: CheckCircle, text: method === "card" ? "Pagamento confirmado" : "Realize o pagamento" },
+              { n: 2, Icon: Package,     text: "Separamos e embalamos seu pedido com cuidado" },
+              { n: 3, Icon: Truck,       text: "Enviamos com código de rastreamento por e-mail" },
+            ].map(({ n, Icon, text }) => (
+              <li key={n} className="flex items-center gap-4">
+                <span className="flex-shrink-0 w-7 h-7 bg-[#8C2F39] text-white flex items-center justify-center text-[11px] font-semibold">
+                  {n}
+                </span>
+                <span className="text-[12px] text-gray-600">{text}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* Ações */}
+        <div className="flex gap-3">
+          <Link href="/" className="flex-1 text-center border border-gray-300 text-gray-700 text-[11px] uppercase tracking-widest py-3 hover:border-gray-600 transition-colors">
+            Continuar comprando
+          </Link>
+          <Link href="/minha-conta" className="flex-1 text-center bg-gray-900 text-white text-[11px] uppercase tracking-widest py-3 hover:bg-[#8C2F39] transition-colors">
+            Ver meus pedidos
+          </Link>
+        </div>
+
       </div>
+
+      <Footer />
     </div>
   );
 }
@@ -187,8 +173,8 @@ function OrderConfirmedContent() {
 export default function OrderConfirmedPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#8C2F39] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#8C2F39] border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <OrderConfirmedContent />
