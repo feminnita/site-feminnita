@@ -1,137 +1,187 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 
 const slides = [
   {
+    type: "gradient",
     bg: "linear-gradient(135deg, #2e1a20 0%, #8C2F39 60%, #6b2330 100%)",
     label: "nova coleção",
     title: "Pijamas de Inverno",
-    sub: "Conforto e elegância para suas noites",
+    sub: "Conforto e elegância para suas noites mais especiais",
     cta: "Ver Coleção",
     href: "/colecao/pijamas",
-    img: null,
+    light: false,
   },
   {
-    bg: "linear-gradient(135deg, #f5ece6 0%, #e0cfc6 100%)",
+    type: "gradient",
+    bg: "linear-gradient(135deg, #f5ece6 0%, #e8d5c8 50%, #d4bfb0 100%)",
     label: "exclusivo",
     title: "Camisolas Premium",
     sub: "Sofisticação em cada detalhe",
     cta: "Comprar Agora",
     href: "/colecao/camisolas",
-    img: null,
+    light: true,
   },
   {
+    type: "gradient",
     bg: "linear-gradient(135deg, #1a0d10 0%, #8C2F39 50%, #5a1e27 100%)",
+    label: "dormir bem é se amar",
+    title: "Shorts Doll",
+    sub: "Leveza e feminilidade para o seu descanso",
+    cta: "Ver Shorts Doll",
+    href: "/colecao/shorts-doll",
+    light: false,
+  },
+  {
+    type: "gradient",
+    bg: "linear-gradient(135deg, #2e1a20 0%, #4a2030 40%, #8C2F39 100%)",
+    label: "conjuntos",
+    title: "Conjuntos Coordenados",
+    sub: "Estilo e conforto em perfeita harmonia",
+    cta: "Ver Conjuntos",
+    href: "/colecao/conjuntos",
+    light: false,
+  },
+  {
+    type: "gradient",
+    bg: "linear-gradient(135deg, #3d1a1a 0%, #8C2F39 45%, #c0415a 100%)",
     label: "outlet",
     title: "Até 50% OFF",
     sub: "Qualidade Feminnita com preço especial",
     cta: "Ver Outlet",
     href: "/colecao/outlet",
-    img: null,
+    light: false,
   },
 ];
 
 export function HeroCarousel() {
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const next = useCallback(() => setCurrent((c) => (c + 1) % slides.length), []);
-  const prev = () => setCurrent((c) => (c - 1 + slides.length) % slides.length);
+  const goTo = useCallback((idx: number) => {
+    if (transitioning) return;
+    setTransitioning(true);
+    setCurrent(idx);
+    setTimeout(() => setTransitioning(false), 600);
+  }, [transitioning]);
+
+  const next = useCallback(() => goTo((current + 1) % slides.length), [current, goTo]);
+  const prev = useCallback(() => goTo((current - 1 + slides.length) % slides.length), [current, goTo]);
 
   useEffect(() => {
     if (paused) return;
-    const t = setInterval(next, 4500);
-    return () => clearInterval(t);
-  }, [paused, next]);
+    timerRef.current = setInterval(() => {
+      setCurrent((c) => (c + 1) % slides.length);
+    }, 5000);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [paused]);
+
+  const slide = slides[current];
 
   return (
     <section
-      className="relative overflow-hidden"
-      style={{ background: "#f0e6f0" }}
+      className="relative overflow-hidden select-none"
+      style={{ height: "clamp(400px, 60vw, 620px)" }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div
-        className="flex transition-transform duration-500 ease-in-out"
-        style={{ transform: `translateX(-${current * 100}%)` }}
-      >
-        {slides.map((slide, i) => (
-          <div
-            key={i}
-            className="min-w-full flex items-center justify-center"
-            style={{
-              background: slide.bg,
-              minHeight: "clamp(280px, 45vw, 500px)",
-            }}
-          >
-            <div className="text-center px-6 py-16">
-              <p
-                className="text-[10px] uppercase tracking-[0.5em] mb-4"
-                style={{ color: slide.bg.includes("f5ece6") ? "#8C2F39" : "rgba(255,255,255,0.65)" }}
-              >
-                {slide.label}
-              </p>
-              <h2
-                className="text-3xl md:text-5xl font-extralight tracking-wider mb-6"
-                style={{
-                  fontFamily: "serif",
-                  color: slide.bg.includes("f5ece6") ? "#2e1a20" : "#fff",
-                }}
-              >
-                {slide.title}
-              </h2>
-              <p
-                className="text-sm mb-8 font-light"
-                style={{ color: slide.bg.includes("f5ece6") ? "#666" : "rgba(255,255,255,0.8)" }}
-              >
-                {slide.sub}
-              </p>
-              <Link
-                href={slide.href}
-                className="inline-block text-[11px] uppercase tracking-[0.3em] px-10 py-3 border transition-colors duration-300"
-                style={
-                  slide.bg.includes("f5ece6")
-                    ? { borderColor: "#8C2F39", color: "#8C2F39" }
-                    : { borderColor: "rgba(255,255,255,0.6)", color: "#fff" }
-                }
-              >
-                {slide.cta}
-              </Link>
-            </div>
+      {/* Slides */}
+      {slides.map((s, i) => (
+        <div
+          key={i}
+          className="absolute inset-0 flex items-center justify-center transition-opacity duration-700"
+          style={{
+            background: s.bg,
+            opacity: i === current ? 1 : 0,
+            zIndex: i === current ? 1 : 0,
+          }}
+        >
+          <div className="text-center px-6 max-w-2xl">
+            <p
+              className="text-[11px] uppercase tracking-[0.6em] mb-5 font-light"
+              style={{ color: s.light ? "rgba(0,0,0,0.45)" : "rgba(255,255,255,0.6)" }}
+            >
+              {s.label}
+            </p>
+            <h2
+              className="font-extralight tracking-wider mb-5 leading-tight"
+              style={{
+                fontFamily: "serif",
+                color: s.light ? "#2e1a20" : "#fff",
+                fontSize: "clamp(2rem, 5vw, 4rem)",
+              }}
+            >
+              {s.title}
+            </h2>
+            <p
+              className="text-sm font-light mb-10 leading-relaxed"
+              style={{ color: s.light ? "#666" : "rgba(255,255,255,0.75)" }}
+            >
+              {s.sub}
+            </p>
+            <Link
+              href={s.href}
+              className="inline-block text-[11px] uppercase tracking-[0.35em] px-12 py-4 border transition-all duration-300 hover:scale-105"
+              style={
+                s.light
+                  ? { borderColor: "#8C2F39", color: "#8C2F39" }
+                  : { borderColor: "rgba(255,255,255,0.65)", color: "#fff" }
+              }
+            >
+              {s.cta}
+            </Link>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
 
-      {/* Arrows */}
+      {/* Arrow — prev */}
       <button
         onClick={prev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center text-lg transition-colors"
-        style={{ background: "rgba(255,255,255,0.8)", color: "#333" }}
+        className="absolute left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center text-xl transition-all duration-200 hover:scale-110 z-10"
+        style={{ background: "rgba(255,255,255,0.85)", color: "#333" }}
         aria-label="Anterior"
       >
         ‹
       </button>
+
+      {/* Arrow — next */}
       <button
         onClick={next}
-        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center text-lg transition-colors"
-        style={{ background: "rgba(255,255,255,0.8)", color: "#333" }}
+        className="absolute right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center text-xl transition-all duration-200 hover:scale-110 z-10"
+        style={{ background: "rgba(255,255,255,0.85)", color: "#333" }}
         aria-label="Próximo"
       >
         ›
       </button>
 
       {/* Dots */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
         {slides.map((_, i) => (
           <button
             key={i}
-            onClick={() => setCurrent(i)}
-            className="w-2.5 h-2.5 rounded-full border-0 cursor-pointer transition-all"
-            style={{ background: i === current ? "#fff" : "rgba(255,255,255,0.5)" }}
+            onClick={() => goTo(i)}
+            className="rounded-full border-0 cursor-pointer transition-all duration-300"
+            style={{
+              width: i === current ? 24 : 10,
+              height: 10,
+              background: i === current ? "#fff" : "rgba(255,255,255,0.45)",
+            }}
             aria-label={`Slide ${i + 1}`}
           />
         ))}
+      </div>
+
+      {/* Slide counter */}
+      <div
+        className="absolute bottom-5 right-6 text-[11px] z-10"
+        style={{ color: slide.light ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.5)" }}
+      >
+        {current + 1} / {slides.length}
       </div>
     </section>
   );
