@@ -1,34 +1,18 @@
 "use client";
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
-
-interface CartItem {
-  id: string;
-  name: string;
-  image: string;
-  size: string;
-  price: number;
-  qty: number;
-}
+import { useCart } from "@/lib/cart";
 
 export default function CarrinhoPage() {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const { items, total, removeItem, updateQty } = useCart();
 
   const fmt = (v: number) =>
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-  const total = items.reduce((acc, i) => acc + i.price * i.qty, 0);
   const frete = total >= 299 ? 0 : 19.9;
-
-  const removeItem = (id: string) => setItems((prev) => prev.filter((i) => i.id !== id));
-  const updateQty = (id: string, qty: number) => {
-    if (qty < 1) return removeItem(id);
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, qty } : i)));
-  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -66,9 +50,14 @@ export default function CarrinhoPage() {
                   </div>
                   <div className="flex-1">
                     <p className="text-[14px] text-gray-800 mb-1">{item.name}</p>
-                    <p className="text-[12px] text-gray-400 mb-2">Tamanho: {item.size}</p>
+                    <p className="text-[12px] text-gray-400">
+                      Tamanho: {item.size}{item.color ? ` · ${item.color}` : ""}
+                    </p>
+                    <p className="text-[11px] text-gray-400 mb-2">
+                      {fmt(item.pixPrice)} via PIX · {fmt(item.price)} no cartão
+                    </p>
                     <p className="text-[15px] font-bold" style={{ color: "#8C2F39" }}>
-                      {fmt(item.price)}
+                      {fmt(item.pixPrice * item.qty)}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-3">

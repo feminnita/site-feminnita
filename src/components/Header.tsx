@@ -2,6 +2,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useCart } from "@/lib/cart";
 
 const nav = [
   {
@@ -50,6 +51,7 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const dropdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
+  const { count } = useCart();
 
   const handleMouseEnter = (label: string) => {
     if (dropdownTimer.current) clearTimeout(dropdownTimer.current);
@@ -270,6 +272,14 @@ export function Header() {
                 <line x1="3" y1="6" x2="21" y2="6" />
                 <path d="M16 10a4 4 0 0 1-8 0" />
               </svg>
+              {count > 0 && (
+                <span
+                  className="absolute -top-2 -right-2 w-5 h-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center leading-none"
+                  style={{ background: "#8C2F39" }}
+                >
+                  {count > 99 ? "99+" : count}
+                </span>
+              )}
             </Link>
 
             {/* Mobile search icon */}

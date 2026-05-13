@@ -9,6 +9,7 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import productsData from "@/data/products.json";
 import { notFound } from "next/navigation";
 import { useParams } from "next/navigation";
+import { useCart } from "@/lib/cart";
 
 export default function ProdutoPage() {
   const params = useParams();
@@ -27,7 +28,12 @@ export default function ProdutoPage() {
 function ProdutoContent({ product, related }: { product: (typeof productsData)[0]; related: (typeof productsData) }) {
   const [mainImg, setMainImg] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<{ name: string; hex: string } | null>(
+    product.colors && product.colors.length > 0 ? product.colors[0] : null
+  );
   const [qty, setQty] = useState(1);
+  const [added, setAdded] = useState(false);
+  const { addItem } = useCart();
 
   const fmt = (v: number) =>
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -121,14 +127,22 @@ function ProdutoContent({ product, related }: { product: (typeof productsData)[0
             {/* Colors */}
             {product.colors && product.colors.length > 0 && (
               <div>
-                <p className="text-[12px] uppercase tracking-wider text-gray-500 mb-2">Cor</p>
-                <div className="flex gap-2">
+                <p className="text-[12px] uppercase tracking-wider text-gray-500 mb-2">
+                  Cor: <span className="font-semibold text-gray-700">{selectedColor?.name}</span>
+                </p>
+                <div className="flex gap-2 flex-wrap">
                   {product.colors.map((color) => (
-                    <div
+                    <button
                       key={color.name}
                       title={color.name}
-                      className="w-6 h-6 rounded-full border-2 border-gray-200"
-                      style={{ background: color.hex }}
+                      onClick={() => setSelectedColor(color)}
+                      className="w-8 h-8 rounded-full transition-all duration-150"
+                      style={{
+                        background: color.hex,
+                        outline: selectedColor?.name === color.name ? `2px solid #8C2F39` : "2px solid transparent",
+                        outlineOffset: 2,
+                        boxShadow: "0 0 0 1px rgba(0,0,0,0.15)",
+                      }}
                     />
                   ))}
                 </div>
@@ -182,16 +196,29 @@ function ProdutoContent({ product, related }: { product: (typeof productsData)[0
 
               {product.inStock ? (
                 <button
-                  className="flex-1 h-12 text-white text-[12px] uppercase tracking-[0.2em] font-semibold transition-opacity hover:opacity-90"
-                  style={{ background: "#8C2F39" }}
+                  className="flex-1 h-12 text-white text-[12px] uppercase tracking-[0.2em] font-semibold transition-all hover:opacity-90"
+                  style={{ background: added ? "#2e7d32" : "#8C2F39" }}
                   onClick={() => {
                     if (!selectedSize) {
                       alert("Por favor, selecione um tamanho.");
                       return;
                     }
+                    addItem({
+                      productId: product.id,
+                      slug: product.slug,
+                      name: product.name,
+                      image: product.images[0],
+                      size: selectedSize,
+                      color: selectedColor?.name || "",
+                      price: product.price,
+                      pixPrice: product.pixPrice,
+                      qty,
+                    });
+                    setAdded(true);
+                    setTimeout(() => setAdded(false), 2000);
                   }}
                 >
-                  Adicionar ao Carrinho
+                  {added ? "✓ Adicionado!" : "Adicionar ao Carrinho"}
                 </button>
               ) : (
                 <button
