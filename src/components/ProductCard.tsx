@@ -1,120 +1,147 @@
 "use client";
-
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import Image from "next/image";
 
 interface Product {
   id: string;
-  code: string;
+  slug: string;
   name: string;
   price: number;
   pixPrice: number;
+  fullPrice: number;
   installments: number;
   installmentPrice: number;
   images: string[];
-  colors: string[];
-  sizes: string[];
+  category: string;
+  inStock: boolean;
 }
 
-export function ProductCard({ product }: { product: Product }) {
-  const [hovered, setIsHovered] = useState(false);
-  const [fav, setFav] = useState(false);
+interface Props {
+  product: Product;
+}
 
-  const fmt = (v: number) => v.toFixed(2).replace(".", ",");
+export function ProductCard({ product }: Props) {
+  const [hovered, setHovered] = useState(false);
+  const [favorited, setFavorited] = useState(false);
 
-  const addToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const idx = cart.findIndex((i: any) => i.id === product.id);
-    if (idx > -1) cart[idx].quantity += 1;
-    else cart.push({ ...product, quantity: 1 });
-    localStorage.setItem("cart", JSON.stringify(cart));
-    window.dispatchEvent(new Event("cartUpdated"));
-  };
+  const isOutlet = product.fullPrice > product.price;
+  const hasSecondImg = product.images.length > 1;
+
+  const fmt = (v: number) =>
+    v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
-    <div className="group" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-      {/* Image container */}
-      <Link href={`/produto/${product.id}`} className="block relative overflow-hidden bg-[#f9f7f5]" style={{ aspectRatio: "2/3" }}>
-        {/* Image 1 */}
-        <Image
-          src={product.images[0] || "/placeholder.jpg"}
-          alt={product.name}
-          fill
-          className={`object-cover transition-opacity duration-500 ${hovered && product.images[1] ? "opacity-0" : "opacity-100"}`}
-        />
-        {/* Image 2 (hover) */}
-        {product.images[1] && (
+    <Link
+      href={`/produto/${product.slug}`}
+      className="block group"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div
+        className="relative overflow-hidden"
+        style={{
+          borderRadius: 8,
+          boxShadow: hovered
+            ? "0 6px 20px rgba(0,0,0,0.12)"
+            : "0 2px 8px rgba(0,0,0,0.06)",
+          transform: hovered ? "translateY(-2px)" : "translateY(0)",
+          transition: "box-shadow 0.2s, transform 0.2s",
+          background: "#fff",
+        }}
+      >
+        {/* Image wrap — portrait 120% */}
+        <div
+          className="relative overflow-hidden"
+          style={{ paddingTop: "120%", background: "#f0f0f0" }}
+        >
           <Image
-            src={product.images[1]}
+            src={hovered && hasSecondImg ? product.images[1] : product.images[0]}
             alt={product.name}
             fill
-            className={`object-cover transition-opacity duration-500 ${hovered ? "opacity-100" : "opacity-0"}`}
+            className="object-cover"
+            style={{
+              transform: hovered ? "scale(1.04)" : "scale(1)",
+              transition: "transform 0.3s",
+            }}
+            sizes="(max-width: 768px) 50vw, 25vw"
+            unoptimized
           />
-        )}
 
-        {/* Favoritar (top right) */}
-        <button
-          onClick={(e) => { e.preventDefault(); setFav(!fav); }}
-          className={`absolute top-3 right-3 z-10 transition-opacity duration-300 ${hovered ? "opacity-100" : "opacity-0"}`}
-          aria-label="Favoritar"
-        >
-          <Heart
-            size={20}
-            strokeWidth={1.5}
-            className={fav ? "fill-[#8C2F39] text-[#8C2F39]" : "text-gray-800"}
-          />
-        </button>
+          {/* Badge */}
+          {isOutlet && (
+            <span
+              className="absolute top-2.5 left-2.5 text-white text-[11px] font-bold uppercase px-2 py-0.5"
+              style={{ background: "#8C2F39", borderRadius: 3 }}
+            >
+              Outlet
+            </span>
+          )}
+          {!product.inStock && (
+            <span
+              className="absolute top-2.5 left-2.5 text-white text-[11px] font-bold uppercase px-2 py-0.5"
+              style={{ background: "#888", borderRadius: 3 }}
+            >
+              Esgotado
+            </span>
+          )}
 
-        {/* Comprar (bottom overlay) */}
-        <div
-          className={`absolute bottom-0 inset-x-0 flex transition-all duration-300 ${hovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}
-        >
+          {/* Heart */}
           <button
-            onClick={addToCart}
-            className="flex-1 bg-white text-gray-900 text-[11px] font-semibold tracking-widest uppercase py-3 hover:bg-[#8C2F39] hover:text-white transition-colors duration-200"
+            onClick={(e) => {
+              e.preventDefault();
+              setFavorited((f) => !f);
+            }}
+            className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center transition-opacity"
+            style={{ opacity: hovered || favorited ? 1 : 0 }}
+            aria-label="Favoritar"
           >
-            Comprar
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={favorited ? "#8C2F39" : "none"} stroke="#8C2F39" strokeWidth="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
           </button>
-        </div>
-      </Link>
 
-      {/* Info */}
-      <div className="mt-3 space-y-1">
-        <p className="text-[10px] text-gray-400 uppercase tracking-wider">{product.code}</p>
-        <h3 className="text-[13px] text-gray-800 font-light leading-snug">{product.name}</h3>
-        <div className="pt-1">
-          <p className="text-[13px] font-medium text-gray-900">R$ {fmt(product.pixPrice)}</p>
-          <p className="text-[11px] text-gray-500">via PIX ou Boleto</p>
-          <p className="text-[11px] text-gray-400">(em até {product.installments}x de R$ {fmt(product.installmentPrice)})</p>
+          {/* Comprar overlay */}
+          {product.inStock && (
+            <div
+              className="absolute bottom-0 left-0 right-0 flex items-center justify-center py-3 text-white text-[12px] tracking-widest uppercase transition-all duration-200"
+              style={{
+                background: "#8C2F39",
+                opacity: hovered ? 1 : 0,
+                transform: hovered ? "translateY(0)" : "translateY(8px)",
+              }}
+            >
+              Comprar
+            </div>
+          )}
         </div>
 
-        {/* Cores */}
-        {product.colors.length > 0 && (
-          <div className="flex gap-1.5 pt-1 flex-wrap">
-            {product.colors.slice(0, 5).map((c) => (
-              <span
-                key={c}
-                title={c}
-                className="w-3 h-3 rounded-full border border-gray-200"
-                style={{ backgroundColor: colorHex(c) }}
-              />
-            ))}
-          </div>
-        )}
+        {/* Info */}
+        <div className="p-3">
+          <p
+            className="text-[13px] text-gray-700 font-normal leading-snug mb-1.5 overflow-hidden"
+            style={{ height: 36 }}
+          >
+            {product.name}
+          </p>
+
+          {isOutlet && (
+            <p className="text-[12px] text-gray-400 line-through">
+              {fmt(product.fullPrice)}
+            </p>
+          )}
+
+          <p className="text-[16px] font-bold" style={{ color: "#8C2F39" }}>
+            {fmt(product.pixPrice)}
+          </p>
+          <p className="text-[11px] text-gray-500 mt-0.5">
+            via PIX ou Boleto
+          </p>
+          <p className="text-[11px] text-gray-500 mt-0.5">
+            em até {product.installments}x de {fmt(product.installmentPrice)}
+          </p>
+        </div>
       </div>
-    </div>
+    </Link>
   );
-}
-
-function colorHex(name: string) {
-  const map: Record<string, string> = {
-    rose: "#D4A5A5", mint: "#A8D5BA", aloe: "#C8E6C9", hazel: "#B8A68F",
-    cream: "#F5E6D3", mescla: "#9E9E9E", branco: "#FFFFFF", preto: "#1a1a1a",
-    verde: "#4CAF50", azul: "#2196F3", rosa: "#F48FB1", lilás: "#CE93D8",
-    nude: "#E8C8B0", cinza: "#BDBDBD",
-  };
-  return map[name.toLowerCase()] || "#CCCCCC";
 }

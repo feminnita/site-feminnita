@@ -1,180 +1,287 @@
 [
   {
-    "id": "1",
-    "code": "PJ10001",
+    "id": "pj-001",
+    "code": "PJ17001/rosa",
     "name": "Pijama Curto Rosa Floral",
+    "slug": "pijama-curto-rosa-floral",
+    "category": "pijamas",
     "price": 129.90,
     "pixPrice": 116.91,
+    "fullPrice": 129.90,
     "installments": 10,
     "installmentPrice": 12.99,
-    "category": "pijamas",
     "images": [
-      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80&fit=crop",
-      "https://images.unsplash.com/photo-1617869898823-de9e9a6ff023?w=600&q=80&fit=crop"
+      "https://ext.same-assets.com/2738959979/254087678.webp",
+      "https://ext.same-assets.com/2738959979/1316290870.webp"
     ],
-    "colors": ["rosa", "branco", "lilás"],
-    "sizes": ["P", "M", "G", "GG"]
+    "colors": [
+      { "name": "rosa",   "hex": "#f4a7b9" },
+      { "name": "branco", "hex": "#ffffff" },
+      { "name": "lilás",  "hex": "#ce93d8" }
+    ],
+    "sizes": ["P", "M", "G", "GG"],
+    "inStock": true,
+    "description": "Pijama curto confeccionado em tecido leve e macio, com estampa floral delicada. Ideal para noites quentes."
   },
   {
-    "id": "2",
-    "code": "PJ10002",
+    "id": "pj-002",
+    "code": "PJ17002/nude",
     "name": "Pijama Longo Calça Listrada",
+    "slug": "pijama-longo-calca-listrada",
+    "category": "pijamas",
     "price": 159.90,
     "pixPrice": 143.91,
+    "fullPrice": 159.90,
     "installments": 10,
     "installmentPrice": 15.99,
+    "images": [
+      "https://ext.same-assets.com/2738959979/3118241062.webp",
+      "https://ext.same-assets.com/2738959979/1271190456.webp"
+    ],
+    "colors": [
+      { "name": "nude",   "hex": "#e8c8b0" },
+      { "name": "cinza",  "hex": "#bdbdbd" },
+      { "name": "branco", "hex": "#ffffff" }
+    ],
+    "sizes": ["P", "M", "G", "GG"],
+    "inStock": true,
+    "description": "Pijama longo com calça listrada e blusa manga curta. Conforto total para o seu descanso."
+  },
+  {
+    "id": "pj-003",
+    "code": "PJ17003/cinza",
+    "name": "Pijama Inverno Soft Plush",
+    "slug": "pijama-inverno-soft-plush",
     "category": "pijamas",
-    "images": [
-      "https://images.unsplash.com/photo-1612424168182-f10dcc50c282?w=600&q=80&fit=crop",
-      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80&fit=crop"
-    ],
-    "colors": ["nude", "cinza", "branco"],
-    "sizes": ["P", "M", "G", "GG"]
-  },
-  {
-    "id": "3",
-    "code": "CM10001",
-    "name": "Camisola Manga Curta Renda",
-    "price": 99.90,
-    "pixPrice": 89.91,
-    "installments": 10,
-    "installmentPrice": 9.99,
-    "category": "camisolas",
-    "images": [
-      "https://images.unsplash.com/photo-1617869898823-de9e9a6ff023?w=600&q=80&fit=crop",
-      "https://images.unsplash.com/photo-1612424168182-f10dcc50c282?w=600&q=80&fit=crop"
-    ],
-    "colors": ["branco", "rosa", "nude"],
-    "sizes": ["P", "M", "G", "GG"]
-  },
-  {
-    "id": "4",
-    "code": "CM10002",
-    "name": "Camisola Longa Cetim",
-    "price": 139.90,
-    "pixPrice": 125.91,
-    "installments": 10,
-    "installmentPrice": 13.99,
-    "category": "camisolas",
-    "images": [
-      "https://images.unsplash.com/photo-1631045885607-2b1a47f44261?w=600&q=80&fit=crop",
-      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80&fit=crop"
-    ],
-    "colors": ["nude", "preto", "lilás"],
-    "sizes": ["P", "M", "G", "GG"]
-  },
-  {
-    "id": "5",
-    "code": "SD10001",
-    "name": "Short Doll Liganete Estampado",
-    "price": 89.90,
-    "pixPrice": 80.91,
-    "installments": 6,
-    "installmentPrice": 14.98,
-    "category": "shorts-doll",
-    "images": [
-      "https://images.unsplash.com/photo-1612424168182-f10dcc50c282?w=600&q=80&fit=crop",
-      "https://images.unsplash.com/photo-1617869898823-de9e9a6ff023?w=600&q=80&fit=crop"
-    ],
-    "colors": ["rosa", "branco", "cinza"],
-    "sizes": ["P", "M", "G", "GG"]
-  },
-  {
-    "id": "6",
-    "code": "CJ10001",
-    "name": "Conjunto Pijama Adulto Xadrez",
-    "price": 179.90,
-    "pixPrice": 161.91,
-    "installments": 10,
-    "installmentPrice": 17.99,
-    "category": "conjuntos",
-    "images": [
-      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80&fit=crop",
-      "https://images.unsplash.com/photo-1631045885607-2b1a47f44261?w=600&q=80&fit=crop"
-    ],
-    "colors": ["rosa", "azul", "cinza"],
-    "sizes": ["P", "M", "G", "GG"]
-  },
-  {
-    "id": "7",
-    "code": "CJ10002",
-    "name": "Conjunto Curto Viscolycra Premium",
-    "price": 149.90,
-    "pixPrice": 134.91,
-    "installments": 10,
-    "installmentPrice": 14.99,
-    "category": "conjuntos",
-    "images": [
-      "https://images.unsplash.com/photo-1617869898823-de9e9a6ff023?w=600&q=80&fit=crop",
-      "https://images.unsplash.com/photo-1612424168182-f10dcc50c282?w=600&q=80&fit=crop"
-    ],
-    "colors": ["branco", "nude", "rosa"],
-    "sizes": ["P", "M", "G", "GG"]
-  },
-  {
-    "id": "8",
-    "code": "PJ10003",
-    "name": "Pijama Inverno Soft Pelúcia",
     "price": 199.90,
     "pixPrice": 179.91,
+    "fullPrice": 199.90,
     "installments": 10,
     "installmentPrice": 19.99,
-    "category": "pijamas",
     "images": [
-      "https://images.unsplash.com/photo-1631045885607-2b1a47f44261?w=600&q=80&fit=crop",
-      "https://images.unsplash.com/photo-1612424168182-f10dcc50c282?w=600&q=80&fit=crop"
+      "https://ext.same-assets.com/2738959979/3282728844.webp",
+      "https://ext.same-assets.com/2738959979/1709762124.webp"
     ],
-    "colors": ["cinza", "rosa", "branco"],
-    "sizes": ["P", "M", "G", "GG"]
+    "colors": [
+      { "name": "cinza",  "hex": "#bdbdbd" },
+      { "name": "rosa",   "hex": "#f4a7b9" },
+      { "name": "branco", "hex": "#ffffff" }
+    ],
+    "sizes": ["P", "M", "G", "GG"],
+    "inStock": true,
+    "description": "Pijama quentinho em soft plush para os dias frios. Toque suave e aconchegante."
   },
   {
-    "id": "9",
-    "code": "PJ10004",
+    "id": "pj-004",
+    "code": "PJ17004/rosa",
     "name": "Pijama Manga Longa Estampa Floral",
+    "slug": "pijama-manga-longa-estampa-floral",
+    "category": "pijamas",
     "price": 169.90,
     "pixPrice": 152.91,
+    "fullPrice": 169.90,
     "installments": 10,
     "installmentPrice": 16.99,
-    "category": "pijamas",
     "images": [
-      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80&fit=crop",
-      "https://images.unsplash.com/photo-1617869898823-de9e9a6ff023?w=600&q=80&fit=crop"
+      "https://ext.same-assets.com/2738959979/962659951.webp",
+      "https://ext.same-assets.com/2738959979/2862107894.webp"
     ],
-    "colors": ["rosa", "verde", "branco"],
-    "sizes": ["P", "M", "G", "GG"]
+    "colors": [
+      { "name": "rosa",   "hex": "#f4a7b9" },
+      { "name": "verde",  "hex": "#a5d6a7" },
+      { "name": "branco", "hex": "#ffffff" }
+    ],
+    "sizes": ["PP", "P", "M", "G", "GG"],
+    "inStock": true,
+    "description": "Pijama manga longa com belas estampas florais. Perfeito para noites frias e aconchegantes."
   },
   {
-    "id": "10",
-    "code": "OL10001",
-    "name": "Pijama Curto Outlet",
-    "price": 69.90,
-    "originalPrice": 129.90,
-    "pixPrice": 62.91,
+    "id": "cm-001",
+    "code": "CM17001/branco",
+    "name": "Camisola Manga Curta Renda",
+    "slug": "camisola-manga-curta-renda",
+    "category": "camisolas",
+    "price": 99.90,
+    "pixPrice": 89.91,
+    "fullPrice": 99.90,
+    "installments": 10,
+    "installmentPrice": 9.99,
+    "images": [
+      "https://ext.same-assets.com/2738959979/4171673573.webp",
+      "https://ext.same-assets.com/2738959979/390101413.webp"
+    ],
+    "colors": [
+      { "name": "branco", "hex": "#ffffff" },
+      { "name": "rosa",   "hex": "#f4a7b9" },
+      { "name": "nude",   "hex": "#e8c8b0" }
+    ],
+    "sizes": ["P", "M", "G", "GG"],
+    "inStock": true,
+    "description": "Camisola delicada em tecido leve com detalhes em renda. Elegante e confortável."
+  },
+  {
+    "id": "cm-002",
+    "code": "CM17002/nude",
+    "name": "Camisola Longa Cetim Premium",
+    "slug": "camisola-longa-cetim-premium",
+    "category": "camisolas",
+    "price": 139.90,
+    "pixPrice": 125.91,
+    "fullPrice": 139.90,
+    "installments": 10,
+    "installmentPrice": 13.99,
+    "images": [
+      "https://ext.same-assets.com/2738959979/1709762124.webp",
+      "https://ext.same-assets.com/2738959979/3282728844.webp"
+    ],
+    "colors": [
+      { "name": "nude",   "hex": "#e8c8b0" },
+      { "name": "preto",  "hex": "#1a1a1a" },
+      { "name": "lilás",  "hex": "#ce93d8" }
+    ],
+    "sizes": ["P", "M", "G", "GG"],
+    "inStock": true,
+    "description": "Camisola longa em cetim premium com alças finas. Sofisticação e conforto para suas noites."
+  },
+  {
+    "id": "sd-001",
+    "code": "SD17001/rosa",
+    "name": "Short Doll Liganete Estampado",
+    "slug": "short-doll-liganete-estampado",
+    "category": "shorts-doll",
+    "price": 89.90,
+    "pixPrice": 80.91,
+    "fullPrice": 89.90,
     "installments": 6,
-    "installmentPrice": 11.65,
-    "category": "outlet",
+    "installmentPrice": 14.98,
     "images": [
-      "https://images.unsplash.com/photo-1612424168182-f10dcc50c282?w=600&q=80&fit=crop",
-      "https://images.unsplash.com/photo-1631045885607-2b1a47f44261?w=600&q=80&fit=crop"
+      "https://ext.same-assets.com/2738959979/1316290870.webp",
+      "https://ext.same-assets.com/2738959979/254087678.webp"
     ],
-    "colors": ["nude", "rosa"],
-    "sizes": ["P", "M", "G"]
+    "colors": [
+      { "name": "rosa",   "hex": "#f4a7b9" },
+      { "name": "branco", "hex": "#ffffff" },
+      { "name": "cinza",  "hex": "#bdbdbd" }
+    ],
+    "sizes": ["P", "M", "G", "GG"],
+    "inStock": true,
+    "description": "Short doll em liganete com estampa delicada. Leveza e feminilidade para o seu descanso."
   },
   {
-    "id": "11",
-    "code": "OL10002",
+    "id": "sd-002",
+    "code": "SD17002/branco",
+    "name": "Short Doll Renda Bordada",
+    "slug": "short-doll-renda-bordada",
+    "category": "shorts-doll",
+    "price": 79.90,
+    "pixPrice": 71.91,
+    "fullPrice": 79.90,
+    "installments": 6,
+    "installmentPrice": 13.32,
+    "images": [
+      "https://ext.same-assets.com/2738959979/962659951.webp",
+      "https://ext.same-assets.com/2738959979/4171673573.webp"
+    ],
+    "colors": [
+      { "name": "branco", "hex": "#ffffff" },
+      { "name": "rosa",   "hex": "#f4a7b9" }
+    ],
+    "sizes": ["P", "M", "G"],
+    "inStock": false,
+    "description": "Short doll com renda bordada e detalhes delicados. Conjunto elegante e confortável."
+  },
+  {
+    "id": "cj-001",
+    "code": "CJ17001/rosa",
+    "name": "Conjunto Pijama Adulto Xadrez",
+    "slug": "conjunto-pijama-adulto-xadrez",
+    "category": "conjuntos",
+    "price": 179.90,
+    "pixPrice": 161.91,
+    "fullPrice": 179.90,
+    "installments": 10,
+    "installmentPrice": 17.99,
+    "images": [
+      "https://ext.same-assets.com/2738959979/2302845870.webp",
+      "https://ext.same-assets.com/2738959979/1774049605.webp"
+    ],
+    "colors": [
+      { "name": "rosa",   "hex": "#f4a7b9" },
+      { "name": "azul",   "hex": "#90caf9" },
+      { "name": "cinza",  "hex": "#bdbdbd" }
+    ],
+    "sizes": ["P", "M", "G", "GG"],
+    "inStock": true,
+    "description": "Conjunto pijama xadrez com calça e blusa coordenados. Estilo e conforto para toda a família."
+  },
+  {
+    "id": "cj-002",
+    "code": "CJ17002/nude",
+    "name": "Conjunto Curto Viscolycra Premium",
+    "slug": "conjunto-curto-viscolycra-premium",
+    "category": "conjuntos",
+    "price": 149.90,
+    "pixPrice": 134.91,
+    "fullPrice": 149.90,
+    "installments": 10,
+    "installmentPrice": 14.99,
+    "images": [
+      "https://ext.same-assets.com/2738959979/1271190456.webp",
+      "https://ext.same-assets.com/2738959979/3118241062.webp"
+    ],
+    "colors": [
+      { "name": "nude",   "hex": "#e8c8b0" },
+      { "name": "branco", "hex": "#ffffff" },
+      { "name": "rosa",   "hex": "#f4a7b9" }
+    ],
+    "sizes": ["P", "M", "G", "GG"],
+    "inStock": true,
+    "description": "Conjunto curto em viscolycra premium. Conforto e elegância em perfeita harmonia."
+  },
+  {
+    "id": "ol-001",
+    "code": "OL17001/rosa",
+    "name": "Pijama Curto Outlet",
+    "slug": "pijama-curto-outlet",
+    "category": "outlet",
+    "price": 64.90,
+    "pixPrice": 58.41,
+    "fullPrice": 129.90,
+    "installments": 4,
+    "installmentPrice": 16.23,
+    "images": [
+      "https://ext.same-assets.com/2738959979/2862107894.webp",
+      "https://ext.same-assets.com/2738959979/390101413.webp"
+    ],
+    "colors": [
+      { "name": "rosa",   "hex": "#f4a7b9" },
+      { "name": "nude",   "hex": "#e8c8b0" }
+    ],
+    "sizes": ["P", "M", "G"],
+    "inStock": true,
+    "description": "Pijama curto selecionado para o outlet com desconto especial. Qualidade Feminnita com preço reduzido."
+  },
+  {
+    "id": "ol-002",
+    "code": "OL17002/branco",
     "name": "Camisola Outlet Rendada",
+    "slug": "camisola-outlet-rendada",
+    "category": "outlet",
     "price": 49.90,
-    "originalPrice": 99.90,
     "pixPrice": 44.91,
+    "fullPrice": 99.90,
     "installments": 4,
     "installmentPrice": 12.48,
-    "category": "outlet",
     "images": [
-      "https://images.unsplash.com/photo-1617869898823-de9e9a6ff023?w=600&q=80&fit=crop",
-      "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80&fit=crop"
+      "https://ext.same-assets.com/2738959979/3282728844.webp",
+      "https://ext.same-assets.com/2738959979/1709762124.webp"
     ],
-    "colors": ["branco", "nude"],
-    "sizes": ["M", "G"]
+    "colors": [
+      { "name": "branco", "hex": "#ffffff" },
+      { "name": "nude",   "hex": "#e8c8b0" }
+    ],
+    "sizes": ["M", "G"],
+    "inStock": true,
+    "description": "Camisola rendada em oferta especial no outlet. Não perca essa oportunidade!"
   }
 ]

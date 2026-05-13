@@ -1,126 +1,134 @@
 "use client";
-
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
-interface Slide {
-  bg: string;
-  tag: string;
-  title: string;
-  sub: string;
-  cta: string;
-  href: string;
-  textColor: string;
-}
-
-const slides: Slide[] = [
-  {
-    bg: "linear-gradient(135deg, #f5ece6 0%, #e8d5c8 100%)",
-    tag: "nova coleção",
-    title: "Pijamas & Camisolas",
-    sub: "Conforto e elegância para cada noite",
-    cta: "ver coleção",
-    href: "/colecao/pijamas",
-    textColor: "#5a3a2e",
-  },
+const slides = [
   {
     bg: "linear-gradient(135deg, #2e1a20 0%, #8C2F39 60%, #6b2330 100%)",
-    tag: "lançamento",
+    label: "nova coleção",
+    title: "Pijamas de Inverno",
+    sub: "Conforto e elegância para suas noites",
+    cta: "Ver Coleção",
+    href: "/colecao/pijamas",
+    img: null,
+  },
+  {
+    bg: "linear-gradient(135deg, #f5ece6 0%, #e0cfc6 100%)",
+    label: "exclusivo",
     title: "Camisolas Premium",
-    sub: "Tecidos suaves de alta qualidade",
-    cta: "comprar agora",
+    sub: "Sofisticação em cada detalhe",
+    cta: "Comprar Agora",
     href: "/colecao/camisolas",
-    textColor: "#fff",
+    img: null,
   },
   {
-    bg: "linear-gradient(135deg, #f0ebe5 0%, #ddd0c5 100%)",
-    tag: "shorts doll",
-    title: "Short Doll Liganete",
-    sub: "Leveza e feminilidade em cada detalhe",
-    cta: "ver peças",
-    href: "/colecao/shorts-doll",
-    textColor: "#5a3a2e",
-  },
-  {
-    bg: "linear-gradient(135deg, #1a1a1a 0%, #3a2a2a 100%)",
-    tag: "até 50% off",
-    title: "Outlet Feminnita",
-    sub: "Peças selecionadas com descontos especiais",
-    cta: "aproveitar",
+    bg: "linear-gradient(135deg, #1a0d10 0%, #8C2F39 50%, #5a1e27 100%)",
+    label: "outlet",
+    title: "Até 50% OFF",
+    sub: "Qualidade Feminnita com preço especial",
+    cta: "Ver Outlet",
     href: "/colecao/outlet",
-    textColor: "#fff",
+    img: null,
   },
 ];
 
 export function HeroCarousel() {
   const [current, setCurrent] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [paused, setPaused] = useState(false);
 
-  const goTo = useCallback((idx: number) => setCurrent(idx), []);
-  const next = useCallback(() => goTo((current + 1) % slides.length), [current, goTo]);
-  const back = useCallback(() => goTo((current - 1 + slides.length) % slides.length), [current, goTo]);
+  const next = useCallback(() => setCurrent((c) => (c + 1) % slides.length), []);
+  const prev = () => setCurrent((c) => (c - 1 + slides.length) % slides.length);
 
   useEffect(() => {
-    timerRef.current = setTimeout(next, 5500);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [current, next]);
+    if (paused) return;
+    const t = setInterval(next, 4500);
+    return () => clearInterval(t);
+  }, [paused, next]);
 
   return (
-    <section className="relative w-full overflow-hidden" style={{ aspectRatio: "16/6" }}>
-      {slides.map((slide, i) => (
-        <div
-          key={i}
-          className={`absolute inset-0 transition-opacity duration-700 ${i === current ? "opacity-100 z-10" : "opacity-0 z-0"}`}
-          style={{ background: slide.bg }}
-        >
-          <Link
-            href={slide.href}
-            className="flex flex-col items-center justify-center h-full text-center px-6"
-            style={{ color: slide.textColor }}
+    <section
+      className="relative overflow-hidden"
+      style={{ background: "#f0e6f0" }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div
+        className="flex transition-transform duration-500 ease-in-out"
+        style={{ transform: `translateX(-${current * 100}%)` }}
+      >
+        {slides.map((slide, i) => (
+          <div
+            key={i}
+            className="min-w-full flex items-center justify-center"
+            style={{
+              background: slide.bg,
+              minHeight: "clamp(280px, 45vw, 500px)",
+            }}
           >
-            <p className="text-[10px] uppercase tracking-[0.5em] mb-4 opacity-70">{slide.tag}</p>
-            <h2 className="text-4xl md:text-6xl font-extralight tracking-wider mb-4"
-                style={{ fontFamily: "serif" }}>
-              {slide.title}
-            </h2>
-            <p className="text-[13px] tracking-widest opacity-70 mb-10">{slide.sub}</p>
-            <span
-              className="text-[11px] uppercase tracking-[0.3em] px-10 py-3 border transition-all duration-300"
-              style={{
-                borderColor: slide.textColor === "#fff" ? "rgba(255,255,255,0.6)" : "rgba(90,58,46,0.4)",
-                color: slide.textColor,
-              }}
-            >
-              {slide.cta}
-            </span>
-          </Link>
-        </div>
-      ))}
+            <div className="text-center px-6 py-16">
+              <p
+                className="text-[10px] uppercase tracking-[0.5em] mb-4"
+                style={{ color: slide.bg.includes("f5ece6") ? "#8C2F39" : "rgba(255,255,255,0.65)" }}
+              >
+                {slide.label}
+              </p>
+              <h2
+                className="text-3xl md:text-5xl font-extralight tracking-wider mb-6"
+                style={{
+                  fontFamily: "serif",
+                  color: slide.bg.includes("f5ece6") ? "#2e1a20" : "#fff",
+                }}
+              >
+                {slide.title}
+              </h2>
+              <p
+                className="text-sm mb-8 font-light"
+                style={{ color: slide.bg.includes("f5ece6") ? "#666" : "rgba(255,255,255,0.8)" }}
+              >
+                {slide.sub}
+              </p>
+              <Link
+                href={slide.href}
+                className="inline-block text-[11px] uppercase tracking-[0.3em] px-10 py-3 border transition-colors duration-300"
+                style={
+                  slide.bg.includes("f5ece6")
+                    ? { borderColor: "#8C2F39", color: "#8C2F39" }
+                    : { borderColor: "rgba(255,255,255,0.6)", color: "#fff" }
+                }
+              >
+                {slide.cta}
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* Arrows */}
       <button
-        onClick={(e) => { e.preventDefault(); back(); }}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/20 hover:bg-white/40 p-2 transition-colors"
+        onClick={prev}
+        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center text-lg transition-colors"
+        style={{ background: "rgba(255,255,255,0.8)", color: "#333" }}
         aria-label="Anterior"
       >
-        <ChevronLeft size={20} strokeWidth={1.5} className="text-white mix-blend-difference" />
+        ‹
       </button>
       <button
-        onClick={(e) => { e.preventDefault(); next(); }}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/20 hover:bg-white/40 p-2 transition-colors"
+        onClick={next}
+        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center text-lg transition-colors"
+        style={{ background: "rgba(255,255,255,0.8)", color: "#333" }}
         aria-label="Próximo"
       >
-        <ChevronRight size={20} strokeWidth={1.5} className="text-white mix-blend-difference" />
+        ›
       </button>
 
       {/* Dots */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
         {slides.map((_, i) => (
           <button
             key={i}
-            onClick={() => goTo(i)}
-            className={`rounded-full transition-all duration-300 ${i === current ? "w-6 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/40"}`}
+            onClick={() => setCurrent(i)}
+            className="w-2.5 h-2.5 rounded-full border-0 cursor-pointer transition-all"
+            style={{ background: i === current ? "#fff" : "rgba(255,255,255,0.5)" }}
             aria-label={`Slide ${i + 1}`}
           />
         ))}
