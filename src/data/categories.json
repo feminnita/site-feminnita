@@ -1,4 +1,37 @@
 [
-  {"id": "tops", "name": "Tops", "slug": "tops", "image": "https://ext.same-assets.com/2738959979/4171673573.webp"},
-  {"id": "leggings", "name": "Leggings", "slug": "leggings", "image": "https://ext.same-assets.com/2738959979/390101413.webp"}
+  {
+    "id": "pijamas",
+    "name": "Pijamas",
+    "slug": "pijamas",
+    "image": "/colecoes/pijamas.jpg",
+    "banner": "/banners/banner-pijamas.jpg"
+  },
+  {
+    "id": "camisolas",
+    "name": "Camisolas",
+    "slug": "camisolas",
+    "image": "/colecoes/camisolas.jpg",
+    "banner": "/banners/banner-camisolas.jpg"
+  },
+  {
+    "id": "shorts-doll",
+    "name": "Shorts Doll",
+    "slug": "shorts-doll",
+    "image": "/colecoes/shorts.jpg",
+    "banner": "/banners/banner-shorts.jpg"
+  },
+  {
+    "id": "conjuntos",
+    "name": "Conjuntos",
+    "slug": "conjuntos",
+    "image": "/colecoes/conjuntos.jpg",
+    "banner": "/banners/banner-conjuntos.jpg"
+  },
+  {
+    "id": "outlet",
+    "name": "Outlet",
+    "slug": "outlet",
+    "image": "/colecoes/outlet.jpg",
+    "banner": "/banners/banner-outlet.jpg"
+  }
 ]
