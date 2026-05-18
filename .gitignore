@@ -42,3 +42,6 @@ backend/node_modules
 backend/.env
 backend/uploads/*
 !backend/uploads/.gitkeep
+
+.env.local
+.env*.local
