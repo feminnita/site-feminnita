@@ -81,9 +81,8 @@ export async function POST(req: NextRequest) {
         const promoPrice = parseFloat(detail.precoPromocional || "0") || null;
         const pixPrice = parseFloat((basePrice * 0.9).toFixed(2));
 
-        // ── Images ──
-        const imagesRaw: any[] = detail.midia?.imagens?.externas || [];
-        const images = imagesRaw.map((img: any) => img.link).filter(Boolean);
+        // ── Images ── (NÃO importa do Bling: imagens são refeitas manualmente pela Feminnita)
+        const images: string[] = [];
 
         // ── Weight & dimensions ──
         const weightKg = parseFloat(detail.pesoBruto || "0.3") || 0.3;
