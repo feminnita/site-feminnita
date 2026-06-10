@@ -68,6 +68,23 @@ export async function middleware(request: NextRequest) {
       loginUrl.searchParams.set("redirect", request.nextUrl.pathname);
       return NextResponse.redirect(loginUrl);
     }
+
+    // Área administrativa: exige usuário logado E que seja admin
+    if (request.nextUrl.pathname.startsWith("/admin")) {
+      if (!user) {
+        const loginUrl = new URL("/login", request.url);
+        loginUrl.searchParams.set("redirect", request.nextUrl.pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+      const { data: adminRow } = await supabase
+        .from("admin_users")
+        .select("id")
+        .eq("auth_id", user.id)
+        .maybeSingle();
+      if (!adminRow) {
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
+    }
   } catch {
     return NextResponse.next({ request });
   }

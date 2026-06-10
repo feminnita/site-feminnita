@@ -6,14 +6,22 @@ import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { JsonLd, productSchema, breadcrumbSchema } from "@/components/JsonLd";
-import { CompleteOLook } from "@/components/CompleteOLook";
 import { ReviewSection } from "@/components/ReviewSection";
 import { SizeRecommender } from "@/components/SizeRecommender";
 import { StockIndicator } from "@/components/StockIndicator";
 import { PersonalizedRecommendations } from "@/components/PersonalizedRecommendations";
 import { SimilarProducts } from "@/components/SimilarProducts";
-import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield, Check } from "lucide-react";
+import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield, Check, Play } from "lucide-react";
 import { fetchProduct, fetchProducts, type StoreProduct } from "@/lib/products";
+
+// Converte qualquer link de YouTube (watch, youtu.be, shorts) para o formato /embed
+function toEmbedUrl(url: string): string {
+  if (!url) return "";
+  if (url.includes("/embed/")) return url;
+  const m = url.match(/(?:youtu\.be\/|v=|shorts\/)([\w-]{11})/);
+  if (m) return `https://www.youtube.com/embed/${m[1]}`;
+  return url;
+}
 
 const colorMap: { [key: string]: string } = {
   rose: "#D4A5A5",
@@ -30,6 +38,7 @@ export default function ProductPage() {
   const params = useParams();
   const router = useRouter();
   const [selectedImage, setSelectedImage] = useState(0);
+  const [showVideo, setShowVideo] = useState(false);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -243,42 +252,67 @@ export default function ProductPage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-12">
-          {/* Product Images */}
-          <div>
-            <div className="relative aspect-square bg-gray-100 mb-4 overflow-hidden">
-              <Image
-                src={product.images[selectedImage]}
-                alt={product.name}
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover"
-                priority
-                quality={85}
-              />
-            </div>
-            {product.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-3">
+          {/* Galeria: miniaturas na lateral + imagem grande 2:3 + vídeo */}
+          <div className="flex flex-col-reverse md:flex-row gap-3">
+            {/* Miniaturas (coluna lateral no desktop, linha no mobile) */}
+            {(product.images.length > 1 || product.videoUrl) && (
+              <div className="flex md:flex-col gap-3 md:w-20 overflow-x-auto md:overflow-y-auto md:max-h-[600px]">
                 {product.images.map((image, index) => (
                   <button
                     key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`relative aspect-square bg-gray-100 overflow-hidden border-2 ${
-                      selectedImage === index
-                        ? "border-black"
+                    onClick={() => { setShowVideo(false); setSelectedImage(index); }}
+                    className={`relative aspect-[2/3] w-16 md:w-full flex-shrink-0 bg-gray-100 overflow-hidden border-2 rounded-md ${
+                      !showVideo && selectedImage === index
+                        ? "border-[#8C2F39]"
                         : "border-transparent hover:border-gray-300"
                     }`}
                   >
-                    <Image
-                      src={image}
-                      alt={`${product.name} ${index + 1}`}
-                      fill
-                      sizes="128px"
-                      className="object-cover"
-                    />
+                    <Image src={image} alt={`${product.name} ${index + 1}`} fill sizes="80px" className="object-cover" />
                   </button>
                 ))}
+                {product.videoUrl && (
+                  <button
+                    onClick={() => setShowVideo(true)}
+                    className={`relative aspect-[2/3] w-16 md:w-full flex-shrink-0 bg-black overflow-hidden border-2 rounded-md flex items-center justify-center ${
+                      showVideo ? "border-[#8C2F39]" : "border-transparent hover:border-gray-300"
+                    }`}
+                    title="Vídeo do produto"
+                  >
+                    {product.images[0] && (
+                      <Image src={product.images[0]} alt="vídeo" fill sizes="80px" className="object-cover opacity-40" />
+                    )}
+                    <Play size={20} className="relative text-white" fill="white" />
+                  </button>
+                )}
               </div>
             )}
+
+            {/* Visualização principal */}
+            <div className="relative flex-1 aspect-[2/3] bg-gray-100 overflow-hidden rounded-lg">
+              {showVideo && product.videoUrl ? (
+                <iframe
+                  src={toEmbedUrl(product.videoUrl)}
+                  title={product.name}
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : product.images[selectedImage] ? (
+                <Image
+                  src={product.images[selectedImage]}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 45vw"
+                  className="object-cover"
+                  priority
+                  quality={90}
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
+                  Sem imagem
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Product Info */}
@@ -443,13 +477,6 @@ export default function ProductPage() {
           </div>
         </div>
 
-        {/* Complete o Look */}
-        <CompleteOLook
-          currentProductId={product.id}
-          category={product.category}
-          allProducts={allProducts as any}
-        />
-
         <PersonalizedRecommendations
           allProducts={allProducts as any}
           currentProductId={product.id}
@@ -460,22 +487,17 @@ export default function ProductPage() {
         <div className="mt-16 max-w-4xl">
           <h2 className="text-2xl font-light mb-6">Descrição do Produto</h2>
           <div className="prose max-w-none">
-            <p className="text-gray-700 leading-relaxed">
-              O {product.name} é perfeito para quem busca conforto e estilo durante os treinos.
-              Confeccionado com tecido de alta qualidade que proporciona excelente respirabilidade
-              e secagem rápida.
-            </p>
-            <h3 className="text-lg font-medium mt-6 mb-3">Características:</h3>
-            <ul className="list-disc pl-6 space-y-2 text-gray-700">
-              <li>Tecido de alta performance com secagem rápida</li>
-              <li>Proteção UV 50+</li>
-              <li>Modelagem que valoriza o corpo</li>
-              <li>Costuras planas para maior conforto</li>
-              <li>Não marca o corpo</li>
-              <li>Tecnologia anti-odor</li>
-            </ul>
-            <h3 className="text-lg font-medium mt-6 mb-3">Composição:</h3>
-            <p className="text-gray-700">86% Poliamida, 14% Elastano</p>
+            {product.description ? (
+              <div
+                className="text-gray-800 text-lg font-medium leading-relaxed whitespace-pre-line"
+                dangerouslySetInnerHTML={{ __html: product.description }}
+              />
+            ) : (
+              <p className="text-gray-800 text-lg font-medium leading-relaxed">
+                {product.name} — conforto e estilo para o seu dia a dia. Adicione uma descrição
+                completa deste produto no painel administrativo.
+              </p>
+            )}
           </div>
         </div>
 

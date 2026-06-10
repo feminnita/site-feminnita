@@ -18,7 +18,7 @@ async function getHomeProducts() {
       .order("created_at", { ascending: false })
       .limit(20);
 
-    if (!products?.length) return { novidades: [], destaques: [], outlet: [] };
+    if (!products?.length) return { novidades: [], destaques: [], outlet: [], all: [] };
 
     const map = (p: any) => {
       const colors = [...new Set((p.product_variants ?? []).map((v: any) => v.color).filter(Boolean))];

@@ -37,14 +37,18 @@ export function ProductCard({ product }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedColor, setSelectedColor] = useState(product.colors[0] || "");
+  const [selectedSize, setSelectedSize] = useState(product.sizes[0] || "");
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
   const addToCart = () => {
-    const cartItem = { ...product, selectedColor, quantity };
+    const cartItem = { ...product, selectedColor, selectedSize, quantity };
     const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
     const existingItemIndex = existingCart.findIndex(
-      (item: any) => item.id === product.id && item.selectedColor === selectedColor
+      (item: any) =>
+        item.id === product.id &&
+        item.selectedColor === selectedColor &&
+        item.selectedSize === selectedSize
     );
     if (existingItemIndex > -1) {
       existingCart[existingItemIndex].quantity += quantity;
@@ -65,13 +69,14 @@ export function ProductCard({ product }: ProductCardProps) {
     >
       {/* Product Image */}
       <Link href={`/produto/${product.id}`}>
-        <div className="relative aspect-square overflow-hidden bg-gray-100 mb-3">
+        <div className="relative aspect-[2/3] overflow-hidden bg-gray-100 mb-3">
           <Image
             src={isHovered && product.images[1] ? product.images[1] : product.images[0]}
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover transition-opacity duration-300"
+            quality={90}
           />
 
           {/* Favorite Button */}
@@ -128,6 +133,30 @@ export function ProductCard({ product }: ProductCardProps) {
                   }}
                   title={color}
                 />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Size Selector */}
+        {product.sizes.length > 0 && (
+          <div className="pt-2">
+            <p className="text-xs text-gray-600 mb-2">
+              Tamanho: <span className="font-medium">{selectedSize}</span>
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              {product.sizes.map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setSelectedSize(size)}
+                  className={`min-w-[2.25rem] h-9 px-2 rounded-md border text-sm font-medium transition-all ${
+                    selectedSize === size
+                      ? "border-black bg-black text-white"
+                      : "border-gray-300 hover:border-gray-500"
+                  }`}
+                >
+                  {size}
+                </button>
               ))}
             </div>
           </div>

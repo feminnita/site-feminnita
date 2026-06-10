@@ -13,6 +13,7 @@ export type StoreProduct = {
   installments: number;
   installmentPrice: number;
   images: string[];
+  videoUrl: string | null;
   colors: string[];
   sizes: string[];
   category: string;
@@ -45,6 +46,7 @@ function mapProduct(p: any, variants: any[]): StoreProduct {
     installments,
     installmentPrice: +(price / installments).toFixed(2),
     images:          Array.isArray(p.images) ? p.images : [],
+    videoUrl:        p.video_url ?? null,
     colors:          colors.length ? colors : ["rose"],
     sizes:           sizes.length  ? sizes  : ["P", "M", "G"],
     category:        p.categories?.name ?? "",
