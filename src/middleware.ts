@@ -32,6 +32,14 @@ function assignVariant(variants: { id: string; weight: number }[]): string {
 }
 
 export async function middleware(request: NextRequest) {
+  // Subdomínio do blog: blog.feminnita.com.br abre direto o blog na raiz
+  const host = request.headers.get("host") || "";
+  if (host.startsWith("blog.") && request.nextUrl.pathname === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/blog";
+    return NextResponse.rewrite(url);
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey =
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
