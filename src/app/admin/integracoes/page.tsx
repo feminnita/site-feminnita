@@ -21,6 +21,8 @@ export default function IntegracoesPage() {
   const [logs, setLogs] = useState<SyncLog[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<any>(null);
+  const [importingCustomers, setImportingCustomers] = useState(false);
+  const [customerResult, setCustomerResult] = useState<any>(null);
 
   useEffect(() => {
     loadLogs();
@@ -51,6 +53,18 @@ export default function IntegracoesPage() {
     setSyncing(false);
   };
 
+  const runImportCustomers = async () => {
+    setImportingCustomers(true);
+    setCustomerResult(null);
+    try {
+      const res = await fetch("/api/bling/import-customers", { method: "POST" });
+      setCustomerResult(await res.json());
+    } catch (e: any) {
+      setCustomerResult({ ok: false, error: e.message });
+    }
+    setImportingCustomers(false);
+  };
+
   const lastLog = logs[0];
   const isConnected = logs.length > 0;
 
@@ -66,7 +80,7 @@ export default function IntegracoesPage() {
             <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">B</div>
             <div>
               <h2 className="font-bold text-lg">Bling ERP</h2>
-              <p className="text-sm text-gray-500">Sincroniza produtos, preços, estoque e variações</p>
+              <p className="text-sm text-gray-500">Sincroniza produtos, preços, estoque, variações e clientes</p>
             </div>
           </div>
           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
@@ -107,10 +121,34 @@ export default function IntegracoesPage() {
                 className="flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-gray-700 text-sm disabled:opacity-50"
               >
                 <RefreshCw size={15} className={syncing ? "animate-spin" : ""} />
-                {syncing ? "Sincronizando..." : "Sincronizar agora"}
+                {syncing ? "Sincronizando..." : "Sincronizar produtos"}
+              </button>
+            )}
+            {isConnected && (
+              <button
+                onClick={runImportCustomers}
+                disabled={importingCustomers}
+                className="flex items-center gap-2 bg-gray-100 text-gray-800 px-5 py-2.5 rounded-xl font-medium hover:bg-gray-200 text-sm disabled:opacity-50"
+              >
+                <RefreshCw size={15} className={importingCustomers ? "animate-spin" : ""} />
+                {importingCustomers ? "Importando clientes..." : "Importar clientes"}
               </button>
             )}
           </div>
+
+          {customerResult && (
+            <div className={`flex items-start gap-3 p-4 rounded-xl text-sm ${
+              customerResult.ok ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
+            }`}>
+              {customerResult.ok ? <CheckCircle size={16} className="shrink-0 mt-0.5" /> : <XCircle size={16} className="shrink-0 mt-0.5" />}
+              <div>
+                {customerResult.total !== undefined && (
+                  <p>{customerResult.total} contatos lidos · {customerResult.created} criados · {customerResult.updated} atualizados · {customerResult.skipped} ignorados · {customerResult.errors} erros</p>
+                )}
+                {customerResult.error && <p>{customerResult.error}</p>}
+              </div>
+            </div>
+          )}
 
           <div className="text-xs text-gray-400 space-y-1">
             <p><strong>O que é sincronizado:</strong> nome, código, preços, imagens, variações (cor/tamanho), estoque, categorias, peso e dimensões</p>

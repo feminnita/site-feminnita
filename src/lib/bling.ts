@@ -3,7 +3,7 @@ import { BLING_CLIENT_ID, BLING_CLIENT_SECRET, BLING_REDIRECT_URI } from "@/lib/
 
 export { BLING_CLIENT_ID, BLING_CLIENT_SECRET, BLING_REDIRECT_URI };
 
-const BLING_BASE = "https://www.bling.com.br/Api/v3";
+const BLING_BASE = "https://api.bling.com.br/Api/v3";
 
 // ── Token management ─────────────────────────────────────────────────────────
 

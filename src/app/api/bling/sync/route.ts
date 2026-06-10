@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { blingGet } from "@/lib/bling";
 
 function slugify(text: string): string {
@@ -51,7 +51,12 @@ async function fetchProductStock(id: number): Promise<number> {
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
+  let supabase: ReturnType<typeof createAdminClient>;
+  try {
+    supabase = createAdminClient();
+  } catch (err: any) {
+    return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
+  }
 
   // Create sync log entry
   const { data: logEntry } = await supabase
@@ -236,11 +241,15 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("bling_sync_log")
-    .select("*")
-    .order("started_at", { ascending: false })
-    .limit(5);
-  return NextResponse.json(data || []);
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from("bling_sync_log")
+      .select("*")
+      .order("started_at", { ascending: false })
+      .limit(5);
+    return NextResponse.json(data || []);
+  } catch {
+    return NextResponse.json([]);
+  }
 }
