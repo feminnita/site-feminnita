@@ -7,13 +7,14 @@ import { Newsletter } from "@/components/Newsletter";
 import { InstagramFeed } from "@/components/InstagramFeed";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { createClient } from "@/lib/supabase/server";
+import { sortSizes } from "@/lib/variants";
 
 async function getHomeProducts() {
   try {
     const supabase = await createClient();
     const { data: products } = await supabase
       .from("products")
-      .select("*, product_variants(color, size), categories(name,slug)")
+      .select("*, product_skus(color, size), categories(name,slug)")
       .eq("active", true)
       .order("created_at", { ascending: false })
       .limit(20);
@@ -21,8 +22,8 @@ async function getHomeProducts() {
     if (!products?.length) return { novidades: [], destaques: [], outlet: [], all: [] };
 
     const map = (p: any) => {
-      const colors = [...new Set((p.product_variants ?? []).map((v: any) => v.color).filter(Boolean))];
-      const sizes  = [...new Set((p.product_variants ?? []).map((v: any) => v.size).filter(Boolean))];
+      const colors = [...new Set((p.product_skus ?? []).map((v: any) => v.color).filter(Boolean))] as string[];
+      const sizes  = sortSizes([...new Set((p.product_skus ?? []).map((v: any) => v.size).filter(Boolean))] as string[]);
       const price  = p.base_price ?? 0;
       const pixPrice = p.pix_price ?? +(price * 0.9).toFixed(2);
       return {

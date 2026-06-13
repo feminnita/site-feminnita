@@ -11,8 +11,10 @@ import { SizeRecommender } from "@/components/SizeRecommender";
 import { StockIndicator } from "@/components/StockIndicator";
 import { PersonalizedRecommendations } from "@/components/PersonalizedRecommendations";
 import { SimilarProducts } from "@/components/SimilarProducts";
-import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield, Check, Play } from "lucide-react";
+import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield, Check, Play, Ruler } from "lucide-react";
 import { fetchProduct, fetchProducts, type StoreProduct } from "@/lib/products";
+import { resolveColor } from "@/lib/variants";
+import { SizeGuideModal } from "@/components/SizeGuideModal";
 
 // Converte qualquer link de YouTube (watch, youtu.be, shorts) para o formato /embed
 function toEmbedUrl(url: string): string {
@@ -23,22 +25,13 @@ function toEmbedUrl(url: string): string {
   return url;
 }
 
-const colorMap: { [key: string]: string } = {
-  rose: "#D4A5A5",
-  mint: "#A8D5BA",
-  aloe: "#C8E6C9",
-  hazel: "#B8A68F",
-  cream: "#F5E6D3",
-  mescla: "#9E9E9E",
-  branco: "#FFFFFF",
-  preto: "#000000",
-};
-
 export default function ProductPage() {
   const params = useParams();
   const router = useRouter();
   const [selectedImage, setSelectedImage] = useState(0);
+  const [zoomPos, setZoomPos] = useState<{ x: number; y: number } | null>(null);
   const [showVideo, setShowVideo] = useState(false);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -215,6 +208,9 @@ export default function ProductPage() {
         </div>
       )}
 
+      {/* Guia de medidas */}
+      <SizeGuideModal open={showSizeGuide} onClose={() => setShowSizeGuide(false)} />
+
       {/* Sticky CTA — mobile only */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white border-t shadow-lg px-4 py-3 transition-transform duration-300 ${
@@ -288,7 +284,18 @@ export default function ProductPage() {
             )}
 
             {/* Visualização principal */}
-            <div className="relative flex-1 aspect-[2/3] bg-gray-100 overflow-hidden rounded-lg">
+            <div
+              className="relative flex-1 aspect-[2/3] bg-gray-100 overflow-hidden rounded-lg cursor-zoom-in"
+              onMouseMove={(e) => {
+                if (showVideo) return;
+                const r = e.currentTarget.getBoundingClientRect();
+                setZoomPos({
+                  x: ((e.clientX - r.left) / r.width) * 100,
+                  y: ((e.clientY - r.top) / r.height) * 100,
+                });
+              }}
+              onMouseLeave={() => setZoomPos(null)}
+            >
               {showVideo && product.videoUrl ? (
                 <iframe
                   src={toEmbedUrl(product.videoUrl)}
@@ -303,9 +310,13 @@ export default function ProductPage() {
                   alt={product.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 45vw"
-                  className="object-cover"
+                  className="object-cover transition-transform duration-200 ease-out"
                   priority
                   quality={90}
+                  style={{
+                    transform: zoomPos ? "scale(2)" : "scale(1)",
+                    transformOrigin: zoomPos ? `${zoomPos.x}% ${zoomPos.y}%` : "center",
+                  }}
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
@@ -355,7 +366,7 @@ export default function ProductPage() {
                           : "border-gray-300 hover:border-gray-400"
                       }`}
                       style={{
-                        backgroundColor: colorMap[color.toLowerCase()] || "#CCCCCC",
+                        backgroundColor: resolveColor(color),
                       }}
                       title={color}
                     />
@@ -366,9 +377,19 @@ export default function ProductPage() {
 
             {/* Size Selector */}
             <div>
-              <label className="block text-sm font-medium mb-3">
-                Tamanho: {selectedSize && <span className="font-normal text-gray-600">{selectedSize}</span>}
-              </label>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium">
+                  Tamanho: {selectedSize && <span className="font-normal text-gray-600">{selectedSize}</span>}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowSizeGuide(true)}
+                  className="flex items-center gap-1.5 text-sm text-[#8C2F39] hover:underline"
+                >
+                  <Ruler size={16} />
+                  Tabela de medidas
+                </button>
+              </div>
               <div className="flex flex-wrap gap-3 mb-3">
                 {product.sizes.map((size) => (
                   <button

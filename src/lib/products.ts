@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { sortSizes } from "@/lib/variants";
 
 // Formato que todos os componentes da loja esperam
 export type StoreProduct = {
@@ -29,7 +30,7 @@ export type StoreProduct = {
 function mapProduct(p: any, variants: any[]): StoreProduct {
   const pvs = variants.filter((v) => v.product_id === p.id);
   const colors = [...new Set(pvs.map((v: any) => v.color).filter(Boolean))] as string[];
-  const sizes  = [...new Set(pvs.map((v: any) => v.size).filter(Boolean))]  as string[];
+  const sizes  = sortSizes([...new Set(pvs.map((v: any) => v.size).filter(Boolean))] as string[]);
   const price  = p.base_price ?? 0;
   const pixPrice = p.pix_price ?? price * 0.9;
   const installments = price >= 50 ? 6 : 1;
@@ -86,8 +87,8 @@ export async function fetchProducts(options?: {
 
   const ids = products.map((p) => p.id);
   const { data: variants } = await supabase
-    .from("product_variants")
-    .select("product_id, color, size, stock")
+    .from("product_skus")
+    .select("product_id, color, size, stock_qty")
     .in("product_id", ids);
 
   return products.map((p) => mapProduct(p, variants ?? []));
@@ -110,8 +111,8 @@ export async function fetchProduct(idOrSlug: string): Promise<StoreProduct | nul
   if (!p) return null;
 
   const { data: variants } = await supabase
-    .from("product_variants")
-    .select("product_id, color, size, stock")
+    .from("product_skus")
+    .select("product_id, color, size, stock_qty")
     .eq("product_id", p.id);
 
   return mapProduct(p, variants ?? []);

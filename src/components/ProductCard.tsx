@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, ShoppingCart, Plus, Minus, Check } from "lucide-react";
+import { resolveColor } from "@/lib/variants";
 
 interface ProductCardProps {
   product: {
@@ -19,19 +20,6 @@ interface ProductCardProps {
     sizes: string[];
   };
 }
-
-const colorMap: { [key: string]: string } = {
-  rose: "#D4A5A5",
-  mint: "#A8D5BA",
-  aloe: "#C8E6C9",
-  hazel: "#B8A68F",
-  cream: "#F5E6D3",
-  mescla: "#9E9E9E",
-  branco: "#FFFFFF",
-  preto: "#000000",
-  verde: "#4CAF50",
-  azul: "#2196F3",
-};
 
 export function ProductCard({ product }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
@@ -98,7 +86,7 @@ export function ProductCard({ product }: ProductCardProps) {
       {/* Product Info */}
       <div className="space-y-2">
         <p className="text-xs text-gray-500 uppercase">{product.code}</p>
-        <h3 className="text-sm font-medium line-clamp-2">{product.name}</h3>
+        <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem]">{product.name}</h3>
 
         {/* Price */}
         <div className="space-y-0.5">
@@ -129,7 +117,7 @@ export function ProductCard({ product }: ProductCardProps) {
                       : "border-gray-300 hover:border-gray-400"
                   }`}
                   style={{
-                    backgroundColor: colorMap[color.toLowerCase()] || "#CCCCCC",
+                    backgroundColor: resolveColor(color),
                   }}
                   title={color}
                 />

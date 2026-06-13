@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { sortSizes } from "@/lib/variants";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -69,7 +70,7 @@ export async function GET(req: NextRequest) {
   const ids = similar.map((s) => s.id);
   const { data: products } = await supabase
     .from("products")
-    .select("*, product_variants(color, size), categories(name, slug)")
+    .select("*, product_skus(color, size), categories(name, slug)")
     .in("id", ids)
     .eq("active", true);
 
@@ -77,9 +78,9 @@ export async function GET(req: NextRequest) {
 
   // Mapeia para o formato StoreProduct
   const mapped = products.map((p: any) => {
-    const variants = p.product_variants ?? [];
+    const variants = p.product_skus ?? [];
     const colors = [...new Set(variants.map((v: any) => v.color).filter(Boolean))];
-    const sizes  = [...new Set(variants.map((v: any) => v.size).filter(Boolean))];
+    const sizes  = sortSizes([...new Set(variants.map((v: any) => v.size).filter(Boolean))] as string[]);
     const price  = p.base_price ?? 0;
     const pixPrice = p.pix_price ?? +(price * 0.9).toFixed(2);
     const freq = similar.find((s) => s.id === p.id)?.freq ?? 0;
