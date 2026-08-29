@@ -8,7 +8,7 @@ import {
   ChevronLeft, Star, Sparkles, TrendingUp, Eye, EyeOff,
   Weight, Ruler, Palette, Tag, Upload, Globe, Filter,
   LayoutGrid, List, ArrowUpDown, CheckSquare, Square,
-  Download,
+  Download, ChevronDown, ChevronUp, Power, Layers, Percent,
 } from "lucide-react";
 
 const DEFAULT_SIZES = ["PP", "P", "M", "G", "GG", "XG", "Único"];
@@ -30,6 +30,7 @@ type Product = {
   is_new: boolean;
   is_bestseller: boolean;
   images: string[];
+  color_images: Record<string, string[]>;
   weight_kg: number | null;
   pkg_height_cm: number | null;
   pkg_width_cm: number | null;
@@ -43,7 +44,37 @@ type Product = {
 };
 
 type Category = { id: string; name: string };
-type Sku = { size: string; color: string; stock_qty: number };
+// Uma variação = uma linha (cor × tamanho), no estilo Tray: cada uma independente.
+type Sku = {
+  size: string;
+  color: string;
+  stock_qty: number;
+  price: number | null;
+  sale_price: number | null;
+  reference: string | null;
+  ean: string | null;
+  cost_price: number | null;
+  min_stock: number | null;
+  sale_start: string | null;
+  sale_end: string | null;
+  active: boolean;
+  weight_kg: number | null;
+  pkg_height_cm: number | null;
+  pkg_width_cm: number | null;
+  pkg_length_cm: number | null;
+};
+
+const SKU_SELECT =
+  "size, color, stock_qty, price, sale_price, reference, ean, cost_price, min_stock, sale_start, sale_end, active, weight_kg, pkg_height_cm, pkg_width_cm, pkg_length_cm";
+
+function newSku(size: string, color: string): Sku {
+  return {
+    size, color, stock_qty: 0, price: null, sale_price: null,
+    reference: null, ean: null, cost_price: null, min_stock: 0,
+    sale_start: null, sale_end: null, active: true,
+    weight_kg: null, pkg_height_cm: null, pkg_width_cm: null, pkg_length_cm: null,
+  };
+}
 
 function slugify(t: string) {
   return t.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
@@ -55,6 +86,7 @@ function emptyProduct(): Omit<Product, "id" | "created_at"> {
     base_price: 0, pix_price: null, sale_price: null, stock: 0,
     active: true, featured: false, is_new: true, is_bestseller: false,
     images: [],
+    color_images: {},
     weight_kg: 0.3, pkg_height_cm: 5, pkg_width_cm: 15, pkg_length_cm: 20,
     colors: [], sizes: [],
     size_chart: {},
@@ -74,10 +106,17 @@ export default function ProdutosPage() {
   const [imagesInput, setImagesInput] = useState("");
   // Colors as comma/newline input
   const [colorInput, setColorInput] = useState("");
-  // SKUs (size×color grid)
+  // SKUs — cada linha é uma variação (cor × tamanho) editável de forma independente
   const [skus, setSkus] = useState<Sku[]>([]);
+  // Qual card de variação está expandido (key "color|size"); null = todos fechados
+  const [expandedSku, setExpandedSku] = useState<string | null>(null);
+  // Chaves das variações carregadas do banco, para saber o que apagar ao salvar
+  const [loadedSkuKeys, setLoadedSkuKeys] = useState<Set<string>>(new Set());
   // Image upload state
   const [uploading, setUploading] = useState(false);
+  // Imagens por cor { cor: [urls] } + qual cor está enviando
+  const [colorImages, setColorImages] = useState<Record<string, string[]>>({});
+  const [uploadingColor, setUploadingColor] = useState<string | null>(null);
   // List filters
   const [filterCategory, setFilterCategory] = useState("");
   const [filterStatus, setFilterStatus] = useState<"" | "active" | "inactive">("");
@@ -104,6 +143,22 @@ export default function ProdutosPage() {
     }
     setImagesInput(prev => [...prev.split("\n").filter(Boolean), ...urls].join("\n"));
     setUploading(false);
+  };
+
+  const uploadColorImages = async (color: string, files: FileList) => {
+    setUploadingColor(color);
+    const urls: string[] = [];
+    for (const file of Array.from(files)) {
+      const ext = file.name.split(".").pop();
+      const path = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+      if (!error) {
+        const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+        urls.push(urlData.publicUrl);
+      }
+    }
+    setColorImages((prev) => ({ ...prev, [color]: [...(prev[color] || []), ...urls] }));
+    setUploadingColor(null);
   };
 
   const load = useCallback(async () => {
@@ -177,44 +232,73 @@ export default function ProdutosPage() {
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "produtos.csv"; a.click();
   };
 
+  const skuKey = (s: { color: string; size: string }) => `${s.color}|${s.size}`;
+
   const openNew = () => {
     setEditing(emptyProduct());
     setImagesInput("");
     setColorInput("");
+    setColorImages({});
     setSkus([]);
+    setLoadedSkuKeys(new Set());
+    setExpandedSku(null);
   };
 
   const openEdit = async (p: Product) => {
     setEditing({ ...p });
     setImagesInput((p.images || []).join("\n"));
     setColorInput((p.colors || []).join("\n"));
-    // Load SKUs
+    setColorImages((p.color_images && typeof p.color_images === "object" && !Array.isArray(p.color_images)) ? p.color_images : {});
+    setExpandedSku(null);
+    // Load SKUs (variações)
     const { data } = await supabase
       .from("product_skus")
-      .select("size, color, stock_qty")
+      .select(SKU_SELECT)
       .eq("product_id", p.id);
-    setSkus((data || []) as Sku[]);
+    const rows = (data || []).map((r: any) => ({ ...newSku(r.size, r.color), ...r, active: r.active !== false })) as Sku[];
+    setSkus(rows);
+    setLoadedSkuKeys(new Set(rows.map(skuKey)));
   };
 
   // Build SKU grid whenever sizes or colors change
   const getSizes = () => editing?.sizes || [];
   const getColors = () => colorInput.split(/[\n,]/).map((c) => c.trim()).filter(Boolean);
 
-  const getSkuStock = (size: string, color: string) => {
-    const found = skus.find((s) => s.size === size && s.color === color);
-    return found?.stock_qty ?? 0;
+  // Atualiza um campo de uma variação (por índice)
+  const setSku = (idx: number, patch: Partial<Sku>) => {
+    setSkus((prev) => prev.map((s, i) => (i === idx ? { ...s, ...patch } : s)));
+  };
+  // Excluir uma variação (só sai da lista; a remoção no banco acontece ao Salvar)
+  const deleteSku = (idx: number) => {
+    setSkus((prev) => prev.filter((_, i) => i !== idx));
+  };
+  // Inativar/ativar uma variação
+  const toggleSkuActive = (idx: number) => {
+    setSkus((prev) => prev.map((s, i) => (i === idx ? { ...s, active: !s.active } : s)));
   };
 
-  const setSkuStock = (size: string, color: string, qty: number) => {
+  // Gera as variações faltantes a partir das cores × tamanhos selecionados (não apaga as existentes)
+  const generateVariations = () => {
+    const colors = getColors();
+    const sizes = getSizes();
     setSkus((prev) => {
-      const idx = prev.findIndex((s) => s.size === size && s.color === color);
-      if (idx > -1) {
-        const next = [...prev];
-        next[idx] = { ...next[idx], stock_qty: qty };
-        return next;
+      const have = new Set(prev.map(skuKey));
+      const add: Sku[] = [];
+      for (const color of colors) {
+        for (const size of sizes) {
+          const k = `${color}|${size}`;
+          if (!have.has(k)) add.push(newSku(size, color));
+        }
       }
-      return [...prev, { size, color, stock_qty: qty }];
+      return [...prev, ...add];
     });
+  };
+
+  // % de desconto de uma variação (promocional vs venda/base)
+  const skuDiscount = (s: Sku) => {
+    const full = s.price ?? editing?.base_price ?? 0;
+    if (!s.sale_price || !full || s.sale_price >= full) return null;
+    return Math.round((1 - s.sale_price / full) * 100);
   };
 
   const toggleSize = (size: string) => {
@@ -249,6 +333,7 @@ export default function ProdutosPage() {
       is_new: editing.is_new,
       is_bestseller: editing.is_bestseller,
       images,
+      color_images: Object.fromEntries(Object.entries(colorImages).filter(([c]) => colors.includes(c))),
       weight_kg: editing.weight_kg || 0.3,
       pkg_height_cm: editing.pkg_height_cm || 5,
       pkg_width_cm: editing.pkg_width_cm || 15,
@@ -268,8 +353,18 @@ export default function ProdutosPage() {
       productId = data?.id;
     }
 
-    // Save SKUs
-    if (productId && skus.length > 0) {
+    // Salvar variações (product_skus)
+    if (productId) {
+      // 1) apaga do banco as variações que foram removidas nesta edição
+      const currentKeys = new Set(skus.map(skuKey));
+      for (const key of loadedSkuKeys) {
+        if (!currentKeys.has(key)) {
+          const [color, size] = key.split("|");
+          await supabase.from("product_skus")
+            .delete().eq("product_id", productId).eq("color", color).eq("size", size);
+        }
+      }
+      // 2) upsert de cada variação atual com todos os campos
       for (const sku of skus) {
         await supabase
           .from("product_skus")
@@ -277,7 +372,20 @@ export default function ProdutosPage() {
             product_id: productId,
             size: sku.size,
             color: sku.color,
-            stock_qty: sku.stock_qty,
+            stock_qty: sku.stock_qty || 0,
+            price: sku.price,
+            sale_price: sku.sale_price,
+            reference: sku.reference || null,
+            ean: sku.ean || null,
+            cost_price: sku.cost_price,
+            min_stock: sku.min_stock || 0,
+            sale_start: sku.sale_start || null,
+            sale_end: sku.sale_end || null,
+            active: sku.active,
+            weight_kg: sku.weight_kg,
+            pkg_height_cm: sku.pkg_height_cm,
+            pkg_width_cm: sku.pkg_width_cm,
+            pkg_length_cm: sku.pkg_length_cm,
           }, { onConflict: "product_id,size,color" });
       }
     }
@@ -347,7 +455,7 @@ export default function ProdutosPage() {
 
           {/* ── PREÇOS ── */}
           <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-            <h3 className="font-semibold text-gray-700 mb-4">Preços</h3>
+            <h3 className="font-semibold text-gray-700 mb-4">Preço padrão <span className="font-normal text-xs text-gray-400">(usado quando a variação não tem preço próprio)</span></h3>
             <div className="grid md:grid-cols-3 gap-4">
               <div>
                 <label className="label">Preço cheio (R$) *</label>
@@ -489,42 +597,184 @@ export default function ProdutosPage() {
             )}
           </section>
 
-          {/* ── GRADE DE ESTOQUE ── */}
-          {sizes.length > 0 && colors.length > 0 && (
-            <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-              <h3 className="font-semibold text-gray-700 mb-4">Grade de estoque (Tamanho × Cor)</h3>
-              <div className="overflow-x-auto">
-                <table className="text-xs w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="border border-gray-200 px-3 py-2 text-left text-gray-500">Cor \ Tam</th>
-                      {sizes.map((s) => (
-                        <th key={s} className="border border-gray-200 px-3 py-2 text-center font-semibold">{s}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {colors.map((color) => (
-                      <tr key={color}>
-                        <td className="border border-gray-200 px-3 py-2 text-gray-600 font-medium whitespace-nowrap">{color}</td>
-                        {sizes.map((size) => (
-                          <td key={size} className="border border-gray-200 p-1">
-                            <input
-                              type="number"
-                              min="0"
-                              value={getSkuStock(size, color)}
-                              onChange={(e) => setSkuStock(size, color, parseInt(e.target.value) || 0)}
-                              className="w-14 text-center px-1 py-1.5 border rounded text-xs focus:ring-1 focus:ring-[#8C2F39] focus:border-[#8C2F39]"
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {/* ── VARIAÇÕES (estilo Tray: fotos por estampa + 1 card por cor × tamanho) ── */}
+          <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-semibold text-gray-700 flex items-center gap-2"><Layers size={16} /> Variações {skus.length > 0 && <span className="text-gray-400 font-normal">({skus.length})</span>}</h3>
+              <div className="flex items-center gap-2">
+                {skus.length > 0 && (
+                  <button type="button" onClick={() => setExpandedSku(expandedSku === "*" ? null : "*")} className="text-xs text-gray-500 hover:text-gray-800">
+                    {expandedSku === "*" ? "Recolher todas" : "Expandir todas"}
+                  </button>
+                )}
+                <button type="button" onClick={generateVariations}
+                  className="flex items-center gap-1.5 text-xs bg-[#8C2F39] text-white px-3 py-1.5 rounded-lg hover:bg-[#7a2832]">
+                  <Plus size={14} /> Gerar variações (cor × tamanho)
+                </button>
               </div>
-            </section>
-          )}
+            </div>
+            <p className="text-xs text-gray-400 mb-4">Cada variação (cor + tamanho) é independente: estoque, preço, referência, EAN, promoção e status próprios. Preço/peso vazios herdam do produto. As fotos são por estampa/cor.</p>
+
+            {colors.length === 0 || sizes.length === 0 ? (
+              <p className="text-sm text-amber-600">Defina as <b>cores</b> e os <b>tamanhos</b> nas seções acima e clique em <b>Gerar variações</b>.</p>
+            ) : skus.length === 0 ? (
+              <p className="text-sm text-gray-500">Nenhuma variação ainda. Clique em <b>Gerar variações</b> para criar uma para cada cor × tamanho.</p>
+            ) : (
+              <div className="space-y-6">
+                {colors.map((color) => {
+                  const imgs = colorImages[color] || [];
+                  const colorSkus = skus
+                    .map((s, i) => ({ s, i }))
+                    .filter(({ s }) => s.color === color)
+                    .sort((a, b) => sizes.indexOf(a.s.size) - sizes.indexOf(b.s.size));
+                  if (colorSkus.length === 0) return null;
+                  return (
+                    <div key={color} className="border border-gray-100 rounded-xl overflow-hidden">
+                      {/* Cabeçalho da estampa: nome + fotos da cor */}
+                      <div className="bg-gray-50 px-4 py-3 border-b border-gray-100">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-gray-800 text-sm flex items-center gap-2"><Palette size={14} /> {color}</span>
+                          <span className="text-xs text-gray-400">{imgs.length} foto{imgs.length !== 1 ? "s" : ""} · {colorSkus.length} tamanho{colorSkus.length !== 1 ? "s" : ""}</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          {imgs.map((url, i) => (
+                            <div key={i} className="relative group w-14 h-16 bg-white rounded-lg overflow-hidden border border-gray-200">
+                              <Image src={url} alt="" fill className="object-cover" />
+                              {i === 0 && <span className="absolute top-0 left-0 bg-[#8C2F39] text-white text-[8px] px-1 rounded-br">Principal</span>}
+                              <button type="button"
+                                onClick={() => setColorImages((prev) => ({ ...prev, [color]: (prev[color] || []).filter((_, idx) => idx !== i) }))}
+                                className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100">✕</button>
+                            </div>
+                          ))}
+                          <label className={`flex items-center justify-center gap-1 h-16 px-3 border-2 border-dashed rounded-lg cursor-pointer ${uploadingColor === color ? "border-gray-200 bg-gray-50" : "border-gray-300 hover:border-[#8C2F39] hover:bg-red-50/30"}`}>
+                            <input type="file" accept="image/*" multiple className="hidden" disabled={uploadingColor === color} onChange={(e) => e.target.files && uploadColorImages(color, e.target.files)} />
+                            <Upload size={14} className={uploadingColor === color ? "text-gray-400 animate-pulse" : "text-gray-500"} />
+                            <span className="text-[11px] text-gray-500">{uploadingColor === color ? "Enviando..." : "Fotos"}</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Cards de variação (um por tamanho desta cor) */}
+                      <div className="divide-y divide-gray-50">
+                        {colorSkus.map(({ s, i }) => {
+                          const key = skuKey(s);
+                          const open = expandedSku === "*" || expandedSku === key;
+                          const disc = skuDiscount(s);
+                          return (
+                            <div key={key} className={s.active ? "" : "bg-gray-50/60"}>
+                              {/* Cabeçalho do card */}
+                              <div className="flex items-center gap-2 px-4 py-2.5">
+                                <button type="button" onClick={() => setExpandedSku(open && expandedSku !== "*" ? null : key)} className="p-1 text-gray-400 hover:text-gray-700">
+                                  {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                </button>
+                                <span className="text-sm font-medium text-gray-800">{color} · {s.size}</span>
+                                {s.reference && <span className="text-xs text-gray-400">#{s.reference}</span>}
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${s.stock_qty > 0 ? "bg-gray-100 text-gray-600" : "bg-red-50 text-red-500"}`}>{s.stock_qty} un</span>
+                                {disc !== null && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex items-center gap-0.5"><Percent size={10} />{disc}%</span>}
+                                {!s.active && <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-500">Inativa</span>}
+                                <div className="ml-auto flex items-center gap-1">
+                                  <button type="button" onClick={() => toggleSkuActive(i)} title={s.active ? "Inativar" : "Ativar"} className="p-1.5 hover:bg-gray-100 rounded-lg">
+                                    <Power size={14} className={s.active ? "text-green-600" : "text-gray-400"} />
+                                  </button>
+                                  <button type="button" onClick={() => deleteSku(i)} title="Excluir variação" className="p-1.5 hover:bg-red-50 rounded-lg">
+                                    <Trash2 size={14} className="text-red-400" />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Corpo expandido */}
+                              {open && (
+                                <div className="px-4 pb-4 pt-1 grid grid-cols-2 md:grid-cols-3 gap-3">
+                                  <div>
+                                    <label className="label">Estoque</label>
+                                    <input type="number" min="0" value={s.stock_qty}
+                                      onChange={(e) => setSku(i, { stock_qty: parseInt(e.target.value) || 0 })} className="input" />
+                                  </div>
+                                  <div>
+                                    <label className="label">Preço de venda (R$)</label>
+                                    <input type="number" step="0.01" min="0" value={s.price ?? ""} placeholder={editing.base_price ? String(editing.base_price) : "herda"}
+                                      onChange={(e) => setSku(i, { price: e.target.value === "" ? null : parseFloat(e.target.value) })} className="input" />
+                                  </div>
+                                  <div>
+                                    <label className="label">Preço de custo (R$)</label>
+                                    <input type="number" step="0.01" min="0" value={s.cost_price ?? ""} placeholder="—"
+                                      onChange={(e) => setSku(i, { cost_price: e.target.value === "" ? null : parseFloat(e.target.value) })} className="input" />
+                                  </div>
+                                  <div>
+                                    <label className="label">Referência</label>
+                                    <input type="text" value={s.reference ?? ""} placeholder="ex 59200CASTANHOP"
+                                      onChange={(e) => setSku(i, { reference: e.target.value || null })} className="input" />
+                                  </div>
+                                  <div>
+                                    <label className="label">EAN / GTIN</label>
+                                    <input type="text" value={s.ean ?? ""} placeholder="000000000000"
+                                      onChange={(e) => setSku(i, { ean: e.target.value || null })} className="input" />
+                                  </div>
+                                  <div>
+                                    <label className="label">Estoque mínimo</label>
+                                    <input type="number" min="0" value={s.min_stock ?? 0}
+                                      onChange={(e) => setSku(i, { min_stock: parseInt(e.target.value) || 0 })} className="input" />
+                                  </div>
+
+                                  {/* Promoção */}
+                                  <div className="col-span-2 md:col-span-3 border-t border-gray-100 pt-3 mt-1">
+                                    <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                      <input type="checkbox" checked={s.sale_price != null}
+                                        onChange={(e) => setSku(i, e.target.checked ? { sale_price: s.price ?? editing.base_price ?? 0 } : { sale_price: null, sale_start: null, sale_end: null })} />
+                                      <span className="text-xs font-semibold text-gray-600">Preço em promoção</span>
+                                      {disc !== null && <span className="text-xs text-green-600">(−{disc}%)</span>}
+                                    </label>
+                                    {s.sale_price != null && (
+                                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        <div>
+                                          <label className="label">Preço promocional (R$)</label>
+                                          <input type="number" step="0.01" min="0" value={s.sale_price ?? ""}
+                                            onChange={(e) => setSku(i, { sale_price: e.target.value === "" ? null : parseFloat(e.target.value) })} className="input" />
+                                        </div>
+                                        <div>
+                                          <label className="label">Início</label>
+                                          <input type="date" value={s.sale_start ?? ""}
+                                            onChange={(e) => setSku(i, { sale_start: e.target.value || null })} className="input" />
+                                        </div>
+                                        <div>
+                                          <label className="label">Fim</label>
+                                          <input type="date" value={s.sale_end ?? ""}
+                                            onChange={(e) => setSku(i, { sale_end: e.target.value || null })} className="input" />
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Peso e dimensões da variação (herda do produto se vazio) */}
+                                  <div className="col-span-2 md:col-span-3 border-t border-gray-100 pt-3">
+                                    <p className="text-[11px] text-gray-400 mb-2">Peso e dimensões — vazio herda do produto ({editing.weight_kg ?? 0.3}kg · {editing.pkg_length_cm ?? 20}×{editing.pkg_width_cm ?? 15}×{editing.pkg_height_cm ?? 5}cm)</p>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                      <div><label className="label">Peso (kg)</label>
+                                        <input type="number" step="0.001" min="0" value={s.weight_kg ?? ""} placeholder={String(editing.weight_kg ?? 0.3)}
+                                          onChange={(e) => setSku(i, { weight_kg: e.target.value === "" ? null : parseFloat(e.target.value) })} className="input" /></div>
+                                      <div><label className="label">Compr. (cm)</label>
+                                        <input type="number" step="0.1" min="0" value={s.pkg_length_cm ?? ""} placeholder={String(editing.pkg_length_cm ?? 20)}
+                                          onChange={(e) => setSku(i, { pkg_length_cm: e.target.value === "" ? null : parseFloat(e.target.value) })} className="input" /></div>
+                                      <div><label className="label">Largura (cm)</label>
+                                        <input type="number" step="0.1" min="0" value={s.pkg_width_cm ?? ""} placeholder={String(editing.pkg_width_cm ?? 15)}
+                                          onChange={(e) => setSku(i, { pkg_width_cm: e.target.value === "" ? null : parseFloat(e.target.value) })} className="input" /></div>
+                                      <div><label className="label">Altura (cm)</label>
+                                        <input type="number" step="0.1" min="0" value={s.pkg_height_cm ?? ""} placeholder={String(editing.pkg_height_cm ?? 5)}
+                                          onChange={(e) => setSku(i, { pkg_height_cm: e.target.value === "" ? null : parseFloat(e.target.value) })} className="input" /></div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
 
           {/* ── IMAGENS ── */}
           <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
