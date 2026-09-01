@@ -1,22 +1,44 @@
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { db } from '../config/db';
 import { products, categories, productsSkus, productsColors, productColorImages } from '../db/schema';
 
-export function findActiveProducts(options: { featured?: boolean; categorySlug?: string; limit?: number }) {
+export function findActiveProducts(options: {
+    featured?: boolean;
+    categorySlug?: string;
+    categoryId?: string;
+    excludeId?: string;
+    limit?: number;
+    bestsellerOrder?: boolean;
+}) {
     const conditions = [eq(products.active, true)];
     if (options.featured) conditions.push(eq(products.featured, true));
     if (options.categorySlug) conditions.push(eq(categories.slug, options.categorySlug));
+    if (options.categoryId) conditions.push(eq(products.categoryId, options.categoryId));
+    if (options.excludeId) conditions.push(ne(products.id, options.excludeId));
 
     let query = db
         .select({ product: products, categoryName: categories.name, categorySlug: categories.slug })
         .from(products)
         .leftJoin(categories, eq(products.categoryId, categories.id))
         .where(and(...conditions))
-        .orderBy(desc(products.createdAt))
         .$dynamic();
+
+    // "mais vendidos" (proxy: sem tabela de vendas — orders=0; usa curadoria + popularidade)
+    query = options.bestsellerOrder
+        ? query.orderBy(desc(products.isBestseller), desc(products.viewCount), desc(products.createdAt))
+        : query.orderBy(desc(products.createdAt));
 
     if (options.limit) query = query.limit(options.limit);
     return query;
+}
+
+export async function findCategoryParentId(categoryId: string): Promise<string | null> {
+    const [row] = await db
+        .select({ parentId: categories.parentId })
+        .from(categories)
+        .where(eq(categories.id, categoryId))
+        .limit(1);
+    return row?.parentId ?? null;
 }
 
 export function findActiveProductByIdOrSlug(idOrSlug: string) {

@@ -17,16 +17,15 @@ export function SimilarProducts({ productId, categoryId }: Props) {
     useEffect(() => {
         if (!productId) return;
 
-        fetchProducts()
-            .then((all) => {
-                const similar = all
-                    .filter(
-                        (p) =>
-                            p.id !== productId &&
-                            (!categoryId || p.category_id === categoryId),
-                    )
-                    .slice(0, 6);
-                setProducts(similar);
+        // backend já entrega só os 6 (por categoria, mais vendidos, excluindo o atual,
+        // com fallback pra categoria pai) — nada de baixar o catálogo inteiro no cliente
+        fetchProducts({
+            categoryId: categoryId ?? undefined,
+            exclude: productId,
+            limit: 6,
+        })
+            .then((list) => {
+                setProducts(list);
                 setLoading(false);
             })
             .catch(() => setLoading(false));
@@ -53,7 +52,7 @@ export function SimilarProducts({ productId, categoryId }: Props) {
 
     return (
         <section className="mt-16">
-            <h2 className="mb-8 text-2xl font-light">Produtos similares</h2>
+            <h2 className="mb-8 text-2xl font-light">Você também pode gostar</h2>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
                 {products.map((product) => (
                     <ProductCard key={product.id} product={product} />

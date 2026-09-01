@@ -4,11 +4,15 @@ import type { SkuStock, StoreProduct } from "../types/product/products";
 export async function fetchProducts(options?: {
     featured?: boolean;
     category_slug?: string;
+    categoryId?: string;
+    exclude?: string;
     limit?: number;
 }): Promise<StoreProduct[]> {
     const params = new URLSearchParams();
     if (options?.featured) params.set("featured", "true");
     if (options?.category_slug) params.set("category", options.category_slug);
+    if (options?.categoryId) params.set("categoryId", options.categoryId);
+    if (options?.exclude) params.set("exclude", options.exclude);
     if (options?.limit) params.set("limit", String(options.limit));
 
     return (await apiGet<StoreProduct[]>(`/api/store/products?${params}`)) ?? [];
