@@ -38,6 +38,11 @@ export const env = {
         token: required('ME_TOKEN'),
     },
 
+    // e-mail marketing / carrinho abandonado — DESABILITADO por padrão (não envia sem opt-in explícito)
+    abandonedCart: {
+        enabled: process.env.ABANDONED_CART_ENABLED === 'true',
+    },
+
     store: {
         cep: required('STORE_CEP'),
         name: required('FEMINNITA_NAME'),
