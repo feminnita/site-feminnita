@@ -18,7 +18,12 @@ export async function createOrder(req: Request, res: Response) {
         res.status(201).json(order);
     } catch (error) {
         console.error(error);
-        res.status(400).json({ error: error instanceof Error ? error.message : 'Erro ao criar pedido' });
+        const message = error instanceof Error ? error.message : 'Erro ao criar pedido';
+        if (message === 'MINIMUM_ORDER_NOT_MET') {
+            res.status(400).json({ error: 'Seu pedido não atingiu o valor mínimo para finalizar a compra.' });
+            return;
+        }
+        res.status(400).json({ error: message });
     }
 }
 

@@ -1,7 +1,5 @@
 import type { CartItem } from "../types/cart/cart";
 
-export const MINIMUM_ORDER_VALUE = 199;
-
 function sameVariant(a: CartItem, b: CartItem): boolean {
     return (
         a.id === b.id &&

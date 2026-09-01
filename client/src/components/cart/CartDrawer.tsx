@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useCart } from "../../hooks/cart/useCart";
+import { useStoreMinOrder } from "../../hooks/cart/useStoreMinOrder";
 import type { CartItem } from "../../types/cart/cart";
 import { CompleteOrderStrip } from "./CompleteOrderStrip";
 import { MinimumProgress } from "./MinimumProgress";
@@ -14,6 +15,10 @@ const brl = (value: number) => `R$ ${value.toFixed(2).replace(".", ",")}`;
 export function CartDrawer() {
     const router = useRouter();
     const { items, remove, setQuantity, subtotal, drawerOpen, closeDrawer } = useCart();
+    const { minOrder } = useStoreMinOrder();
+
+    // Bloqueia o avanço só quando o pedido mínimo está ativo e o subtotal não o atinge.
+    const belowMinimum = minOrder.ativo && subtotal < minOrder.valor;
 
     useEffect(() => {
         if (!drawerOpen) return;
@@ -139,7 +144,11 @@ export function CartDrawer() {
                             <button
                                 type="button"
                                 onClick={goToCheckout}
-                                className="w-full rounded-lg bg-black py-3 text-white hover:bg-gray-800"
+                                disabled={belowMinimum}
+                                className={`w-full rounded-lg py-3 text-white ${belowMinimum
+                                    ? "cursor-not-allowed bg-gray-300"
+                                    : "bg-black hover:bg-gray-800"
+                                    }`}
                             >
                                 Ir para pagamento
                             </button>

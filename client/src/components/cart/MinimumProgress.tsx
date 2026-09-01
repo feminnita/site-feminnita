@@ -1,13 +1,19 @@
 "use client";
 
-import { MINIMUM_ORDER_VALUE } from "../../utils/cart";
+import { useStoreMinOrder } from "../../hooks/cart/useStoreMinOrder";
 
 const brl = (value: number) => `R$ ${value.toFixed(2).replace(".", ",")}`;
 
 export function MinimumProgress({ subtotal }: { subtotal: number }) {
-    const reached = subtotal >= MINIMUM_ORDER_VALUE;
-    const remaining = Math.max(0, MINIMUM_ORDER_VALUE - subtotal);
-    const pct = Math.min(100, (subtotal / MINIMUM_ORDER_VALUE) * 100);
+    const { minOrder } = useStoreMinOrder();
+
+    // Pedido mínimo desligado no painel: a barra some.
+    if (!minOrder.ativo) return null;
+
+    const min = minOrder.valor;
+    const reached = subtotal >= min;
+    const remaining = Math.max(0, min - subtotal);
+    const pct = Math.min(100, (subtotal / min) * 100);
 
     return (
         <div className="space-y-2 rounded-lg border bg-white p-4">
@@ -27,7 +33,7 @@ export function MinimumProgress({ subtotal }: { subtotal: number }) {
                     style={{ width: `${pct}%` }}
                 />
             </div>
-            <p className="text-xs text-gray-500">Pedido mínimo de {brl(MINIMUM_ORDER_VALUE)}</p>
+            <p className="text-xs text-gray-500">Pedido mínimo de {brl(min)}</p>
         </div>
     );
 }

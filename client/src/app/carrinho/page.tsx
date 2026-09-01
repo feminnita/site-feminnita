@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from 'sonner';
 import { useCart } from "../../hooks/cart/useCart";
+import { useStoreMinOrder } from "../../hooks/cart/useStoreMinOrder";
 import { fetchProductStock } from "../../services/productsService";
 import { isSelected } from "../../utils/cart";
 import type { CartItem } from "../../types/cart/cart";
@@ -25,6 +26,7 @@ export default function CartPage() {
         selectedSubtotal,
     } = useCart();
 
+    const { minOrder } = useStoreMinOrder();
     const [stockMap, setStockMap] = useState<Record<string, SkuStock[]>>({});
 
     const productIds = useMemo(
@@ -91,6 +93,9 @@ export default function CartPage() {
     const hasBlockingIssue = items.some(
         (item: any) => isSelected(item) && stockIssue(item) !== null,
     );
+
+    // Bloqueia "Finalizar Compra" quando o pedido mínimo está ativo e não é atingido.
+    const belowMinimum = minOrder.ativo && selectedSubtotal < minOrder.valor;
 
     const allSelected = items.length > 0 && items.every(isSelected);
     // Frete real vem do Melhor Envio no checkout; o carrinho não inclui frete no total.
@@ -274,6 +279,13 @@ export default function CartPage() {
                                     className="w-full cursor-not-allowed rounded-lg bg-gray-300 py-3 text-white"
                                 >
                                     Ajuste os itens sem estoque
+                                </button>
+                            ) : belowMinimum ? (
+                                <button
+                                    disabled
+                                    className="w-full cursor-not-allowed rounded-lg bg-gray-300 py-3 text-white"
+                                >
+                                    Adicione mais para o pedido mínimo
                                 </button>
                             ) : (
                                 <Link href="/checkout">
