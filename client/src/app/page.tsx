@@ -9,7 +9,8 @@ import { fetchProducts } from "../services/productsService";
 import Image from "next/image";
 import Link from "next/link";
 
-export const revalidate = 60;
+// home renderizada por request: reflete Hero/Banners/títulos na hora, sem esperar publish
+export const dynamic = "force-dynamic";
 
 async function getHomeProducts() {
   const products = await fetchProducts({ limit: 20 });
@@ -28,7 +29,8 @@ export default async function Home() {
   const [{ novidades, destaques, outlet, all }, homeBanners] =
     await Promise.all([getHomeProducts(), getHomeBanners()]);
 
-  const { slides, intermediateBanner, videoSection, imageGrid } = homeBanners;
+  const { slides, intermediateBanner, videoSection, imageGrid, sections } =
+    homeBanners;
 
   return (
     <div className="min-h-screen">
@@ -39,7 +41,7 @@ export default async function Home() {
 
       {/* Lançamentos */}
       <section className="container mx-auto px-4 py-16">
-        <h2 className="mb-12 text-center text-3xl font-light">Lançamentos</h2>
+        <h2 className="mb-12 text-center text-3xl font-light">{sections.lancamentos}</h2>
         <div className="grid grid-cols-2 gap-6 md:grid-cols-2 lg:grid-cols-4">
           {(novidades.length ? novidades : all.slice(0, 4)).map((product) => (
             <ProductCard key={product.id} product={product} />
@@ -70,7 +72,7 @@ export default async function Home() {
 
       {/* Mais Vendidos */}
       <section className="container mx-auto px-4 py-16">
-        <h2 className="mb-12 text-center text-3xl font-light">Mais Vendidos</h2>
+        <h2 className="mb-12 text-center text-3xl font-light">{sections.maisVendidos}</h2>
         <div className="grid grid-cols-2 gap-6 md:grid-cols-2 lg:grid-cols-4">
           {(destaques.length ? destaques : all.slice(0, 4)).map((product) => (
             <ProductCard key={product.id} product={product} />
@@ -102,8 +104,8 @@ export default async function Home() {
       {/* Outlet */}
       <section className="container mx-auto px-4 py-16">
         <div className="mb-12 text-center">
-          <h2 className="mb-2 text-3xl font-light">Outlet</h2>
-          <p className="text-xl font-semibold text-red-600">até 50% OFF</p>
+          <h2 className="mb-2 text-3xl font-light">{sections.outlet}</h2>
+          <p className="text-xl font-semibold text-red-600">{sections.outletSubtitle}</p>
         </div>
         <div className="grid grid-cols-2 gap-6 md:grid-cols-2 lg:grid-cols-4">
           {(outlet.length ? outlet : all.slice(0, 4)).map((product) => (
