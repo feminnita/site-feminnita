@@ -1,5 +1,5 @@
 import * as EmailClient from '../resend/Clients';
-import type { OrderEmailData } from './types';
+import type { OrderEmailData, AbandonedCartEmailData } from './types';
 
 function formatBRL(value: string): string {
     return `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
@@ -11,6 +11,52 @@ function escapeHtml(value: string): string {
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
+}
+
+// rodapé com link de descadastro — usar em TODO e-mail de marketing
+function unsubFooter(unsubscribeUrl: string): string {
+    return `<hr style="border:none;border-top:1px solid #eee;margin:24px 0" />
+        <p style="font-size:12px;color:#888">
+            Você recebe este e-mail porque tem cadastro na Feminnita.
+            <a href="${unsubscribeUrl}">Descadastrar</a>.
+        </p>`;
+}
+
+export async function sendSubscriptionConfirm(data: { email: string; confirmUrl: string; unsubscribeUrl: string }) {
+    try {
+        await EmailClient.sendEmail({
+            to: data.email,
+            subject: 'Confirme seu e-mail — acesso antecipado Feminnita',
+            html: `<h2>Falta um passo!</h2>
+        <p>Confirme seu e-mail pra receber os <strong>lançamentos da Feminnita em primeira mão</strong>.</p>
+        <p><a href="${data.confirmUrl}">Confirmar meu e-mail</a></p>
+        <p>Se não foi você que se inscreveu, é só ignorar este e-mail.</p>
+        <p>— Equipe Feminnita</p>
+        ${unsubFooter(data.unsubscribeUrl)}`,
+        });
+    } catch (error) {
+        console.error(`E-mail de confirmação (double opt-in) falhou (${data.email}):`, error);
+    }
+}
+
+export async function sendAbandonedCart(data: AbandonedCartEmailData) {
+    try {
+        const itens = data.items
+            .map((i) => `<li>${escapeHtml(i.name)}${i.quantity > 1 ? ` (${i.quantity})` : ''}</li>`)
+            .join('');
+        await EmailClient.sendEmail({
+            to: data.customerEmail,
+            subject: 'Você esqueceu algumas peças no carrinho 🛒',
+            html: `<h2>Oi, ${escapeHtml(data.customerName)}!</h2>
+        <p>Vimos que você deixou estas peças no carrinho:</p>
+        <ul>${itens}</ul>
+        <p><a href="${data.cartUrl}">Voltar ao carrinho</a> — a gente guardou tudo pra você.</p>
+        <p>— Equipe Feminnita</p>
+        ${unsubFooter(data.unsubscribeUrl)}`,
+        });
+    } catch (error) {
+        console.error(`E-mail "carrinho abandonado" falhou (${data.customerEmail}):`, error);
+    }
 }
 
 export async function sendOrderReceived(data: OrderEmailData) {

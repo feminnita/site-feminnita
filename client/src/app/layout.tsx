@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Montserrat } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import ClientBody from "./ClientBody";
+import { NewsletterPopup } from "../components/common/NewsletterPopup";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -133,6 +134,7 @@ export default function RootLayout({
         )}
 
         <ClientBody>{children}</ClientBody>
+        <NewsletterPopup />
       </body>
     </html>
   );

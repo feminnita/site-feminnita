@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { routes } from './routes/routes';
+import { startAbandonedCartJob } from './jobs/abandonedCart.Job';
 
 const app = express();
 
@@ -33,4 +34,7 @@ app.use(routes);
 app.set('trust proxy', 1)
 
 const PORT = process.env.PORT || 3333;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    startAbandonedCartJob(); // self-gated por ABANDONED_CART_ENABLED (OFF por padrão)
+});

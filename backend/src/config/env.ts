@@ -15,6 +15,8 @@ export const env = {
 
     databaseUrl: required('DATABASE_URL'),
     clientUrl: required('CLIENT_URL'),
+    // URL pública do próprio backend (links de confirmar/descadastrar apontam pra cá)
+    apiUrl: process.env.API_URL ?? 'http://localhost:3333',
 
     google: {
         clientId: process.env.GOOGLE_CLIENT_ID ?? '',
@@ -36,6 +38,11 @@ export const env = {
     melhorEnvio: {
         baseUrl: required('ME_BASE_URL'),
         token: required('ME_TOKEN'),
+    },
+
+    // e-mail marketing / carrinho abandonado — DESABILITADO por padrão (não envia sem opt-in explícito)
+    abandonedCart: {
+        enabled: process.env.ABANDONED_CART_ENABLED === 'true',
     },
 
     store: {
