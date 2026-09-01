@@ -31,7 +31,7 @@ export function findActiveProductByIdOrSlug(idOrSlug: string) {
 
 export function findSkuVariantsByProductIds(productIds: string[]) {
     return db
-        .select({ productId: productsSkus.productId, size: productsSkus.size, color: productsColors.name })
+        .select({ productId: productsSkus.productId, size: productsSkus.size, color: productsColors.name, stockQty: productsSkus.stockQty, reservedQty: productsSkus.reservedQty })
         .from(productsSkus)
         .leftJoin(productsColors, eq(productsSkus.colorId, productsColors.id))
         .where(inArray(productsSkus.productId, productIds));
