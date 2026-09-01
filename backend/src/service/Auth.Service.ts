@@ -29,7 +29,11 @@ export async function registerCustomer(input: { name: string; email: string; pas
     if (existing) throw new Error('EMAIL_ALREADY_IN_USE');
 
     const passwordHash = await hashPassword(input.password);
-    return AuthRepository.insertCustomer({ name: input.name, email: input.email, passwordHash });
+    const customer = await AuthRepository.insertCustomer({ name: input.name, email: input.email, passwordHash });
+
+    await EmailService.sendWelcome({ customerName: customer.name, customerEmail: customer.email });
+
+    return customer;
 }
 
 export async function loginCustomer(input: { email: string; password: string; userAgent?: string }) {
