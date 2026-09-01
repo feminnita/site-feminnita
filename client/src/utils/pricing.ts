@@ -1,0 +1,1 @@
+export const PIX_DISCOUNT_RATE = 0.05;

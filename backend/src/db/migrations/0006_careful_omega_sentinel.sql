@@ -1,0 +1,1 @@
+ALTER TABLE "products_skus" ALTER COLUMN "product_id" SET NOT NULL;

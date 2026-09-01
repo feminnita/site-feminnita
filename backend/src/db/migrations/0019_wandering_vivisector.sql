@@ -1,0 +1,1 @@
+ALTER TABLE "products_skus" ADD COLUMN "bling_id" bigint;

@@ -1,0 +1,1 @@
+ALTER TABLE "customers" ADD COLUMN "asaas_customer_id" text;
