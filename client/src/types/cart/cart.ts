@@ -26,6 +26,9 @@ export type CartValue = {
     selectedCount: number;
     selectedSubtotal: number;
     removeSelected: () => void;
+    drawerOpen: boolean;
+    openDrawer: () => void;
+    closeDrawer: () => void;
 }
 
 export type ServerCartItem = {

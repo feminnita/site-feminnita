@@ -10,6 +10,8 @@ import type { SkuStock } from "../../types/product/products";
 import { AlertCircle, ShoppingBag, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { MinimumProgress } from "../../components/cart/MinimumProgress";
+import { CompleteOrderStrip } from "../../components/cart/CompleteOrderStrip";
 
 export default function CartPage() {
     const {
@@ -91,8 +93,9 @@ export default function CartPage() {
     );
 
     const allSelected = items.length > 0 && items.every(isSelected);
-    const shipping = selectedSubtotal >= 299 || selectedCount === 0 ? 0 : 15;
-    const total = selectedSubtotal + shipping;
+    // Frete real vem do Melhor Envio no checkout; o carrinho não inclui frete no total.
+    const total = selectedSubtotal;
+    const excludeIds = [...new Set(items.map((i: CartItem) => i.id))];
 
     if (items.length === 0) {
         return (
@@ -230,7 +233,10 @@ export default function CartPage() {
 
                     {/* Order Summary */}
                     <div className="lg:col-span-1">
-                        <div className="sticky top-4 space-y-4 rounded-lg border bg-white p-6">
+                        <div className="sticky top-4 space-y-4">
+                            <MinimumProgress subtotal={selectedSubtotal} />
+
+                            <div className="space-y-4 rounded-lg border bg-white p-6">
                             <h2 className="text-xl font-medium">Resumo do Pedido</h2>
 
                             <div className="space-y-2 text-sm">
@@ -243,11 +249,7 @@ export default function CartPage() {
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Frete</span>
-                                    <span>
-                                        {shipping === 0
-                                            ? "Grátis"
-                                            : `R$ ${shipping.toFixed(2).replace(".", ",")}`}
-                                    </span>
+                                    <span className="text-gray-500">Frete calculado no checkout</span>
                                 </div>
                             </div>
 
@@ -286,8 +288,13 @@ export default function CartPage() {
                                     Continuar Comprando
                                 </button>
                             </Link>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <div className="mt-10">
+                    <CompleteOrderStrip excludeIds={excludeIds} />
                 </div>
             </div>
         </div>

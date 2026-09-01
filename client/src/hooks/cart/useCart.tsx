@@ -24,6 +24,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const { customer, loading: authLoading } = useAuth();
     const [items, setItems] = useState<CartItem[]>([]);
     const [ready, setReady] = useState(false);
+    const [drawerOpen, setDrawerOpen] = useState(false);
 
     useEffect(() => {
         if (authLoading) return;
@@ -89,6 +90,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         selectedCount: selectedCount(items),
         selectedSubtotal: selectedSubTotal(items),
         removeSelected: () => persist(removeSelected(items)),
+        drawerOpen,
+        openDrawer: () => setDrawerOpen(true),
+        closeDrawer: () => setDrawerOpen(false),
     };
 
     return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

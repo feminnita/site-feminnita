@@ -22,6 +22,17 @@ export async function fetchProductStock(idOrSlug: string): Promise<SkuStock[]> {
     return (await apiGet<SkuStock[]>(`/api/store/products/${idOrSlug}/stock`)) ?? [];
 }
 
+export async function fetchSuggestions(
+    excludeIds: string[] = [],
+    limit = 6,
+): Promise<StoreProduct[]> {
+    const params = new URLSearchParams();
+    if (excludeIds.length > 0) params.set("exclude", excludeIds.join(","));
+    params.set("limit", String(limit));
+
+    return (await apiGet<StoreProduct[]>(`/api/store/products/suggestions?${params}`)) ?? [];
+}
+
 export async function trackProductView(id: string): Promise<void> {
     await apiPost(`/api/store/products/${id}/view`).catch(() => { });
 }

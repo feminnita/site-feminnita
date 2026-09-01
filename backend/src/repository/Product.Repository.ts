@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, notInArray, sql } from 'drizzle-orm';
 import { db } from '../config/db';
 import { products, categories, productsSkus, productsColors, productColorImages } from '../db/schema';
 
@@ -17,6 +17,31 @@ export function findActiveProducts(options: { featured?: boolean; categorySlug?:
 
     if (options.limit) query = query.limit(options.limit);
     return query;
+}
+
+export function findCheapestInStock(options: { excludeIds?: string[]; limit?: number }) {
+    const conditions = [eq(products.active, true)];
+
+    if (options.excludeIds?.length) {
+        conditions.push(notInArray(products.id, options.excludeIds));
+    }
+
+    // Em estoque: estoque do produto > 0 OU algum SKU com saldo disponível > 0.
+    conditions.push(sql`(
+        ${products.stock} > 0 OR EXISTS (
+            SELECT 1 FROM products_skus ps
+            WHERE ps.product_id = ${products.id}
+              AND (ps.stock_qty - ps.reserved_qty) > 0
+        )
+    )`);
+
+    return db
+        .select({ product: products, categoryName: categories.name, categorySlug: categories.slug })
+        .from(products)
+        .leftJoin(categories, eq(products.categoryId, categories.id))
+        .where(and(...conditions))
+        .orderBy(asc(products.basePrice))
+        .limit(options.limit ?? 6);
 }
 
 export function findActiveProductByIdOrSlug(idOrSlug: string) {

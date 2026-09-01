@@ -46,6 +46,19 @@ export async function listProducts(options: { featured?: boolean; categorySlug?:
     return rows.map((row) => mapProduct(row, variants, colorImageRows));
 }
 
+export async function getSuggestions(options: { excludeIds?: string[]; limit?: number }) {
+    const rows = await ProductRepository.findCheapestInStock(options);
+    if (rows.length === 0) return [];
+
+    const ids = rows.map((r) => r.product.id);
+    const [variants, colorImageRows] = await Promise.all([
+        ProductRepository.findSkuVariantsByProductIds(ids),
+        ProductRepository.findColorImagesByProductIds(ids),
+    ]);
+
+    return rows.map((row) => mapProduct(row, variants, colorImageRows));
+}
+
 export async function getProduct(idOrSlug: string) {
     const [row] = await ProductRepository.findActiveProductByIdOrSlug(idOrSlug);
     if (!row) throw new Error('PRODUCT_NOT_FOUND');
