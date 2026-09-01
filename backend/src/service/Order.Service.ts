@@ -13,6 +13,11 @@ export async function createOrder(input: CreateOrderInput) {
         throw new Error('EMPTY_CART');
     }
 
+    // Clamp obrigatório: a loja só vende em até 3x sem juros. Nunca confiar no
+    // número de parcelas que vem do front — um front desatualizado (ou forjado)
+    // poderia mandar 10x e o Asaas cobraria em 10x. Aqui o servidor garante o teto.
+    input.installments = Math.min(3, Math.max(1, Math.trunc(Number(input.installments)) || 1));
+
     const productIds = input.items.map((item) => item.productId);
     const dbProducts = await OrderRepository.findProductsByIds(productIds);
     const productById = new Map(dbProducts.map((p) => [p.id, p]));

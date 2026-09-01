@@ -9,6 +9,7 @@ import {
     sortProducts,
 } from "../../utils/catalog";
 import { buildTree, listGrandchildCategories } from "../../utils/categories";
+import { sortSizes } from "../../utils/sizes";
 import { fetchCategories } from "../../services/categoriesService";
 import { fetchColorSwatches } from "../../services/colorsService";
 import { fetchProducts } from "../../services/productsService";
@@ -66,8 +67,8 @@ export function useProductsPage() {
         });
     }, []);
 
-    const availableSizes = Array.from(
-        new Set(allProducts.flatMap((p) => p.sizes)),
+    const availableSizes = sortSizes(
+        Array.from(new Set(allProducts.flatMap((p) => p.sizes))),
     );
 
     const facets: CatalogFacets = {

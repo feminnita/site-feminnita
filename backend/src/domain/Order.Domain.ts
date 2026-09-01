@@ -12,7 +12,13 @@ export function fromCents(cents: number): string {
 }
 
 export function resolveUnitPriceCents(product: { basePrice: string; salePrice: string | null }): number {
-    return toCents(product.salePrice ?? product.basePrice);
+    const baseCents = toCents(product.basePrice);
+    if (product.salePrice != null) {
+        const saleCents = toCents(product.salePrice);
+        // Só cobra o salePrice quando é válido (> 0) E menor que o preço base.
+        if (saleCents > 0 && saleCents < baseCents) return saleCents;
+    }
+    return baseCents;
 }
 
 export function calculateSubtotalCents(items: { unitPriceCents: number; quantity: number }[]): number {

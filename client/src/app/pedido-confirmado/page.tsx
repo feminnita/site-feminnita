@@ -225,8 +225,7 @@ function OrderConfirmedContent() {
                             )}
 
                             <p className="mt-4 rounded-lg bg-yellow-50 p-3 text-xs text-yellow-700">
-                                ⏱️ Aprovação em até <strong>2 dias úteis</strong> após o
-                                pagamento. O boleto vence em 3 dias.
+                                ⏱️ O boleto vence em <strong>3 dias úteis</strong>.
                             </p>
                         </div>
                     )}

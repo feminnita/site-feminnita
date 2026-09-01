@@ -21,6 +21,6 @@ export async function quoteShipping(
         name: o.name,
         company: o.company ?? "",
         price: Number(o.price) || 0,
-        deliveryDays: Number(o.deleveryDays) || 0,
+        deliveryDays: Number(o.deliveryDays) || 0,
     }));
 }

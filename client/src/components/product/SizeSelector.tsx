@@ -1,6 +1,7 @@
 "use client";
 
 import { StockIndicator } from "../../components/product/StockIndicador";
+import { sortSizes } from "@/src/utils/sizes";
 import type { SizeSelectorProps } from "@/src/types/product/products";
 
 export function SizeSelector({
@@ -11,6 +12,8 @@ export function SizeSelector({
     skus,
     onSelect,
 }: SizeSelectorProps) {
+    const orderedSizes = sortSizes(sizes);
+
     const isSizeAvailable = (size: string): boolean => {
         if (skus.length === 0) return true;
 
@@ -35,7 +38,7 @@ export function SizeSelector({
                 )}
             </label>
             <div className="mb-3 flex flex-wrap gap-3">
-                {sizes.map((size) => {
+                {orderedSizes.map((size) => {
                     const available = isSizeAvailable(size);
 
                     return (

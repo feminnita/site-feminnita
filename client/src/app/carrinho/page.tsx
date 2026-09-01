@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useCart } from "../../hooks/cart/useCart";
 import { fetchProductStock } from "../../services/productsService";
 import { isSelected } from "../../utils/cart";
+import { PIX_DISCOUNT_RATE } from "../../utils/pricing";
 import type { CartItem } from "../../types/cart/cart";
 import type { SkuStock } from "../../types/product/products";
 import { AlertCircle, ShoppingBag, Trash2 } from "lucide-react";
@@ -91,8 +92,9 @@ export default function CartPage() {
     );
 
     const allSelected = items.length > 0 && items.every(isSelected);
-    const shipping = selectedSubtotal >= 299 || selectedCount === 0 ? 0 : 15;
-    const total = selectedSubtotal + shipping;
+    // Frete é cotado por CEP no checkout (Melhor Envio). No carrinho não há CEP,
+    // então não inventamos valor — total mentiroso é pior que total ausente.
+    const total = selectedSubtotal;
 
     if (items.length === 0) {
         return (
@@ -241,13 +243,9 @@ export default function CartPage() {
                                     </span>
                                     <span>R$ {selectedSubtotal.toFixed(2).replace(".", ",")}</span>
                                 </div>
-                                <div className="flex justify-between">
+                                <div className="flex justify-between text-gray-500">
                                     <span>Frete</span>
-                                    <span>
-                                        {shipping === 0
-                                            ? "Grátis"
-                                            : `R$ ${shipping.toFixed(2).replace(".", ",")}`}
-                                    </span>
+                                    <span>Calculado no checkout</span>
                                 </div>
                             </div>
 
@@ -256,7 +254,7 @@ export default function CartPage() {
                                     <span>Total</span>
                                     <span>R$ {total.toFixed(2).replace(".", ",")}</span>
                                 </div>
-                                <p className="mt-1 text-xs text-gray-500">no PIX (5% OFF)</p>
+                                <p className="mt-1 text-xs text-gray-500">no PIX ({Math.round(PIX_DISCOUNT_RATE * 100)}% OFF)</p>
                             </div>
 
                             {selectedCount === 0 ? (
