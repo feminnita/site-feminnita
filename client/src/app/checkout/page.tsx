@@ -693,7 +693,7 @@ export default function CheckoutPage() {
                                         id: "boleto" as const,
                                         Icon: Barcode,
                                         title: "Boleto bancário",
-                                        subtitle: "Aprovação em até 3 dias úteis",
+                                        subtitle: "Vence em 3 dias úteis",
                                     },
                                 ].map(({ id, Icon, title, subtitle }) => (
                                     <label
