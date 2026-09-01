@@ -17,6 +17,8 @@ import { useCart } from "../../hooks/cart/useCart";
 import { effectivePrice, hasActiveSale, pixFromPrice } from "@/src/utils/pricing";
 import { sortSizes } from "@/src/utils/sizes";
 import { useColorSwatches } from "../../hooks/color/useColorSwatches";
+import { fetchProductStock } from "../../services/productsService";
+import type { SkuStock } from "@/src/types/product/products";
 import { ColorCarousel } from "./ColorCarousel";
 
 interface ProductCardProps {
@@ -66,7 +68,56 @@ export function ProductCard({ product }: ProductCardProps) {
 
     const { add } = useCart();
 
-    const addToCart = () => {
+    const [stock, setStock] = useState<SkuStock[] | null>(null);
+    const stockPromise = useRef<Promise<SkuStock[]> | null>(null);
+
+    // Busca o estoque uma única vez (no hover ou na 1ª tentativa de adicionar),
+    // evitando N chamadas ao renderizar uma grade de cards.
+    const loadStock = (): Promise<SkuStock[]> => {
+        if (!stockPromise.current) {
+            stockPromise.current = fetchProductStock(product.id)
+                .catch(() => [] as SkuStock[])
+                .then((skus) => {
+                    setStock(skus);
+                    return skus;
+                });
+        }
+        return stockPromise.current;
+    };
+
+    const availableFor = (
+        skus: SkuStock[],
+        size: string,
+        color: string,
+    ): number | null => {
+        if (skus.length === 0) return null;
+        const sku = skus.find((s) => {
+            const sizeMatch = s.size === size;
+            const colorMatch =
+                !color || !s.color || s.color.toLowerCase() === color.toLowerCase();
+            return sizeMatch && colorMatch;
+        });
+        return sku ? sku.availableQty : 0;
+    };
+
+    const isSizeSoldOut = (size: string): boolean => {
+        if (!stock) return false;
+        const available = availableFor(stock, size, selectedColor);
+        return available !== null && available <= 0;
+    };
+
+    const selectedAvailable = stock
+        ? availableFor(stock, selectedSize, selectedColor)
+        : null;
+    const selectedSoldOut = selectedAvailable !== null && selectedAvailable <= 0;
+
+    const addToCart = async () => {
+        const skus = await loadStock();
+        const available = availableFor(skus, selectedSize, selectedColor);
+        // Não adiciona item morto: se o (tamanho+cor) escolhido está esgotado, bloqueia.
+        if (available !== null && available <= 0) return;
+
+        // Preço efetivo (salePrice quando houver promoção) — coerente com o backend.
         add({
             ...product,
             price: effective,
@@ -83,7 +134,10 @@ export function ProductCard({ product }: ProductCardProps) {
     return (
         <div
             className="product-card group relative"
-            onMouseEnter={() => setIsHovered(true)}
+            onMouseEnter={() => {
+                setIsHovered(true);
+                loadStock();
+            }}
             onMouseLeave={() => setIsHovered(false)}
         >
             {/* Product Image */}
@@ -171,18 +225,24 @@ export function ProductCard({ product }: ProductCardProps) {
                             Tamanho: <span className="font-medium">{selectedSize}</span>
                         </p>
                         <div className="flex flex-wrap gap-2">
-                            {orderedSizes.map((size) => (
-                                <button
-                                    key={size}
-                                    onClick={() => setSelectedSize(size)}
-                                    className={`h-9 min-w-[2.25rem] rounded-md border px-2 text-sm font-medium transition-all ${selectedSize === size
-                                        ? "border-black bg-black text-white"
-                                        : "border-gray-300 hover:border-gray-500"
-                                        }`}
-                                >
-                                    {size}
-                                </button>
-                            ))}
+                            {orderedSizes.map((size) => {
+                                const soldOut = isSizeSoldOut(size);
+                                return (
+                                    <button
+                                        key={size}
+                                        onClick={() => !soldOut && setSelectedSize(size)}
+                                        disabled={soldOut}
+                                        className={`h-9 min-w-[2.25rem] rounded-md border px-2 text-sm font-medium transition-all ${selectedSize === size
+                                            ? "border-black bg-black text-white"
+                                            : soldOut
+                                                ? "cursor-not-allowed border-gray-200 text-gray-300 line-through"
+                                                : "border-gray-300 hover:border-gray-500"
+                                            }`}
+                                    >
+                                        {size}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 )}
@@ -217,16 +277,25 @@ export function ProductCard({ product }: ProductCardProps) {
 
                 <button
                     onClick={addToCart}
-                    className={`mt-3 flex w-full items-center justify-center gap-2 rounded-lg py-3 text-sm font-medium transition-colors md:text-base ${added
-                        ? "bg-green-600 text-white"
-                        : "bg-[#8C2F39] text-[#FAF6F2] hover:bg-[#7a2832]"
+                    disabled={selectedSoldOut}
+                    className={`mt-3 flex w-full items-center justify-center gap-2 rounded-lg py-3 text-sm font-medium transition-colors md:text-base ${selectedSoldOut
+                        ? "cursor-not-allowed bg-gray-300 text-gray-500"
+                        : added
+                            ? "bg-green-600 text-white"
+                            : "bg-[#8C2F39] text-[#FAF6F2] hover:bg-[#7a2832]"
                         }`}
                 >
-                    {added ? <Check size={18} /> : <ShoppingCart size={18} />}
-                    <span className="sm:hidden">{added ? "Feito!" : "Adicionar"}</span>
-                    <span className="hidden sm:inline">
-                        {added ? "Adicionado!" : "Adicionar ao Carrinho"}
-                    </span>
+                    {selectedSoldOut ? (
+                        <span>Tamanho esgotado</span>
+                    ) : (
+                        <>
+                            {added ? <Check size={18} /> : <ShoppingCart size={18} />}
+                            <span className="sm:hidden">{added ? "Feito!" : "Adicionar"}</span>
+                            <span className="hidden sm:inline">
+                                {added ? "Adicionado!" : "Adicionar ao Carrinho"}
+                            </span>
+                        </>
+                    )}
                 </button>
 
                 {/* <Link href={`/provador?produto=${product.id}`}>
