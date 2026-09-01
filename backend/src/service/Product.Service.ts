@@ -33,8 +33,7 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
     };
 }
 
-export async function listProducts(options: { featured?: boolean; categorySlug?: string; limit?: number }) {
-    const rows = await ProductRepository.findActiveProducts(options);
+async function hydrate(rows: ProductRow[]): Promise<StoreProduct[]> {
     if (rows.length === 0) return [];
 
     const ids = rows.map((r) => r.product.id);
@@ -44,6 +43,52 @@ export async function listProducts(options: { featured?: boolean; categorySlug?:
     ]);
 
     return rows.map((row) => mapProduct(row, variants, colorImageRows));
+}
+
+export async function listProducts(options: {
+    featured?: boolean;
+    categorySlug?: string;
+    categoryId?: string;
+    excludeId?: string;
+    limit?: number;
+}) {
+    // Caso "similar" (categoria informada): busca só o necessário, ordena por mais
+    // vendidos e, se faltar, completa com a categoria pai. Evita baixar o catálogo inteiro.
+    if (options.categoryId) {
+        const limit = options.limit ?? 6;
+        const rows: ProductRow[] = [
+            ...(await ProductRepository.findActiveProducts({
+                categoryId: options.categoryId,
+                excludeId: options.excludeId,
+                limit,
+                bestsellerOrder: true,
+            })),
+        ];
+
+        if (rows.length < limit) {
+            const parentId = await ProductRepository.findCategoryParentId(options.categoryId);
+            if (parentId && parentId !== options.categoryId) {
+                const seen = new Set(rows.map((r) => r.product.id));
+                const parentRows = await ProductRepository.findActiveProducts({
+                    categoryId: parentId,
+                    excludeId: options.excludeId,
+                    limit: limit * 2,
+                    bestsellerOrder: true,
+                });
+                for (const r of parentRows) {
+                    if (rows.length >= limit) break;
+                    if (!seen.has(r.product.id)) {
+                        rows.push(r);
+                        seen.add(r.product.id);
+                    }
+                }
+            }
+        }
+
+        return hydrate(rows.slice(0, limit));
+    }
+
+    return hydrate([...(await ProductRepository.findActiveProducts(options))]);
 }
 
 export async function getProduct(idOrSlug: string) {
