@@ -687,7 +687,7 @@ export default function CheckoutPage() {
                                         id: "card" as const,
                                         Icon: CreditCard,
                                         title: "Cartão de crédito",
-                                        subtitle: "Parcelamento em até 10x",
+                                        subtitle: "Parcelamento em até 3x sem juros",
                                     },
                                     {
                                         id: "boleto" as const,
@@ -785,7 +785,7 @@ export default function CheckoutPage() {
                                             onChange={(e) => set("installments", e.target.value)}
                                             className={inputClass}
                                         >
-                                            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                                            {Array.from({ length: 3 }, (_, i) => i + 1).map((n) => (
                                                 <option key={n} value={String(n)}>
                                                     {n}× de R${" "}
                                                     {(total / n).toLocaleString("pt-BR", {
