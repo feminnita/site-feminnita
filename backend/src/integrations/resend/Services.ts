@@ -22,6 +22,7 @@ export async function sendOrderReceived(data: OrderEmailData) {
         <p>Seu pedido <strong>${data.orderNumber}</strong> foi recebido e está aguardando o pagamento.</p>
         <p>Total: <strong>${formatBRL(data.total)}</strong></p>
         <p>Assim que o pagamento for confirmado, te avisamos por aqui.</p>
+        <p>A cobrança no seu cartão/extrato aparece como FNT.</p>
         <p>— Equipe Feminnita</p>
             `,
         })
@@ -39,6 +40,7 @@ export async function sendPaymentConfirmed(data: OrderEmailData) {
             <p> O pagamento do pedido <strong>${data.orderNumber} </strong> foi confirmado.</p>
                 <p>Total: <strong>${formatBRL(data.total)} </strong></p >
                 <p>Já estamos preparando tudo para o envio — você recebe o código de rastreio assim que despachar.</p>
+                <p>A cobrança no seu cartão/extrato aparece como FNT.</p>
                 <p>— Equipe Feminnita </p>
 
             `,
@@ -64,6 +66,29 @@ export async function sendOrderShipped(data: OrderEmailData & { trackingCode?: s
     } catch (error) {
         console.error(`E-mail "pedido a caminho" falhou (${data.orderNumber}):`, error);
     }
+}
+
+export async function sendContactMessage(data: {
+    name: string;
+    email: string;
+    phone: string;
+    subject: string;
+    message: string;
+}) {
+    await EmailClient.sendEmail({
+        to: 'fntlingerie@gmail.com',
+        replyTo: data.email,
+        subject: `Contato pelo site — ${data.subject}`,
+        html: `
+        <h2>Nova mensagem pelo formulário de contato</h2>
+        <p><strong>Nome:</strong> ${escapeHtml(data.name)}</p>
+        <p><strong>E-mail:</strong> ${escapeHtml(data.email)}</p>
+        <p><strong>Telefone:</strong> ${escapeHtml(data.phone)}</p>
+        <p><strong>Assunto:</strong> ${escapeHtml(data.subject)}</p>
+        <p><strong>Mensagem:</strong></p>
+        <p>${escapeHtml(data.message).replace(/\n/g, '<br>')}</p>
+      `,
+    });
 }
 
 export async function sendPasswordReset(data: { customerName: string; customerEmail: string; resetUrl: string }) {

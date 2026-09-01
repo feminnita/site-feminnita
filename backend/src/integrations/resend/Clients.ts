@@ -4,7 +4,8 @@ export async function sendEmail(
     input: {
         to: string;
         subject: string;
-        html: string
+        html: string;
+        replyTo?: string;
     }) {
 
     const response = await fetch('https://api.resend.com/emails', {
@@ -18,6 +19,7 @@ export async function sendEmail(
             to: input.to,
             subject: input.subject,
             html: input.html,
+            ...(input.replyTo ? { reply_to: input.replyTo } : {}),
         }),
     });
 

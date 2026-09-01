@@ -20,6 +20,15 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "ugc.same-assets.com", pathname: "/**" },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/como-comprar-",
+        destination: "/como-comprar",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
