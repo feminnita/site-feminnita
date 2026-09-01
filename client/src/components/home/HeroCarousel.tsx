@@ -7,8 +7,19 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export function HeroCarousel({ slides }: { slides: Slide[] }) {
     const [current, setCurrent] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    // SSR/1º render = mobile (só poster, sem <video> no DOM). Vira desktop no cliente >=768px.
+    const [isDesktop, setIsDesktop] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // detecta desktop (>=768px) só no cliente, sem mismatch de hidratação
+    useEffect(() => {
+        const mq = window.matchMedia("(min-width: 768px)");
+        const update = () => setIsDesktop(mq.matches);
+        update();
+        mq.addEventListener("change", update);
+        return () => mq.removeEventListener("change", update);
+    }, []);
 
     const goTo = (index: number) => {
         if (isTransitioning) return;
@@ -23,15 +34,10 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
     const prev = () => goTo((current - 1 + slides.length) % slides.length);
     const next = () => goTo((current + 1) % slides.length);
 
+    // avanço automático — NÃO dá play no mount (péssimo p/ LCP)
     useEffect(() => {
         if (slides.length === 0) return;
         const slide = slides[current];
-
-        if (slide.type === "video" && videoRef.current) {
-            videoRef.current.play().catch((error) => {
-                console.error(error);
-            });
-        }
 
         timerRef.current = setTimeout(
             () => {
@@ -45,36 +51,84 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         };
     }, [current, slides]);
 
+    // desktop: toca o vídeo só quando ele entra na viewport (IntersectionObserver), nunca no mount
+    useEffect(() => {
+        const el = videoRef.current;
+        if (!el || !isDesktop) return;
+        if (slides[current]?.type !== "video") return;
+
+        const io = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    if (entry.isIntersecting) {
+                        el.play().catch(() => { });
+                    } else {
+                        el.pause();
+                    }
+                }
+            },
+            { threshold: 0.25 },
+        );
+        io.observe(el);
+        return () => io.disconnect();
+    }, [current, slides, isDesktop]);
+
     if (slides.length === 0) {
         return <section className="h-[300px] bg-gray-100" />;
     }
 
     const slide = slides[current];
+
+    const renderMedia = () => {
+        if (slide.type === "image") {
+            return (
+                <img
+                    src={slide.src}
+                    alt={slide.alt}
+                    className="block h-auto w-full"
+                />
+            );
+        }
+
+        // slide de vídeo no MOBILE (<768px): só o poster, sem <video> no DOM (não baixa o vídeo)
+        if (!isDesktop) {
+            return (
+                <div className="aspect-video w-full">
+                    {slide.poster ? (
+                        <img
+                            src={slide.poster}
+                            alt=""
+                            className="h-full w-full object-cover"
+                        />
+                    ) : null}
+                </div>
+            );
+        }
+
+        // slide de vídeo no DESKTOP: preload="none" + poster; play só via IntersectionObserver
+        return (
+            <div className="aspect-video w-full">
+                <video
+                    ref={videoRef}
+                    src={slide.src}
+                    poster={slide.poster || undefined}
+                    className="h-full w-full object-cover"
+                    muted
+                    playsInline
+                    loop={false}
+                    preload="none"
+                />
+            </div>
+        );
+    };
+
     return (
         <section className="relative w-full overflow-hidden bg-black">
             <div
                 className={`transition-opacity duration-500 ${isTransitioning ? "opacity-0" : "opacity-100"
                     }`}
             >
-                {slide.type === "image" ? (
-                    <img
-                        src={slide.src}
-                        alt={slide.alt}
-                        className="block h-auto w-full"
-                    />
-                ) : (
-                    <div className="aspect-video w-full">
-                        <video
-                            ref={videoRef}
-                            src={slide.src}
-                            poster={slide.poster || undefined}
-                            className="h-full w-full object-cover"
-                            muted
-                            playsInline
-                            loop={false}
-                        />
-                    </div>
-                )}
+                {renderMedia()}
             </div>
 
             <div className="pointer-events-none absolute inset-0 bg-black/30" />

@@ -50,9 +50,17 @@ export type ImageGrid = {
     images: ImageGridItem[];
 };
 
+export type HomeSectionTitles = {
+    lancamentos: string;
+    maisVendidos: string;
+    outlet: string;
+    outletSubtitle: string;
+};
+
 export type HomeBanners = {
     slides: Slide[];
     intermediateBanner: IntermediateBanner | null;
     videoSection: VideoSection | null;
     imageGrid: ImageGrid;
+    sections: HomeSectionTitles;
 };

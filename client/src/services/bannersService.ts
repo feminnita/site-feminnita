@@ -2,6 +2,7 @@ import { apiGet } from "./api";
 import type {
   HeroSlideRow,
   HomeBanners,
+  HomeSectionTitles,
   ImageGrid,
   IntermediateBanner,
   Slide,
@@ -61,6 +62,18 @@ function mapImageGrid(value: any): ImageGrid {
   };
 }
 
+// títulos das seções da home vêm de settings (home_section_titles); default = textos originais
+function mapHomeSections(
+  value: Partial<HomeSectionTitles> | null | undefined,
+): HomeSectionTitles {
+  return {
+    lancamentos: value?.lancamentos || "Lançamentos",
+    maisVendidos: value?.maisVendidos || "Mais Vendidos",
+    outlet: value?.outlet || "Outlet",
+    outletSubtitle: value?.outletSubtitle || "até 50% OFF",
+  };
+}
+
 export async function getHomeBanners(): Promise<HomeBanners> {
   const [slides, settingsMap] = await Promise.all([
     apiGet<HeroSlideRow[]>("/api/store/hero-slides"),
@@ -74,5 +87,6 @@ export async function getHomeBanners(): Promise<HomeBanners> {
     ),
     videoSection: mapVideoSection(settingsMap?.home_video_section),
     imageGrid: mapImageGrid(settingsMap?.home_image_grid),
+    sections: mapHomeSections(settingsMap?.home_section_titles),
   };
 }
