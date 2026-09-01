@@ -12,12 +12,24 @@ export class ApiError extends Error {
 
 async function send<T>(method: string, path: string, body?: unknown): Promise<T | null> {
 
-  const response = await fetch(`${API_URL}${path}`, {
-    method,
-    credentials: "include",
-    headers: body === undefined ? undefined : { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      method,
+      credentials: "include",
+      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      // Sem timeout, um backend que não responde deixa a tela girando pra
+      // sempre (ex.: "Finalizar Pedido"). 35s cobre o cold-start da Render e
+      // ainda vem depois do timeout de 20s do Asaas no backend.
+      signal: AbortSignal.timeout(35000),
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "TimeoutError") {
+      throw new ApiError("O servidor demorou para responder. Tente novamente.", 408);
+    }
+    throw new ApiError("Falha de conexão. Verifique sua internet e tente novamente.", 0);
+  }
 
   const data = response.status === 204 ? null : await response.json().catch(() => null);
 
