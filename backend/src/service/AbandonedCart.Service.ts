@@ -23,7 +23,7 @@ async function processStage(stage: 1 | 2): Promise<number> {
             customerEmail: cart.email,
             items: cart.items.map((i) => ({ name: i.name, quantity: i.quantity })),
             cartUrl: `${env.clientUrl}/carrinho`,
-            unsubscribeUrl: `${env.clientUrl}/descadastrar?email=${encodeURIComponent(cart.email)}`,
+            unsubscribeUrl: `${env.apiUrl}/api/store/newsletter/unsubscribe?email=${encodeURIComponent(cart.email)}`,
         });
         await CartRepository.markReminderSent(cart.customerId, stage);
         sent++;

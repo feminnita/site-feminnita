@@ -15,6 +15,8 @@ export const env = {
 
     databaseUrl: required('DATABASE_URL'),
     clientUrl: required('CLIENT_URL'),
+    // URL pública do próprio backend (links de confirmar/descadastrar apontam pra cá)
+    apiUrl: process.env.API_URL ?? 'http://localhost:3333',
 
     google: {
         clientId: process.env.GOOGLE_CLIENT_ID ?? '',

@@ -22,6 +22,23 @@ function unsubFooter(unsubscribeUrl: string): string {
         </p>`;
 }
 
+export async function sendSubscriptionConfirm(data: { email: string; confirmUrl: string; unsubscribeUrl: string }) {
+    try {
+        await EmailClient.sendEmail({
+            to: data.email,
+            subject: 'Confirme seu e-mail — acesso antecipado Feminnita',
+            html: `<h2>Falta um passo!</h2>
+        <p>Confirme seu e-mail pra receber os <strong>lançamentos da Feminnita em primeira mão</strong>.</p>
+        <p><a href="${data.confirmUrl}">Confirmar meu e-mail</a></p>
+        <p>Se não foi você que se inscreveu, é só ignorar este e-mail.</p>
+        <p>— Equipe Feminnita</p>
+        ${unsubFooter(data.unsubscribeUrl)}`,
+        });
+    } catch (error) {
+        console.error(`E-mail de confirmação (double opt-in) falhou (${data.email}):`, error);
+    }
+}
+
 export async function sendAbandonedCart(data: AbandonedCartEmailData) {
     try {
         const itens = data.items
