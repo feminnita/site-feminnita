@@ -10,13 +10,18 @@ function comTransform(url: string, t: string) {
         : url;
 }
 
+// Os MP4 já são entregues pré-comprimidos à mão (desktop CRF26, mobile).
+// NÃO pedir f_auto/q_auto: transformar vídeo gasta hd_video_second a cada view
+// (o plano Free guarda só 10 derived, então re-transforma sempre). Servir o
+// arquivo cru zera esse consumo, independente de tráfego.
 function otimizado(url: string) {
-    return comTransform(url, "f_auto,q_auto");
+    return url;
 }
 
 function posterDe(url: string) {
     if (!url.includes("/upload/")) return undefined;
-    return comTransform(url, "so_0,f_auto,q_auto").replace(/\.[^./?]+$/, ".jpg");
+    // só extrai o frame 0 pro poster (so_0); sem f_auto/q_auto = sem re-encode do vídeo
+    return comTransform(url, "so_0").replace(/\.[^./?]+$/, ".jpg");
 }
 
 type VitrineProps = {
