@@ -11,16 +11,7 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function LancamentosPage() {
-    const products = (await fetchProducts()).filter((p) => p.isNew).slice(0, 24);
+    const products = await fetchProducts({ isNew: true, withPhoto: true, limit: 24 });
 
-    return (
-        <LandingPage
-            theme="launch"
-            title="LANÇAMENTOS"
-            subtitle="As novidades mais recentes chegaram"
-            badge="Nova coleção"
-            accentColor="#8C2F39"
-            products={products}
-        />
-    );
+    return <LandingPage title="Lançamentos" products={products} />;
 }

@@ -1,10 +1,18 @@
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import { db } from '../config/db';
 import { products, categories, productsSkus, productsColors, productColorImages } from '../db/schema';
 
-export function findActiveProducts(options: { featured?: boolean; categorySlug?: string; limit?: number }) {
+export function findActiveProducts(options: {
+    featured?: boolean;
+    categorySlug?: string;
+    isNew?: boolean;
+    onSale?: boolean;
+    limit?: number;
+}) {
     const conditions = [eq(products.active, true)];
     if (options.featured) conditions.push(eq(products.featured, true));
+    if (options.isNew) conditions.push(eq(products.isNew, true));
+    if (options.onSale) conditions.push(isNotNull(products.salePrice));
     if (options.categorySlug) conditions.push(eq(categories.slug, options.categorySlug));
 
     let query = db

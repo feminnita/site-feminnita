@@ -15,14 +15,5 @@ export default async function MaisVendidosPage() {
         .filter((p) => p.isBestseller)
         .slice(0, 24);
 
-    return (
-        <LandingPage
-            theme="launch"
-            title="MAIS VENDIDOS"
-            subtitle="As peças que as clientes mais amam"
-            badge="Favoritos das clientes"
-            accentColor="#8C2F39"
-            products={products}
-        />
-    );
+    return <LandingPage title="Mais Vendidos" products={products} />;
 }

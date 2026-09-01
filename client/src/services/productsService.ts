@@ -3,11 +3,17 @@ import type { SkuStock, StoreProduct } from "../types/product/products";
 
 export async function fetchProducts(options?: {
     featured?: boolean;
+    isNew?: boolean;
+    onSale?: boolean;
+    withPhoto?: boolean;
     category_slug?: string;
     limit?: number;
 }): Promise<StoreProduct[]> {
     const params = new URLSearchParams();
     if (options?.featured) params.set("featured", "true");
+    if (options?.isNew) params.set("isNew", "true");
+    if (options?.onSale) params.set("onSale", "true");
+    if (options?.withPhoto) params.set("withPhoto", "true");
     if (options?.category_slug) params.set("category", options.category_slug);
     if (options?.limit) params.set("limit", String(options.limit));
 

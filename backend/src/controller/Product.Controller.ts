@@ -4,6 +4,9 @@ import * as ProductService from '../service/Product.Service';
 export async function list(req: Request, res: Response) {
     res.json(await ProductService.listProducts({
         featured: req.query.featured === 'true',
+        isNew: req.query.isNew === 'true',
+        onSale: req.query.onSale === 'true',
+        hasPhoto: req.query.withPhoto === 'true',
         categorySlug: typeof req.query.category === 'string' ? req.query.category : undefined,
         limit: req.query.limit ? Number(req.query.limit) : undefined,
     }));
