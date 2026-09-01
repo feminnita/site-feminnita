@@ -14,7 +14,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useRef } from "react";
 import { useCart } from "../../hooks/cart/useCart";
-import { PIX_DISCOUNT_RATE } from "@/src/utils/pricing";
+import { effectivePrice, hasActiveSale, pixFromPrice } from "@/src/utils/pricing";
+import { sortSizes } from "@/src/utils/sizes";
 import { useColorSwatches } from "../../hooks/color/useColorSwatches";
 import { ColorCarousel } from "./ColorCarousel";
 
@@ -24,6 +25,7 @@ interface ProductCardProps {
         code: string;
         name: string;
         price: number;
+        salePrice?: number | null;
         pixPrice: number;
         installments: number;
         installmentPrice: number;
@@ -44,6 +46,13 @@ export function ProductCard({ product }: ProductCardProps) {
     const colorScrollRef = useRef<HTMLDivElement>(null);
     const swatches = useColorSwatches();
 
+    const effective = effectivePrice(product.price, product.salePrice);
+    const onSale = hasActiveSale(product.price, product.salePrice);
+    const installmentValue = onSale
+        ? effective / product.installments
+        : product.installmentPrice;
+    const orderedSizes = sortSizes(product.sizes);
+
     const displayImages = product.colorImages?.[selectedColor]?.length
         ? product.colorImages[selectedColor]
         : product.images;
@@ -58,7 +67,14 @@ export function ProductCard({ product }: ProductCardProps) {
     const { add } = useCart();
 
     const addToCart = () => {
-        add({ ...product, selectedColor, selectedSize, quantity });
+        add({
+            ...product,
+            price: effective,
+            pixPrice: pixFromPrice(effective),
+            selectedColor,
+            selectedSize,
+            quantity,
+        });
 
         setAdded(true);
         setTimeout(() => setAdded(false), 2000);
@@ -113,19 +129,22 @@ export function ProductCard({ product }: ProductCardProps) {
                 </h3>
                 {/* Price */}
                 <div className="space-y-0.5">
-                    <p className="text-lg font-semibold">
-                        R$ {product.price.toFixed(2).replace(".", ",")}
-                    </p>
+                    <div className="flex flex-wrap items-baseline gap-x-2">
+                        <p className="text-lg font-semibold">
+                            R$ {effective.toFixed(2).replace(".", ",")}
+                        </p>
+                        {onSale && (
+                            <p className="text-sm text-gray-400 line-through">
+                                R$ {product.price.toFixed(2).replace(".", ",")}
+                            </p>
+                        )}
+                    </div>
                     <p className="text-xs text-gray-600">
-                        R${" "}
-                        {(product.price * (1 - PIX_DISCOUNT_RATE))
-                            .toFixed(2)
-                            .replace(".", ",")}{" "}
-                        no PIX
+                        R$ {pixFromPrice(effective).toFixed(2).replace(".", ",")} no PIX
                     </p>
                     <p className="text-xs text-gray-500">
                         (em até {product.installments}x de R${" "}
-                        {product.installmentPrice.toFixed(2).replace(".", ",")})
+                        {installmentValue.toFixed(2).replace(".", ",")})
                     </p>
                 </div>
 
@@ -152,7 +171,7 @@ export function ProductCard({ product }: ProductCardProps) {
                             Tamanho: <span className="font-medium">{selectedSize}</span>
                         </p>
                         <div className="flex flex-wrap gap-2">
-                            {product.sizes.map((size) => (
+                            {orderedSizes.map((size) => (
                                 <button
                                     key={size}
                                     onClick={() => setSelectedSize(size)}
