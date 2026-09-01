@@ -6,15 +6,26 @@ async function request<T>(path: string, options: {
     body?: unknown
 } = {}): Promise<T> {
 
-    const response = await fetch(`${process.env.ASAAS_BASE_URL}${path}`, {
-        method: options.method ?? 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'feminnita-api',
-            access_token: process.env.ASAAS_API_KEY!,
-        },
-        body: options.body ? JSON.stringify(options.body) : undefined,
-    });
+    let response: Response;
+    try {
+        response = await fetch(`${process.env.ASAAS_BASE_URL}${path}`, {
+            method: options.method ?? 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'feminnita-api',
+                access_token: process.env.ASAAS_API_KEY!,
+            },
+            body: options.body ? JSON.stringify(options.body) : undefined,
+            // Sem timeout, uma chamada lenta/pendurada ao Asaas trava o checkout
+            // indefinidamente (o front fica "Processando..." pra sempre). Com o
+            // timeout, a request lança -> o try/catch do Order.Service devolve
+            // PAYMENT_CREATION_FAILED e a tela mostra mensagem.
+            signal: AbortSignal.timeout(20000),
+        });
+    } catch (err) {
+        const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+        throw new Error(`ASAAS_UNREACHABLE ${options.method ?? 'GET'} ${path} (${detail})`);
+    }
 
     if (!response.ok) {
         const detail = await response.text();
