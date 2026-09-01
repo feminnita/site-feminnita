@@ -33,8 +33,26 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
     };
 }
 
-export async function listProducts(options: { featured?: boolean; categorySlug?: string; limit?: number }) {
-    const rows = await ProductRepository.findActiveProducts(options);
+function productHasPhoto(p: StoreProduct): boolean {
+    if (p.images.length > 0) return true;
+    return Object.values(p.colorImages).some((imgs) => Array.isArray(imgs) && imgs.length > 0);
+}
+
+export async function listProducts(options: {
+    featured?: boolean;
+    categorySlug?: string;
+    isNew?: boolean;
+    onSale?: boolean;
+    hasPhoto?: boolean;
+    limit?: number;
+}) {
+    const { hasPhoto, limit, ...repoOptions } = options;
+
+    // Quando exigimos foto, o filtro é pós-mapeamento (a foto pode vir só de colorImages),
+    // então não aplicamos o limit no SQL — buscamos tudo, filtramos e cortamos depois.
+    const rows = await ProductRepository.findActiveProducts(
+        hasPhoto ? repoOptions : { ...repoOptions, limit },
+    );
     if (rows.length === 0) return [];
 
     const ids = rows.map((r) => r.product.id);
@@ -43,7 +61,10 @@ export async function listProducts(options: { featured?: boolean; categorySlug?:
         ProductRepository.findColorImagesByProductIds(ids),
     ]);
 
-    return rows.map((row) => mapProduct(row, variants, colorImageRows));
+    let result = rows.map((row) => mapProduct(row, variants, colorImageRows));
+    if (hasPhoto) result = result.filter(productHasPhoto);
+    if (hasPhoto && limit) result = result.slice(0, limit);
+    return result;
 }
 
 export async function getProduct(idOrSlug: string) {

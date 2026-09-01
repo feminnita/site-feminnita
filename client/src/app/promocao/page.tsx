@@ -18,14 +18,5 @@ export default async function PromocaoPage() {
         )
         .slice(0, 24);
 
-    return (
-        <LandingPage
-            theme="promo"
-            title="PROMOÇÃO"
-            subtitle="Peças selecionadas com desconto especial"
-            badge="Oferta por tempo limitado"
-            accentColor="#C41E3A"
-            products={products}
-        />
-    );
+    return <LandingPage title="Promoção" products={products} />;
 }

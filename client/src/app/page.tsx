@@ -13,20 +13,19 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 async function getHomeProducts() {
-  const products = await fetchProducts({ limit: 20 });
+  // Cada bloco busca já filtrado no servidor, exigindo foto (withPhoto).
+  // Blocos sem itens ficam escondidos — nunca cai em fallback sem foto.
+  const [novidades, destaques, outlet] = await Promise.all([
+    fetchProducts({ isNew: true, withPhoto: true, limit: 4 }),
+    fetchProducts({ featured: true, withPhoto: true, limit: 4 }),
+    fetchProducts({ onSale: true, withPhoto: true, limit: 4 }),
+  ]);
 
-  return {
-    novidades: products.filter((p) => p.isNew).slice(0, 4),
-    destaques: products
-      .filter((p) => p.featured || p.isBestseller)
-      .slice(0, 4),
-    outlet: products.filter((p) => p.salePrice).slice(0, 4),
-    all: products.slice(0, 8),
-  };
+  return { novidades, destaques, outlet };
 }
 
 export default async function Home() {
-  const [{ novidades, destaques, outlet, all }, homeBanners] =
+  const [{ novidades, destaques, outlet }, homeBanners] =
     await Promise.all([getHomeProducts(), getHomeBanners()]);
 
   const { slides, intermediateBanner, videoSection, imageGrid, sections } =
@@ -40,14 +39,16 @@ export default async function Home() {
       {/* <Newsletter /> */}
 
       {/* Lançamentos */}
-      <section className="container mx-auto px-4 py-16">
-        <h2 className="mb-12 text-center text-3xl font-light">{sections.lancamentos}</h2>
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {(novidades.length ? novidades : all.slice(0, 4)).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
+      {novidades.length > 0 && (
+        <section className="container mx-auto px-4 py-16">
+          <h2 className="mb-12 text-center text-3xl font-light">{sections.lancamentos}</h2>
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {novidades.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Banner Intermediário */}
       {intermediateBanner && (
@@ -71,14 +72,16 @@ export default async function Home() {
       )}
 
       {/* Mais Vendidos */}
-      <section className="container mx-auto px-4 py-16">
-        <h2 className="mb-12 text-center text-3xl font-light">{sections.maisVendidos}</h2>
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {(destaques.length ? destaques : all.slice(0, 4)).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
+      {destaques.length > 0 && (
+        <section className="container mx-auto px-4 py-16">
+          <h2 className="mb-12 text-center text-3xl font-light">{sections.maisVendidos}</h2>
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {destaques.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Grid de Imagens */}
       {imageGrid.images.length > 0 && (
@@ -102,17 +105,19 @@ export default async function Home() {
       )}
 
       {/* Outlet */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="mb-12 text-center">
-          <h2 className="mb-2 text-3xl font-light">{sections.outlet}</h2>
-          <p className="text-xl font-semibold text-red-600">{sections.outletSubtitle}</p>
-        </div>
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {(outlet.length ? outlet : all.slice(0, 4)).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
+      {outlet.length > 0 && (
+        <section className="container mx-auto px-4 py-16">
+          <div className="mb-12 text-center">
+            <h2 className="mb-2 text-3xl font-light">{sections.outlet}</h2>
+            <p className="text-xl font-semibold text-red-600">{sections.outletSubtitle}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {outlet.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/*VIDEO*/}
       {videoSection && <Vitrine videoSection={videoSection} />}
