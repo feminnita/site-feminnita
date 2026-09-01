@@ -66,6 +66,29 @@ export async function sendOrderShipped(data: OrderEmailData & { trackingCode?: s
     }
 }
 
+export async function sendWelcome(data: { customerName: string; customerEmail: string }) {
+    try {
+        await EmailClient.sendEmail({
+            to: data.customerEmail,
+            subject: 'Bem-vinda à Feminnita!',
+            html: `
+        <h2>Oi, ${escapeHtml(data.customerName)}!</h2>
+        <p>Que bom ter você com a gente. Sua conta na <strong>Feminnita</strong> está criada e pronta para usar.</p>
+        <p>Antes de começar, o que é bom saber:</p>
+        <ul>
+          <li><strong>Pedido mínimo de R$ 199</strong> — trabalhamos no atacado.</li>
+          <li><strong>Pagamento</strong>: Pix ou cartão de crédito.</li>
+          <li><strong>Atendimento no WhatsApp</strong>: (22) 99281-0707, de segunda a sexta, das 8h às 17h.</li>
+        </ul>
+        <p>Qualquer dúvida, é só chamar a gente no WhatsApp.</p>
+        <p>— Equipe Feminnita</p>
+      `,
+        });
+    } catch (error) {
+        console.error(`E-mail de boas-vindas falhou (${data.customerEmail}):`, error);
+    }
+}
+
 export async function sendPasswordReset(data: { customerName: string; customerEmail: string; resetUrl: string }) {
     try {
         await EmailClient.sendEmail({
