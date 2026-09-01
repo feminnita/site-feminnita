@@ -130,6 +130,7 @@ export default function ProductPage() {
 
                         <PriceBlock
                             price={product.price}
+                            salePrice={product.salePrice}
                             installments={product.installments}
                             installmentPrice={product.installmentPrice}
                         />

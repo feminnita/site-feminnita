@@ -83,6 +83,7 @@ export type StickyMobileCtaProps = {
 
 export type PriceBlockProps = {
   price: number;
+  salePrice: number | null;
   installments: number;
   installmentPrice: number;
 };
