@@ -11,6 +11,10 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
     const colors = [...new Set(pvs.map((v) => v.color).filter(Boolean))] as string[];
     const sizes = [...new Set(pvs.map((v) => v.size).filter(Boolean))];
 
+    // Estoque do produto = soma do disponível das variações (fonte de verdade).
+    // products.stock é campo denormalizado que não é recalculado no cadastro — não usar.
+    const stock = pvs.reduce((sum, v) => sum + Math.max(0, (v.stockQty ?? 0) - (v.reservedQty ?? 0)), 0);
+
     const colorImages: Record<string, string[]> = {};
     for (const imageRow of colorImageRows.filter((c) => c.productId === p.id)) {
         if (imageRow.color) colorImages[imageRow.color] = Array.isArray(imageRow.images) ? imageRow.images : [];
@@ -29,7 +33,7 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
         colors, sizes,
         category: row.categoryName ?? '', category_id: p.categoryId ?? null,
         featured: p.featured ?? false, isNew: p.isNew ?? false, isBestseller: p.isBestseller ?? false,
-        active: p.active ?? true, stock: p.stock ?? 0, view_count: p.viewCount ?? 0,
+        active: p.active ?? true, stock, view_count: p.viewCount ?? 0,
     };
 }
 
