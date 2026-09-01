@@ -8,6 +8,7 @@ export * from './users/admin';
 export * from './users/customers';
 export * from './users/addresses';
 export * from './users/account';
+export * from './users/subscribers';
 //
 export * from './order/orders';
 export * from './order/items';
