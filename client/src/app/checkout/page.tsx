@@ -669,7 +669,7 @@ export default function CheckoutPage() {
                                     <div className="flex-1">
                                         <p className="font-semibold">PIX</p>
                                         <p className="text-xs font-semibold text-green-600">
-                                            5% DE DESCONTO — Aprovação instantânea
+                                            {Math.round(PIX_DISCOUNT_RATE * 100)}% DE DESCONTO — Aprovação instantânea
                                         </p>
                                     </div>
                                     {paymentMethod === "pix" && discount > 0 && (
@@ -693,7 +693,7 @@ export default function CheckoutPage() {
                                         id: "boleto" as const,
                                         Icon: Barcode,
                                         title: "Boleto bancário",
-                                        subtitle: "Aprovação em até 2 dias úteis",
+                                        subtitle: "Aprovação em até 3 dias úteis",
                                     },
                                 ].map(({ id, Icon, title, subtitle }) => (
                                     <label

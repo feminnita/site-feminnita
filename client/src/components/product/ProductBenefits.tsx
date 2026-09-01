@@ -6,18 +6,18 @@ export function ProductBenefits() {
             <div className="flex items-start gap-3">
                 <Truck className="mt-1 text-green-600" size={20} />
                 <div>
-                    <p className="font-medium">Frete Grátis</p>
+                    <p className="font-medium">Frete calculado por CEP</p>
                     <p className="text-sm text-gray-600">
-                        Para compras acima de R$ 299,00
+                        Correios e transportadora
                     </p>
                 </div>
             </div>
             <div className="flex items-start gap-3">
                 <RefreshCw className="mt-1 text-blue-600" size={20} />
                 <div>
-                    <p className="font-medium">Troca Grátis</p>
+                    <p className="font-medium">Troca em até 7 dias</p>
                     <p className="text-sm text-gray-600">
-                        Primeira troca por nossa conta em até 30 dias
+                        Defeito de fabricação em até 30 dias
                     </p>
                 </div>
             </div>

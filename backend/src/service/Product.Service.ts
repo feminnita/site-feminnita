@@ -1,4 +1,5 @@
 import * as ProductRepository from '../repository/Product.Repository';
+import { PIX_DISCOUNT_RATE } from '../domain/Order.Domain';
 import type { StoreProduct } from './types';
 
 type ProductRow = Awaited<ReturnType<typeof ProductRepository.findActiveProducts>>[number];
@@ -21,8 +22,8 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
     }
 
     const price = Number(p.basePrice) || 0;
-    const pixPrice = p.pixPrice ? Number(p.pixPrice) : +(price * 0.95).toFixed(2);
-    const installments = price >= 50 ? 6 : 1;
+    const pixPrice = p.pixPrice ? Number(p.pixPrice) : +(price * (1 - PIX_DISCOUNT_RATE)).toFixed(2);
+    const installments = price >= 50 ? 3 : 1;
 
     return {
         id: p.id, code: p.code ?? '', name: p.name, slug: p.slug, description: p.description ?? '',
