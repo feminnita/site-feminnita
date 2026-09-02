@@ -7,6 +7,16 @@ import { routes } from './routes/routes';
 
 export const app = express();
 
+// Logger de requisição: método, rota, status e tempo. Sem isso não dá para
+// diagnosticar nada em produção (o backend não tinha nenhum morgan/pino).
+app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+        console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${Date.now() - start}ms`);
+    });
+    next();
+});
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
