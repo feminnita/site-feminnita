@@ -18,6 +18,32 @@ export async function insertCustomer(values: { name: string; email: string; pass
     return customer;
 }
 
+// Cliente criado em silêncio no checkout (sem senha). Poderá definir senha
+// depois via "esqueci minha senha". passwordHash fica nulo.
+export async function insertGuestCustomer(values: {
+    name: string;
+    email: string;
+    cpf?: string | null;
+    phone?: string | null;
+}) {
+    const [customer] = await db.insert(customers).values(values).returning();
+    return customer;
+}
+
+// Preenche dados de contato que estejam faltando (não sobrescreve o que já
+// existe) — usado quando um cliente já cadastrado compra e informa CPF/telefone.
+export async function updateCustomerContact(
+    customerId: string,
+    values: { name?: string | null; cpf?: string | null; phone?: string | null },
+) {
+    const patch: Record<string, string> = {};
+    if (values.name) patch.name = values.name;
+    if (values.cpf) patch.cpf = values.cpf;
+    if (values.phone) patch.phone = values.phone;
+    if (Object.keys(patch).length === 0) return;
+    await db.update(customers).set(patch).where(eq(customers.id, customerId));
+}
+
 export function insertSession(values: { tokenHash: string; customerId: string; userAgent: string; expiresAt: Date }) {
     return db.insert(customerSessions).values(values);
 }

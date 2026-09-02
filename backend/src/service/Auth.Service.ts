@@ -36,6 +36,48 @@ export async function registerCustomer(input: { name: string; email: string; pas
     return customer;
 }
 
+// Checkout sem login: encontra o cliente pelo e-mail ou cria um em silêncio a
+// partir dos dados do checkout. Retorna um sessionToken APENAS quando é seguro
+// logar automaticamente (conta nova ou conta sem senha) — nunca cria sessão
+// para uma conta protegida por senha só com base no e-mail (evita sequestro de
+// conta). O pedido é sempre vinculado ao cliente correto de qualquer forma.
+export async function findOrCreateGuestCustomer(input: {
+    name: string;
+    email: string;
+    cpf?: string | null;
+    phone?: string | null;
+    userAgent?: string;
+}) {
+    const email = input.email.trim().toLowerCase();
+    const existing = await AuthRepository.findCustomerByEmail(email);
+
+    if (existing) {
+        // Completa contato faltante sem sobrescrever o que já existe.
+        await AuthRepository.updateCustomerContact(existing.id, {
+            name: existing.name ? null : input.name,
+            cpf: existing.cpf ? null : input.cpf,
+            phone: existing.phone ? null : input.phone,
+        });
+
+        const hasPassword = !!existing.passwordHash || !!existing.googleId;
+        const sessionToken = hasPassword
+            ? undefined
+            : await createSessionForCustomer(existing.id, input.userAgent);
+
+        return { customer: existing, sessionToken, isNew: false };
+    }
+
+    const customer = await AuthRepository.insertGuestCustomer({
+        name: input.name,
+        email,
+        cpf: input.cpf ?? null,
+        phone: input.phone ?? null,
+    });
+
+    const sessionToken = await createSessionForCustomer(customer.id, input.userAgent);
+    return { customer, sessionToken, isNew: true };
+}
+
 export async function loginCustomer(input: { email: string; password: string; userAgent?: string }) {
     const customer = await AuthRepository.findCustomerByEmail(input.email);
     if (customer && !customer.passwordHash) {

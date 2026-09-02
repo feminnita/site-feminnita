@@ -21,7 +21,9 @@ import {
     trackPurchase,
 } from "../../utils/analytics";
 import { isValidateCpf } from "../../utils/checkout";
-import { PIX_DISCOUNT_RATE } from "../../utils/pricing";
+import { PIX_DISCOUNT_RATE, formatBRL, installmentValue } from "../../utils/pricing";
+import { MinimumProgress } from "../../components/cart/MinimumProgress";
+import { useStoreMinOrder } from "../../hooks/cart/useStoreMinOrder";
 import type { AccountCustomer } from "../../types/account/account";
 import type { ShippingOption } from "../../types/checkout/checkout";
 import {
@@ -128,12 +130,15 @@ export default function CheckoutPage() {
     const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
     const [couponLoading, setCouponLoading] = useState(false);
     const [error, setError] = useState("");
+    const [shippingError, setShippingError] = useState("");
     const [summaryOpen, setSummaryOpen] = useState(false);
+    const { minOrder } = useStoreMinOrder();
     const beginTracked = useRef(false);
     const autoShippingDone = useRef(false);
     const submittingRef = useRef(false);
 
     const [form, setForm] = useState({
+        email: "",
         name: "",
         cpf: "",
         phone: "",
@@ -156,11 +161,8 @@ export default function CheckoutPage() {
     useEffect(() => {
         if (authLoading || !ready || isProcessing) return;
 
-        if (!customer) {
-            router.replace("/login?redirect=/checkout");
-            return;
-        }
-
+        // Compra SEM login: não redireciona mais para /login. O visitante compra
+        // direto e a conta é criada em silêncio ao finalizar o pedido.
         if (selectedItems.length === 0) {
             router.push("/carrinho");
             return;
@@ -187,6 +189,7 @@ export default function CheckoutPage() {
 
             setForm((f) => ({
                 ...f,
+                email: f.email || customer?.email || "",
                 name: f.name || prof?.name || "",
                 cpf: f.cpf || prof?.cpf || "",
                 phone: f.phone || prof?.phone || "",
@@ -213,10 +216,12 @@ export default function CheckoutPage() {
     const total = Number(
         (subtotal + shippingCost - discount - couponDiscount).toFixed(2),
     );
+    const belowMinimum = minOrder.ativo && subtotal < minOrder.valor;
 
     const calculateShipping = async (cep: string) => {
         setIsCalculatingShipping(true);
         setSelectedShipping(null);
+        setShippingError("");
         try {
             const options = await quoteShipping(cep, selectedItems);
             setShippingOptions(options);
@@ -225,7 +230,13 @@ export default function CheckoutPage() {
                 trackAddShippingInfo(selectedItems, subtotal, options[0].name);
             }
         } catch {
+            // Cotação falhou: NUNCA mostrar R$ 0,00 nem "frete grátis" e NUNCA
+            // esconder o erro. Zera as opções (bloqueia o avanço, pois exige
+            // selectedShipping) e mostra mensagem pedindo para tentar de novo.
             setShippingOptions([]);
+            setShippingError(
+                "Não conseguimos calcular o frete agora. Tente novamente.",
+            );
         } finally {
             setIsCalculatingShipping(false);
         }
@@ -298,6 +309,16 @@ export default function CheckoutPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (belowMinimum) {
+            setError(
+                `O pedido mínimo é R$ ${formatBRL(minOrder.valor)}. Adicione mais itens ao carrinho.`,
+            );
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+            setError("Informe um e-mail válido para receber a confirmação.");
+            return;
+        }
         if (!selectedShipping) {
             setError("Selecione uma opção de frete.");
             return;
@@ -331,17 +352,29 @@ export default function CheckoutPage() {
         setIsProcessing(true);
 
         try {
-            await updateProfile({
-                name: form.name,
-                phone: form.phone,
-                cpf: form.cpf,
-                birthDate: profile?.birthDate ?? null,
-            });
+            // Só atualiza o perfil de quem JÁ está logado. Para visitante, o
+            // backend cria/atualiza a conta a partir dos dados do checkout.
+            if (customer) {
+                await updateProfile({
+                    name: form.name,
+                    phone: form.phone,
+                    cpf: form.cpf,
+                    birthDate: profile?.birthDate ?? null,
+                });
+            }
 
             const result = await createOrder({
                 items: selectedItems,
                 paymentMethod,
                 installments: Number(form.installments) || 1,
+                customer: customer
+                    ? undefined
+                    : {
+                        name: form.name,
+                        email: form.email.trim(),
+                        cpf: form.cpf,
+                        phone: form.phone,
+                    },
                 card:
                     paymentMethod === "card"
                         ? {
@@ -390,7 +423,7 @@ export default function CheckoutPage() {
     const inputClass =
         "w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#8C2F39] focus:border-transparent text-base";
 
-    if (authLoading || !ready || !customer || selectedItems.length === 0) {
+    if (authLoading || !ready || selectedItems.length === 0) {
         return (
             <div className="flex min-h-screen items-center justify-center">
                 <Loader2 className="animate-spin text-[#8C2F39]" size={50} />
@@ -440,11 +473,14 @@ export default function CheckoutPage() {
                         </span>
                         <div className="flex items-center gap-2">
                             <span className="font-bold text-[#8C2F39]">
-                                R$ {total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                R$ {formatBRL(total)}
                             </span>
                             {summaryOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </div>
                     </button>
+                    <div className="border-t px-4 py-3">
+                        <MinimumProgress subtotal={subtotal} />
+                    </div>
                     {summaryOpen && (
                         <div className="border-t px-4 pb-4 text-sm">
                             <div className="divide-y">
@@ -487,20 +523,33 @@ export default function CheckoutPage() {
                             <div className="rounded-xl border bg-white p-5">
                                 <h2 className="mb-4 font-semibold">1. Dados pessoais</h2>
                                 <div className="grid gap-3 sm:grid-cols-2">
+                                    {/* E-mail é o PRIMEIRO campo. Editável para
+                                        visitante (a conta é criada com ele);
+                                        travado para quem já está logado. */}
+                                    <input
+                                        name="email"
+                                        type="email"
+                                        placeholder="E-mail *"
+                                        required
+                                        autoComplete="email"
+                                        value={form.email}
+                                        onChange={(e) => set("email", e.target.value)}
+                                        disabled={!!customer}
+                                        className={`${inputClass} sm:col-span-2 ${customer ? "bg-gray-50 text-gray-400" : ""}`}
+                                    />
+                                    {!customer && (
+                                        <p className="-mt-1 text-xs text-gray-500 sm:col-span-2">
+                                            Você compra sem precisar criar senha. Criamos sua conta
+                                            automaticamente para acompanhar o pedido.
+                                        </p>
+                                    )}
                                     <input
                                         name="name"
                                         placeholder="Nome completo *"
                                         required
                                         value={form.name}
                                         onChange={(e) => set("name", e.target.value)}
-                                        className={inputClass}
-                                    />
-                                    <input
-                                        name="email"
-                                        type="email"
-                                        value={customer.email}
-                                        disabled
-                                        className={`${inputClass} bg-gray-50 text-gray-400`}
+                                        className={`${inputClass} sm:col-span-2`}
                                     />
                                     <input
                                         name="cpf"
@@ -639,7 +688,22 @@ export default function CheckoutPage() {
                                         ))}
                                     </div>
                                 )}
+                                {!isCalculatingShipping && shippingError && (
+                                    <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                                        <span className="flex items-center gap-2">
+                                            <AlertCircle size={15} /> {shippingError}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => calculateShipping(form.cep.replace(/\D/g, ""))}
+                                            className="shrink-0 rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+                                        >
+                                            Tentar de novo
+                                        </button>
+                                    </div>
+                                )}
                                 {!isCalculatingShipping &&
+                                    !shippingError &&
                                     shippingOptions.length === 0 &&
                                     form.cep.length === 8 && (
                                         <p className="mt-3 text-xs text-amber-600">
@@ -794,10 +858,7 @@ export default function CheckoutPage() {
                                         >
                                             {Array.from({ length: 3 }, (_, i) => i + 1).map((n) => (
                                                 <option key={n} value={String(n)}>
-                                                    {n}× de R${" "}
-                                                    {(total / n).toLocaleString("pt-BR", {
-                                                        minimumFractionDigits: 2,
-                                                    })}{" "}
+                                                    {n}× de R$ {formatBRL(installmentValue(total, n))}{" "}
                                                     sem juros
                                                 </option>
                                             ))}
@@ -810,18 +871,36 @@ export default function CheckoutPage() {
                         {/* Right: summary (desktop) */}
                         <div className="hidden lg:col-span-2 lg:block">
                             <div className="sticky top-4 space-y-4 rounded-xl border bg-white p-5">
-                                <h2 className="font-semibold">Resumo</h2>
-                                <div className="max-h-52 space-y-2 divide-y overflow-y-auto text-sm">
+                                <h2 className="font-semibold">Resumo do pedido</h2>
+
+                                <MinimumProgress subtotal={subtotal} />
+
+                                <div className="max-h-64 space-y-3 overflow-y-auto text-sm">
                                     {selectedItems.map((item, i) => (
-                                        <div key={i} className="flex justify-between pt-2">
-                                            <span className="truncate pr-2 text-gray-700">
-                                                {item.quantity}× {item.name}
-                                            </span>
+                                        <div key={i} className="flex items-center gap-3">
+                                            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border bg-gray-50">
+                                                {item.images?.[0] ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img
+                                                        src={item.images[0]}
+                                                        alt={item.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                ) : null}
+                                                <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#8C2F39] px-1 text-[11px] font-bold text-white">
+                                                    {item.quantity}
+                                                </span>
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-gray-700">{item.name}</p>
+                                                <p className="text-xs text-gray-400">
+                                                    {[item.selectedColor, item.selectedSize]
+                                                        .filter(Boolean)
+                                                        .join(" · ")}
+                                                </p>
+                                            </div>
                                             <span className="shrink-0 font-medium">
-                                                R${" "}
-                                                {(item.price * item.quantity).toLocaleString("pt-BR", {
-                                                    minimumFractionDigits: 2,
-                                                })}
+                                                R$ {formatBRL(item.price * item.quantity)}
                                             </span>
                                         </div>
                                     ))}
@@ -897,7 +976,7 @@ export default function CheckoutPage() {
 
                                 <button
                                     type="submit"
-                                    disabled={isProcessing || !selectedShipping}
+                                    disabled={isProcessing || !selectedShipping || belowMinimum}
                                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#8C2F39] py-4 font-semibold text-white transition-colors hover:bg-[#7a2832] disabled:opacity-50"
                                 >
                                     {isProcessing ? (
@@ -925,7 +1004,7 @@ export default function CheckoutPage() {
                     >
                         <button
                             type="submit"
-                            disabled={isProcessing || !selectedShipping}
+                            disabled={isProcessing || !selectedShipping || belowMinimum}
                             className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#8C2F39] py-4 font-semibold text-white transition-transform active:scale-[0.98] disabled:opacity-50"
                         >
                             {isProcessing ? (
@@ -934,16 +1013,19 @@ export default function CheckoutPage() {
                                 </>
                             ) : (
                                 <>
-                                    <Lock size={15} /> Finalizar — R${" "}
-                                    {total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                    <Lock size={15} /> Finalizar — R$ {formatBRL(total)}
                                 </>
                             )}
                         </button>
-                        {!selectedShipping && (
+                        {belowMinimum ? (
+                            <p className="mt-1 text-center text-xs text-amber-600">
+                                Pedido mínimo de R$ {formatBRL(minOrder.valor)} — adicione mais itens
+                            </p>
+                        ) : !selectedShipping ? (
                             <p className="mt-1 text-center text-xs text-amber-600">
                                 Digite o CEP para calcular o frete
                             </p>
-                        )}
+                        ) : null}
                     </div>
                 </form>
             </div>
