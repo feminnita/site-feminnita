@@ -1,15 +1,27 @@
 "use client";
 
-import { Heart, LogOut, Menu, Search, ShoppingCart, User, X } from "lucide-react";
+import {
+  ChevronDown,
+  Heart,
+  LogOut,
+  Menu,
+  Search,
+  ShoppingCart,
+  User,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/count/useAuth";
 import { useCart } from "../../hooks/cart/useCart";
+import { fetchCategories } from "../../services/categoriesService";
+import { buildTree, cleanCategoryTree } from "../../utils/categories";
+import type { CategoryNode } from "../../types/categories/categories";
+import { CategoryDropdown, MobileCategoryAccordion } from "./CategoryNav";
 
 const NAV_LINKS = [
-  { href: "/produtos", label: "PRODUTOS" },
   { href: "/lancamentos", label: "LANÇAMENTOS" },
   { href: "/mais-vendidos", label: "MAIS VENDIDOS" },
   { href: "/promocao", label: "PROMOÇÃO" },
@@ -20,6 +32,14 @@ export function Header() {
   const { count: cartCount } = useCart();
   const { customer, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [categoryTree, setCategoryTree] = useState<CategoryNode[]>([]);
+
+  useEffect(() => {
+    fetchCategories()
+      .then((rows) => setCategoryTree(cleanCategoryTree(buildTree(rows))))
+      .catch(() => setCategoryTree([]));
+  }, []);
 
   const firstName = customer?.name.split(" ")[0];
 
@@ -28,6 +48,13 @@ export function Header() {
     toast.success("Você saiu da conta");
     router.push("/");
     router.refresh();
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = search.trim();
+    setMenuOpen(false);
+    router.push(q ? `/produtos?q=${encodeURIComponent(q)}` : "/produtos");
   };
 
   return (
@@ -57,23 +84,54 @@ export function Header() {
             </Link>
 
             <nav className="hidden gap-6 text-sm font-medium lg:flex lg:items-center">
-              {NAV_LINKS.map((link) => (
+              {/* PRODUTOS: dropdown com a árvore de categorias no hover */}
+              <div className="group/prod relative">
                 <Link
-                  key={link.href}
-                  href={link.href}
-                  className="hover:underline"
+                  href="/produtos"
+                  className="flex items-center gap-1 hover:underline"
                 >
+                  PRODUTOS
+                  <ChevronDown size={14} className="text-gray-400" />
+                </Link>
+                {categoryTree.length > 0 && (
+                  <div className="invisible absolute left-0 top-full z-50 pt-4 opacity-0 transition-all duration-150 group-hover/prod:visible group-hover/prod:opacity-100">
+                    <div className="w-[min(56rem,88vw)] rounded-xl border border-gray-100 bg-white p-6 shadow-lg">
+                      <CategoryDropdown tree={categoryTree} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {NAV_LINKS.map((link) => (
+                <Link key={link.href} href={link.href} className="hover:underline">
                   {link.label}
                 </Link>
               ))}
             </nav>
           </div>
 
-          <div className="flex items-center justify-end gap-2 sm:gap-4">
-            <Link href="/busca" className="-m-2 p-2.5 hover:text-gray-600">
-              <Search size={20} />
-            </Link>
+          {/* Busca aberta (desktop) */}
+          <form
+            onSubmit={handleSearch}
+            className="mx-6 hidden max-w-md flex-1 items-center rounded-full border border-gray-300 bg-white pl-4 pr-1 focus-within:border-[#8C2F39] md:flex"
+          >
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              type="search"
+              placeholder="O que você está procurando?"
+              className="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none"
+            />
+            <button
+              type="submit"
+              aria-label="Buscar"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#8C2F39] text-white transition-colors hover:bg-[#7a2832]"
+            >
+              <Search size={16} />
+            </button>
+          </form>
 
+          <div className="flex items-center justify-end gap-2 sm:gap-4">
             {customer ? (
               <div className="group relative hidden sm:block">
                 <Link
@@ -135,18 +193,54 @@ export function Header() {
           </div>
         </div>
 
+        {/* Busca aberta (mobile) — campo visível, não ícone */}
+        <form
+          onSubmit={handleSearch}
+          className="mt-3 flex items-center rounded-full border border-gray-300 bg-white pl-4 pr-1 focus-within:border-[#8C2F39] md:hidden"
+        >
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            type="search"
+            placeholder="O que você está procurando?"
+            className="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none"
+          />
+          <button
+            type="submit"
+            aria-label="Buscar"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#8C2F39] text-white transition-colors hover:bg-[#7a2832]"
+          >
+            <Search size={16} />
+          </button>
+        </form>
+
         {menuOpen && (
           <nav className="mt-4 flex flex-col gap-1 border-t pt-4 lg:hidden">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className="py-2 text-sm font-medium text-gray-700 hover:text-[#8C2F39]"
-              >
-                {link.label}
-              </Link>
-            ))}
+            <Link
+              href="/produtos"
+              onClick={() => setMenuOpen(false)}
+              className="py-2 text-sm font-semibold uppercase tracking-wide text-[#8C2F39]"
+            >
+              Produtos
+            </Link>
+            <MobileCategoryAccordion
+              tree={categoryTree}
+              onNavigate={() => setMenuOpen(false)}
+            />
+
+            <div className="mt-1 border-t pt-2">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="block py-2 text-sm font-medium text-gray-700 hover:text-[#8C2F39]"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
             <div className="mt-1 flex gap-1 border-t pt-3 sm:hidden">
               <Link
                 href={customer ? "/minha-conta" : "/login"}

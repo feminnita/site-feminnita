@@ -1,11 +1,23 @@
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, ilike, inArray, or, sql, type SQL } from 'drizzle-orm';
 import { db } from '../config/db';
 import { products, categories, productsSkus, productsColors, productColorImages } from '../db/schema';
 
-export function findActiveProducts(options: { featured?: boolean; categorySlug?: string; limit?: number }) {
-    const conditions = [eq(products.active, true)];
+export function findActiveProducts(options: { featured?: boolean; categorySlug?: string; limit?: number; q?: string }) {
+    const conditions: SQL<unknown>[] = [eq(products.active, true)];
     if (options.featured) conditions.push(eq(products.featured, true));
     if (options.categorySlug) conditions.push(eq(categories.slug, options.categorySlug));
+
+    // Busca livre: casa em NOME, SKU (code) e CATEGORIA.
+    const term = options.q?.trim();
+    if (term) {
+        const like = `%${term}%`;
+        const search = or(
+            ilike(products.name, like),
+            ilike(products.code, like),
+            ilike(categories.name, like),
+        );
+        if (search) conditions.push(search);
+    }
 
     let query = db
         .select({ product: products, categoryName: categories.name, categorySlug: categories.slug })

@@ -6,7 +6,7 @@ const CANONICAL_ORDER = [
 ];
 
 // Normaliza para comparação: tolerante a caixa e espaço (exibe o valor original).
-function normalizeSize(size: string): string {
+export function normalizeSize(size: string): string {
     return size.trim().toUpperCase().replace(/\s+/g, "");
 }
 
@@ -21,4 +21,17 @@ export function sortSizes(sizes: string[]): string[] {
         if (rb !== undefined) return 1;
         return normalizeSize(a).localeCompare(normalizeSize(b));
     });
+}
+
+// Agrupa tamanhos de forma CASE-INSENSITIVE ("p" e "P" viram uma opção só,
+// exibida em caixa alta canônica) e devolve já na ordem de vestuário (sortSizes).
+// A normalização definitiva dos dados é feita fora deste PR (migration).
+export function groupSizes(sizes: string[]): string[] {
+    const byKey = new Map<string, string>();
+    for (const raw of sizes) {
+        const key = normalizeSize(raw);
+        if (!key) continue;
+        if (!byKey.has(key)) byKey.set(key, raw.trim().toUpperCase());
+    }
+    return sortSizes([...byKey.values()]);
 }

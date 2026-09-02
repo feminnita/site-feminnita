@@ -5,11 +5,13 @@ export async function fetchProducts(options?: {
     featured?: boolean;
     category_slug?: string;
     limit?: number;
+    q?: string;
 }): Promise<StoreProduct[]> {
     const params = new URLSearchParams();
     if (options?.featured) params.set("featured", "true");
     if (options?.category_slug) params.set("category", options.category_slug);
     if (options?.limit) params.set("limit", String(options.limit));
+    if (options?.q) params.set("q", options.q);
 
     return (await apiGet<StoreProduct[]>(`/api/store/products?${params}`)) ?? [];
 }

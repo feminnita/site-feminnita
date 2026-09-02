@@ -92,12 +92,15 @@ export function filterProducts(
         filters.category !== "all" ? [filters.category] : parsed.categories;
 
     return products.filter((product) => {
-        if (
-            parsed.text &&
-            !product.name.toLowerCase().includes(parsed.text.toLowerCase()) &&
-            !product.code?.toLowerCase().includes(parsed.text.toLowerCase())
-        )
-            return false;
+        // Busca livre bate em NOME, SKU (code) e CATEGORIA — as três dimensões.
+        if (parsed.text) {
+            const needle = parsed.text.toLowerCase();
+            const matchesText =
+                product.name.toLowerCase().includes(needle) ||
+                (product.code?.toLowerCase().includes(needle) ?? false) ||
+                (product.category?.toLowerCase().includes(needle) ?? false);
+            if (!matchesText) return false;
+        }
 
         if (
             effectiveCategories.length > 0 &&
@@ -117,7 +120,11 @@ export function filterProducts(
 
         if (
             effectiveSizes.length > 0 &&
-            !effectiveSizes.some((size) => product.sizes.includes(size))
+            !effectiveSizes.some((size) =>
+                product.sizes.some(
+                    (ps) => ps.toUpperCase() === size.toUpperCase(),
+                ),
+            )
         )
             return false;
 

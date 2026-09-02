@@ -39,7 +39,7 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
     };
 }
 
-export async function listProducts(options: { featured?: boolean; categorySlug?: string; limit?: number }) {
+export async function listProducts(options: { featured?: boolean; categorySlug?: string; limit?: number; q?: string }) {
     const rows = await ProductRepository.findActiveProducts(options);
     if (rows.length === 0) return [];
 
