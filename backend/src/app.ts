@@ -24,6 +24,15 @@ app.use(cors({
     credentials: true,
 }));
 
+// TEMP diagnóstico: ecoa o que o servidor realmente parseia do cookie. Remover.
+app.get('/api/_cookiedebug', (req, res) => {
+    res.json({
+        cookies: (req as { cookies?: unknown }).cookies ?? null,
+        rawCookieHeader: req.headers.cookie ?? null,
+        nodeEnv: process.env.NODE_ENV ?? null,
+    });
+});
+
 app.use(routes);
 
 app.use(errorHandler);
