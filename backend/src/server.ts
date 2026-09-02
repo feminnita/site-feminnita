@@ -1,9 +1,20 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { routes } from './routes/routes';
 
 const app = express();
+
+// Logger de requisição: método, rota, status, tempo. Sem isso, log vazio na
+// Render não prova que a requisição não chegou.
+app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+        console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${Date.now() - start}ms`);
+    });
+    next();
+});
 
 const allowedOrigins = [
     'https://site-feminnita.vercel.app',
@@ -29,6 +40,10 @@ app.use(cors({
 
 
 app.use(express.json());
+// cookieParser é OBRIGATÓRIO: sem ele req.cookies fica vazio e toda rota
+// autenticada (carrinho, pedido) responde 401 "Não autenticado". Estava só
+// no app.ts, que NÃO é o entry executado (server.ts cria o próprio express).
+app.use(cookieParser());
 app.use(routes);
 app.set('trust proxy', 1)
 
