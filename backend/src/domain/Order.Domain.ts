@@ -3,6 +3,19 @@ import type { CouponData } from "./types";
 
 export const PIX_DISCOUNT_RATE = 0.05;
 
+// Blindagem defensiva de estoque (leitura).
+// O StockHub é a fonte de verdade e, por mecanismo comercial de ranqueamento,
+// INFLA a quantidade em +1000 por variação. O número que chega ao site deveria
+// vir limpo (real), mas o StockHub pode empurrar o inflado por bug. Sempre que o
+// site LER a quantidade física de uma variação para EXIBIR/VALIDAR/RESERVAR,
+// decodifica antes: raw>=1000 => raw-1000 (1000->0, 1001->1, 1401->401); raw<1000
+// fica igual (999->999). É NO-OP no dado atual (nenhum SKU tem stock_qty>=1000);
+// é proteção contra oversell futuro. NÃO usar em caminhos de ESCRITA de estoque.
+export function physicalStock(raw: number | null | undefined): number {
+    const n = Number(raw) || 0;
+    return n >= 1000 ? n - 1000 : n;
+}
+
 export function toCents(value: string | number): number {
     return Math.round(Number(value) * 100);
 }

@@ -66,7 +66,10 @@ export async function insertOrderWithItems(
                 .where(
                     and(
                         eq(productsSkus.id, item.skuId!),
-                        sql`${productsSkus.stockQty} - ${productsSkus.reservedQty} >= ${item.quantity}`
+                        // Decodifica o estoque inflado (+1000) do StockHub antes de comparar
+                        // na reserva atômica: real = raw>=1000 ? raw-1000 : raw. No-op no dado
+                        // atual; proteção contra oversell se o inflado vazar para o site.
+                        sql`(CASE WHEN ${productsSkus.stockQty} >= 1000 THEN ${productsSkus.stockQty} - 1000 ELSE ${productsSkus.stockQty} END) - ${productsSkus.reservedQty} >= ${item.quantity}`
                     )
                 )
                 .returning();

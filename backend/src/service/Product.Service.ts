@@ -1,5 +1,5 @@
 import * as ProductRepository from '../repository/Product.Repository';
-import { PIX_DISCOUNT_RATE } from '../domain/Order.Domain';
+import { PIX_DISCOUNT_RATE, physicalStock } from '../domain/Order.Domain';
 import { sortSizes } from '../utils/sizes';
 import type { StoreProduct } from './types';
 
@@ -15,7 +15,7 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
 
     // Estoque do produto = soma do disponível das variações (fonte de verdade).
     // products.stock é campo denormalizado que não é recalculado no cadastro — não usar.
-    const stock = pvs.reduce((sum, v) => sum + Math.max(0, (v.stockQty ?? 0) - (v.reservedQty ?? 0)), 0);
+    const stock = pvs.reduce((sum, v) => sum + Math.max(0, physicalStock(v.stockQty) - (v.reservedQty ?? 0)), 0);
 
     const colorImages: Record<string, string[]> = {};
     for (const imageRow of colorImageRows.filter((c) => c.productId === p.id)) {
@@ -71,7 +71,7 @@ export async function getProductStock(idOrSlug: string) {
     const skus = await ProductRepository.findSkuStockByProductId(row.product.id);
 
     return skus.map((sku) => {
-        const availableQty = Math.max(0, (sku.stockQty ?? 0) - (sku.reservedQty ?? 0));
+        const availableQty = Math.max(0, physicalStock(sku.stockQty) - (sku.reservedQty ?? 0));
         const stockStatus =
             availableQty === 0 ? 'out_of_stock'
                 : availableQty <= 3 ? 'low_stock'

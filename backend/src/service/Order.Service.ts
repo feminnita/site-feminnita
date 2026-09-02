@@ -35,7 +35,7 @@ export async function createOrder(input: CreateOrderInput) {
         }
 
         const sku = await OrderRepository.findSkuById(skuId);
-        if (!sku || sku.stockQty - sku.reservedQty < item.quantity) {
+        if (!sku || OrderDomain.physicalStock(sku.stockQty) - sku.reservedQty < item.quantity) {
             throw new Error(`OUT_OF_STOCK: ${item.productId}: ${item.size}:${item.color ?? ''}`);
         }
 
