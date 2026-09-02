@@ -1,5 +1,6 @@
 import * as ProductRepository from '../repository/Product.Repository';
 import { PIX_DISCOUNT_RATE } from '../domain/Order.Domain';
+import { sortSizes } from '../utils/sizes';
 import type { StoreProduct } from './types';
 
 type ProductRow = Awaited<ReturnType<typeof ProductRepository.findActiveProducts>>[number];
@@ -10,7 +11,7 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
     const p = row.product;
     const pvs = variants.filter((v) => v.productId === p.id);
     const colors = [...new Set(pvs.map((v) => v.color).filter(Boolean))] as string[];
-    const sizes = [...new Set(pvs.map((v) => v.size).filter(Boolean))];
+    const sizes = sortSizes([...new Set(pvs.map((v) => v.size).filter(Boolean))] as string[]);
 
     // Estoque do produto = soma do disponível das variações (fonte de verdade).
     // products.stock é campo denormalizado que não é recalculado no cadastro — não usar.
