@@ -95,15 +95,33 @@ export async function updateOrderStatus(
     const wasCancelled = before.status === 'cancelled';
     const wasShipped = before.status === 'shipped';
 
+    // Guarda de regressão: webhook fora de ordem (at-least-once, não sequencial)
+    // não pode tirar um pedido já PAGO de volta para overdue/pending por um
+    // evento antigo re-entregue.
+    if (wasPaid && (input.paymentStatus === 'overdue' || input.paymentStatus === 'pending')) {
+        return before;
+    }
+
+    // Transição para PAGO: atômica e idempotente. markPaidOnce só atualiza se
+    // ainda não estava pago (condição no WHERE), então estoque e e-mail rodam
+    // EXATAMENTE uma vez, mesmo com webhook duplicado ou concorrente.
+    if (input.paymentStatus === 'paid') {
+        const transitioned = await OrdeRepository.markPaidOnce(
+            id,
+            input.status as typeof orderStatusEnum.enumValues[number] | undefined,
+        );
+        if (!transitioned) return before; // já estava pago -> não repete efeito
+        await confirmSaleForOrder(transitioned.id);
+        await sendPaymentConfirmedEmail(transitioned);
+        return transitioned;
+    }
+
     const order = await OrdeRepository.updateStatus(id, {
         status: input.status as typeof orderStatusEnum.enumValues[number] | undefined,
         paymentStatus: input.paymentStatus as typeof paymentStatusEnum.enumValues[number] | undefined,
     });
 
-    if (order.paymentStatus === 'paid' && !wasPaid) {
-        await confirmSaleForOrder(order.id);
-        await sendPaymentConfirmedEmail(order);
-    } else if (order.status === 'shipped' && !wasShipped) {
+    if (order.status === 'shipped' && !wasShipped) {
         const updated = await OrdeRepository.saveShippedAt(order.id);
         await sendOrderShippedEmail(order);
         return updated;
