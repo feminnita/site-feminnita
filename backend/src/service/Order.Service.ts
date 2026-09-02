@@ -4,6 +4,7 @@ import * as OrderDomain from '../domain/Order.Domain';
 import * as EmailService from '../integrations/resend/Services';
 import * as MelhorEnvio from '../integrations/melhorEnvio/Service';
 import * as AdminOrderService from '../service/OrderLifecycle.Service';
+import * as SiteSettingsRepository from '../repository/SiteSettings.Repository';
 import type { CreateOrderInput } from '../types/order';
 
 
@@ -54,6 +55,16 @@ export async function createOrder(input: CreateOrderInput) {
     }
 
     const subtotalCents = OrderDomain.calculateSubtotalCents(resolvedItems);
+
+    // Pedido mínimo controlável pelo painel (chave `store_min_order` em site_settings).
+    // Default quando ausente: ativo=true, valor=199. Se ativo=false, é no-op.
+    const minOrderSetting = await SiteSettingsRepository.findByKey('store_min_order');
+    const minOrder = (minOrderSetting?.value ?? {}) as { ativo?: boolean; valor?: number };
+    const minOrderAtivo = minOrder.ativo ?? true;
+    const minOrderValor = minOrder.valor ?? 199;
+    if (minOrderAtivo && subtotalCents < minOrderValor * 100) {
+        throw new Error('MINIMUM_ORDER_NOT_MET');
+    }
 
     let coupon = null;
     let couponDiscountCents = 0;

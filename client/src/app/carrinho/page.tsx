@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from 'sonner';
 import { useCart } from "../../hooks/cart/useCart";
+import { useStoreMinOrder } from "../../hooks/cart/useStoreMinOrder";
 import { fetchProductStock } from "../../services/productsService";
 import { isSelected } from "../../utils/cart";
 import { PIX_DISCOUNT_RATE } from "../../utils/pricing";
@@ -11,6 +12,8 @@ import type { SkuStock } from "../../types/product/products";
 import { AlertCircle, ShoppingBag, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { MinimumProgress } from "../../components/cart/MinimumProgress";
+import { CompleteOrderStrip } from "../../components/cart/CompleteOrderStrip";
 
 export default function CartPage() {
     const {
@@ -24,6 +27,7 @@ export default function CartPage() {
         selectedSubtotal,
     } = useCart();
 
+    const { minOrder } = useStoreMinOrder();
     const [stockMap, setStockMap] = useState<Record<string, SkuStock[]>>({});
 
     const productIds = useMemo(
@@ -91,10 +95,14 @@ export default function CartPage() {
         (item: any) => isSelected(item) && stockIssue(item) !== null,
     );
 
+    // Bloqueia "Finalizar Compra" quando o pedido mínimo está ativo e não é atingido.
+    const belowMinimum = minOrder.ativo && selectedSubtotal < minOrder.valor;
+
     const allSelected = items.length > 0 && items.every(isSelected);
     // Frete é cotado por CEP no checkout (Melhor Envio). No carrinho não há CEP,
     // então não inventamos valor — total mentiroso é pior que total ausente.
     const total = selectedSubtotal;
+    const excludeIds = [...new Set(items.map((i: CartItem) => i.id))];
 
     if (items.length === 0) {
         return (
@@ -232,7 +240,10 @@ export default function CartPage() {
 
                     {/* Order Summary */}
                     <div className="lg:col-span-1">
-                        <div className="sticky top-4 space-y-4 rounded-lg border bg-white p-6">
+                        <div className="sticky top-4 space-y-4">
+                            <MinimumProgress subtotal={selectedSubtotal} />
+
+                            <div className="space-y-4 rounded-lg border bg-white p-6">
                             <h2 className="text-xl font-medium">Resumo do Pedido</h2>
 
                             <div className="space-y-2 text-sm">
@@ -245,7 +256,7 @@ export default function CartPage() {
                                 </div>
                                 <div className="flex justify-between text-gray-500">
                                     <span>Frete</span>
-                                    <span>Calculado no checkout</span>
+                                    <span className="text-gray-500">Frete calculado no checkout</span>
                                 </div>
                             </div>
 
@@ -271,6 +282,13 @@ export default function CartPage() {
                                 >
                                     Ajuste os itens sem estoque
                                 </button>
+                            ) : belowMinimum ? (
+                                <button
+                                    disabled
+                                    className="w-full cursor-not-allowed rounded-lg bg-gray-300 py-3 text-white"
+                                >
+                                    Adicione mais para o pedido mínimo
+                                </button>
                             ) : (
                                 <Link href="/checkout">
                                     <button className="w-full rounded-lg bg-black py-3 text-white hover:bg-gray-800">
@@ -284,8 +302,13 @@ export default function CartPage() {
                                     Continuar Comprando
                                 </button>
                             </Link>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <div className="mt-10">
+                    <CompleteOrderStrip excludeIds={excludeIds} />
                 </div>
             </div>
         </div>
