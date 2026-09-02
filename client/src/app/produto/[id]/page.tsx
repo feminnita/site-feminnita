@@ -18,7 +18,6 @@ import { QuantitySelector } from "../../../components/product/QuantitySelector";
 import { SizeSelector } from "../../../components/product/SizeSelector";
 import { StickyMobileCta } from "../../../components/product/StickMobileCta";
 import { useProductPage } from "../../../hooks/product/useProductPage";
-import { toEmbedUrl } from "../../../utils/product";
 
 export default function ProductPage() {
     const {
@@ -119,7 +118,6 @@ export default function ProductPage() {
                         onSelectImage={selectImage}
                         showVideo={showVideo}
                         onShowVideo={() => setShowVideo(true)}
-                        embedUrl={product.videoUrl ? toEmbedUrl(product.videoUrl) : ""}
                     />
 
                     <div className="space-y-6">
