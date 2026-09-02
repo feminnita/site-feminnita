@@ -38,15 +38,18 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="product-card group relative">
             <Link href={href} className="block">
                 {/* Foto 3:4 */}
-                <div className="relative aspect-[3/4] overflow-hidden bg-[#F3EEE9]">
+                {/* Fundo branco + respiro; object-contain nao corta nem amplia
+                    (catalogo tem proporcoes mistas). Volta a object-contain quando as
+                    fotos entrarem padronizadas em 1200x1600 (3:4). */}
+                <div className="relative aspect-[3/4] overflow-hidden bg-white p-2">
                     {primary ? (
-                        <>
+                        <div className="relative h-full w-full">
                             <Image
                                 src={primary}
                                 alt={product.name}
                                 fill
-                                sizes="(max-width: 768px) 50vw, 33vw"
-                                className="object-cover transition-opacity duration-500 group-hover:opacity-0"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 50vw"
+                                className="object-contain transition-opacity duration-500 group-hover:opacity-0"
                                 quality={90}
                             />
                             {/* Segunda foto no hover (quando existir) */}
@@ -54,11 +57,11 @@ export function ProductCard({ product }: ProductCardProps) {
                                 src={secondary ?? primary}
                                 alt={product.name}
                                 fill
-                                sizes="(max-width: 768px) 50vw, 33vw"
-                                className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 50vw"
+                                className="object-contain opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                                 quality={90}
                             />
-                        </>
+                        </div>
                     ) : (
                         // Placeholder neutro com a marca — discreto, sem ícone de imagem quebrada.
                         <div className="flex h-full w-full items-center justify-center bg-[#F3EEE9]">
