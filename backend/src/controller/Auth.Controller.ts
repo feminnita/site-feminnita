@@ -12,7 +12,11 @@ function setSessionCookie(res: Response, token: string) {
     res.cookie(CUSTOMER_SESSION_COOKIE, token, {
         httpOnly: true,
         secure: isProduction,
-        sameSite: 'lax',
+        // Front (Vercel) e back (Render) são cross-site: 'lax' faz o navegador
+        // NÃO enviar o cookie em fetch cross-site -> toda chamada autenticada
+        // vira 401. 'none' (com secure) é obrigatório para cross-site. Em dev
+        // (localhost, mesmo site) 'lax' funciona e evita exigir HTTPS.
+        sameSite: isProduction ? 'none' : 'lax',
         maxAge: SESSION_TTL_MS,
     });
 }
@@ -35,12 +39,7 @@ export async function login(req: Request, res: Response) {
         userAgent: req.headers['user-agent'],
     });
 
-    res.cookie(CUSTOMER_SESSION_COOKIE, token, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: 'lax',
-        maxAge: SESSION_TTL_MS,
-    });
+    setSessionCookie(res, token);
 
     res.json({
         id: customer.id,
