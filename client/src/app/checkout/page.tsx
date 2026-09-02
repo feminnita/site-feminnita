@@ -131,6 +131,7 @@ export default function CheckoutPage() {
     const [summaryOpen, setSummaryOpen] = useState(false);
     const beginTracked = useRef(false);
     const autoShippingDone = useRef(false);
+    const submittingRef = useRef(false);
 
     const [form, setForm] = useState({
         name: "",
@@ -321,6 +322,11 @@ export default function CheckoutPage() {
             }
         }
 
+        // Guard contra duplo-clique: ref é síncrono (antes do 1º await), então
+        // um 2º submit disparado antes do re-render que desabilita o botão é barrado.
+        if (submittingRef.current) return;
+        submittingRef.current = true;
+
         setError("");
         setIsProcessing(true);
 
@@ -377,6 +383,7 @@ export default function CheckoutPage() {
                     : "Erro ao processar o pedido. Tente novamente.",
             );
             setIsProcessing(false);
+            submittingRef.current = false;
         }
     };
 
