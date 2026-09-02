@@ -6,6 +6,7 @@ export async function list(req: Request, res: Response) {
         featured: req.query.featured === 'true',
         categorySlug: typeof req.query.category === 'string' ? req.query.category : undefined,
         limit: req.query.limit ? Number(req.query.limit) : undefined,
+        q: typeof req.query.q === 'string' ? req.query.q : undefined,
     }));
 }
 

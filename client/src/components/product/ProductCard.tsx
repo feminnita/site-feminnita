@@ -1,36 +1,19 @@
 "use client";
 
-import {
-    Check,
-    ChevronLeft,
-    ChevronRight,
-    Heart,
-    ImageOff,
-    Minus,
-    Plus,
-    ShoppingCart,
-} from "lucide-react";
+import { Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useRef } from "react";
-import { useCart } from "../../hooks/cart/useCart";
+import { useState } from "react";
 import { effectivePrice, hasActiveSale, pixFromPrice } from "@/src/utils/pricing";
-import { sortSizes } from "@/src/utils/sizes";
-import { useColorSwatches } from "../../hooks/color/useColorSwatches";
-import { fetchProductStock } from "../../services/productsService";
-import type { SkuStock } from "@/src/types/product/products";
-import { ColorCarousel } from "./ColorCarousel";
 
 interface ProductCardProps {
     product: {
         id: string;
         code: string;
         name: string;
+        slug?: string;
         price: number;
         salePrice?: number | null;
-        pixPrice: number;
-        installments: number;
-        installmentPrice: number;
         images: string[];
         colorImages?: Record<string, string[]>;
         colors: string[];
@@ -38,286 +21,102 @@ interface ProductCardProps {
     };
 }
 
+// Card de VITRINE (minimalista): foto grande 3:4, nome e preço.
+// Cor, tamanho e quantidade são escolhidos na PÁGINA DO PRODUTO — não aqui.
 export function ProductCard({ product }: ProductCardProps) {
-    const [isHovered, setIsHovered] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
-    const [selectedColor, setSelectedColor] = useState(product.colors[0] || "");
-    const [selectedSize, setSelectedSize] = useState(product.sizes[0] || "");
-    const [quantity, setQuantity] = useState(1);
-    const [added, setAdded] = useState(false);
-    const colorScrollRef = useRef<HTMLDivElement>(null);
-    const swatches = useColorSwatches();
 
     const effective = effectivePrice(product.price, product.salePrice);
     const onSale = hasActiveSale(product.price, product.salePrice);
-    const installmentValue = onSale
-        ? effective / product.installments
-        : product.installmentPrice;
-    const orderedSizes = sortSizes(product.sizes);
 
-    const displayImages = product.colorImages?.[selectedColor]?.length
-        ? product.colorImages[selectedColor]
-        : product.images;
+    const href = `/produto/${product.slug ?? product.id}`;
 
-    const cover =
-        isHovered && displayImages[1] ? displayImages[1] : displayImages[0];
-
-    const scrollColors = (dir: number) => {
-        colorScrollRef.current?.scrollBy({ left: dir * 60, behavior: "smooth" });
-    };
-
-    const { add } = useCart();
-
-    const [stock, setStock] = useState<SkuStock[] | null>(null);
-    const stockPromise = useRef<Promise<SkuStock[]> | null>(null);
-
-    // Busca o estoque uma única vez (no hover ou na 1ª tentativa de adicionar),
-    // evitando N chamadas ao renderizar uma grade de cards.
-    const loadStock = (): Promise<SkuStock[]> => {
-        if (!stockPromise.current) {
-            stockPromise.current = fetchProductStock(product.id)
-                .catch(() => [] as SkuStock[])
-                .then((skus) => {
-                    setStock(skus);
-                    return skus;
-                });
-        }
-        return stockPromise.current;
-    };
-
-    const availableFor = (
-        skus: SkuStock[],
-        size: string,
-        color: string,
-    ): number | null => {
-        if (skus.length === 0) return null;
-        const sku = skus.find((s) => {
-            const sizeMatch = s.size === size;
-            const colorMatch =
-                !color || !s.color || s.color.toLowerCase() === color.toLowerCase();
-            return sizeMatch && colorMatch;
-        });
-        return sku ? sku.availableQty : 0;
-    };
-
-    const isSizeSoldOut = (size: string): boolean => {
-        if (!stock) return false;
-        const available = availableFor(stock, size, selectedColor);
-        return available !== null && available <= 0;
-    };
-
-    const selectedAvailable = stock
-        ? availableFor(stock, selectedSize, selectedColor)
-        : null;
-    const selectedSoldOut = selectedAvailable !== null && selectedAvailable <= 0;
-
-    const addToCart = async () => {
-        const skus = await loadStock();
-        const available = availableFor(skus, selectedSize, selectedColor);
-        // Não adiciona item morto: se o (tamanho+cor) escolhido está esgotado, bloqueia.
-        if (available !== null && available <= 0) return;
-
-        // Preço efetivo (salePrice quando houver promoção) — coerente com o backend.
-        add({
-            ...product,
-            price: effective,
-            pixPrice: pixFromPrice(effective),
-            selectedColor,
-            selectedSize,
-            quantity,
-        });
-
-        setAdded(true);
-        setTimeout(() => setAdded(false), 2000);
-    };
+    const primary = product.images?.[0];
+    const secondary = product.images?.[1];
 
     return (
-        <div
-            className="product-card group relative"
-            onMouseEnter={() => {
-                setIsHovered(true);
-                loadStock();
-            }}
-            onMouseLeave={() => setIsHovered(false)}
-        >
-            {/* Product Image */}
-            <Link href={`/produto/${product.id}`}>
-                <div className="relative mb-3 aspect-[2/3] overflow-hidden bg-gray-100">
-                    {cover ? (
-                        <Image
-                            src={cover}
-                            alt={product.name}
-                            fill
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                            className="object-cover transition-opacity duration-300"
-                            quality={90}
-                        />
+        <div className="product-card group relative">
+            <Link href={href} className="block">
+                {/* Foto 3:4 */}
+                <div className="relative aspect-[3/4] overflow-hidden bg-[#F3EEE9]">
+                    {primary ? (
+                        <>
+                            <Image
+                                src={primary}
+                                alt={product.name}
+                                fill
+                                sizes="(max-width: 768px) 50vw, 33vw"
+                                className="object-cover transition-opacity duration-500 group-hover:opacity-0"
+                                quality={90}
+                            />
+                            {/* Segunda foto no hover (quando existir) */}
+                            <Image
+                                src={secondary ?? primary}
+                                alt={product.name}
+                                fill
+                                sizes="(max-width: 768px) 50vw, 33vw"
+                                className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                                quality={90}
+                            />
+                        </>
                     ) : (
-                        <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-gray-300">
-                            <ImageOff size={32} />
-                            <span className="text-xs">Sem foto</span>
+                        // Placeholder neutro com a marca — discreto, sem ícone de imagem quebrada.
+                        <div className="flex h-full w-full items-center justify-center bg-[#F3EEE9]">
+                            <span className="text-lg font-light tracking-[0.2em] text-[#8C2F39]/40">
+                                Feminnita
+                            </span>
                         </div>
                     )}
 
-                    {/* Favorite Button */}
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            setIsFavorite(!isFavorite);
-                        }}
-                        className="absolute right-3 top-3 z-10 rounded-full bg-white p-2 shadow-md transition-colors hover:bg-gray-100"
-                    >
-                        <Heart
-                            size={18}
-                            className={isFavorite ? "fill-red-500 text-red-500" : ""}
-                        />
-                    </button>
+                    {onSale && (
+                        <span className="absolute left-3 top-3 rounded-full bg-[#8C2F39] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+                            Oferta
+                        </span>
+                    )}
+
+                    {/* Ações no hover, sobre a foto */}
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex translate-y-2 items-center gap-2 p-3 opacity-0 transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
+                        <span className="flex-1 rounded-full bg-[#8C2F39] py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-[#FAF6F2] shadow-md transition-colors group-hover:bg-[#7a2832]">
+                            Comprar
+                        </span>
+                        <button
+                            type="button"
+                            aria-label="Favoritar"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setIsFavorite((v) => !v);
+                            }}
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/95 shadow-md transition-colors hover:bg-white"
+                        >
+                            <Heart
+                                size={18}
+                                className={isFavorite ? "fill-[#8C2F39] text-[#8C2F39]" : "text-gray-700"}
+                            />
+                        </button>
+                    </div>
                 </div>
             </Link>
 
-            {/* Product Info */}
-            <div className="space-y-2">
-                <p className="text-xs uppercase text-gray-500">{product.code}</p>
-                <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-medium">
-                    {product.name}
-                </h3>
-                {/* Price */}
-                <div className="space-y-0.5">
-                    <div className="flex flex-wrap items-baseline gap-x-2">
-                        <p className="text-lg font-semibold">
-                            R$ {effective.toFixed(2).replace(".", ",")}
-                        </p>
-                        {onSale && (
-                            <p className="text-sm text-gray-400 line-through">
-                                R$ {product.price.toFixed(2).replace(".", ",")}
-                            </p>
-                        )}
-                    </div>
-                    <p className="text-xs text-gray-600">
-                        R$ {pixFromPrice(effective).toFixed(2).replace(".", ",")} no PIX
+            {/* Nome + preço */}
+            <div className="mt-3 space-y-1">
+                <Link href={href}>
+                    <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-medium text-gray-900 transition-colors hover:text-[#8C2F39]">
+                        {product.name}
+                    </h3>
+                </Link>
+                <div className="flex flex-wrap items-baseline gap-x-2">
+                    <p className="text-base font-semibold text-gray-900">
+                        R$ {effective.toFixed(2).replace(".", ",")}
                     </p>
-                    <p className="text-xs text-gray-500">
-                        (em até {product.installments}x de R${" "}
-                        {installmentValue.toFixed(2).replace(".", ",")})
-                    </p>
-                </div>
-
-                {/* Color Selector */}
-                {product.colors.length > 0 && (
-                    <div className="pt-2">
-                        <p className="mb-2 text-center text-xs text-gray-600">
-                            Cor: <span className="font-medium">{selectedColor}</span>
+                    {onSale && (
+                        <p className="text-sm text-gray-400 line-through">
+                            R$ {product.price.toFixed(2).replace(".", ",")}
                         </p>
-                        <ColorCarousel
-                            colors={product.colors}
-                            selectedColor={selectedColor}
-                            onSelect={setSelectedColor}
-                            swatches={swatches}
-                        />
-                    </div>
-                )}
-
-
-                {/* Size Selector */}
-                {product.sizes.length > 0 && (
-                    <div className="pt-2">
-                        <p className="mb-2 text-xs text-gray-600">
-                            Tamanho: <span className="font-medium">{selectedSize}</span>
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                            {orderedSizes.map((size) => {
-                                const soldOut = isSizeSoldOut(size);
-                                return (
-                                    <button
-                                        key={size}
-                                        onClick={() => !soldOut && setSelectedSize(size)}
-                                        disabled={soldOut}
-                                        className={`h-9 min-w-[2.25rem] rounded-md border px-2 text-sm font-medium transition-all ${selectedSize === size
-                                            ? "border-black bg-black text-white"
-                                            : soldOut
-                                                ? "cursor-not-allowed border-gray-200 text-gray-300 line-through"
-                                                : "border-gray-300 hover:border-gray-500"
-                                            }`}
-                                    >
-                                        {size}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-
-                {/* Quantity Selector */}
-                <div className="pt-2">
-                    <p className="mb-2 text-xs text-gray-600">Quantidade:</p>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border transition-colors hover:bg-gray-100"
-                        >
-                            <Minus size={16} />
-                        </button>
-                        <input
-                            type="number"
-                            min="1"
-                            value={quantity}
-                            onChange={(e) =>
-                                setQuantity(Math.max(1, Number.parseInt(e.target.value) || 1))
-                            }
-                            className="h-8 w-12 min-w-0 rounded-md border text-center"
-                        />
-                        <button
-                            onClick={() => setQuantity(quantity + 1)}
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border transition-colors hover:bg-gray-100"
-                        >
-                            <Plus size={16} />
-                        </button>
-                    </div>
-                </div>
-
-                <button
-                    onClick={addToCart}
-                    disabled={selectedSoldOut}
-                    className={`mt-3 flex w-full items-center justify-center gap-2 rounded-lg py-3 text-sm font-medium transition-colors md:text-base ${selectedSoldOut
-                        ? "cursor-not-allowed bg-gray-300 text-gray-500"
-                        : added
-                            ? "bg-green-600 text-white"
-                            : "bg-[#8C2F39] text-[#FAF6F2] hover:bg-[#7a2832]"
-                        }`}
-                >
-                    {selectedSoldOut ? (
-                        <span>Tamanho esgotado</span>
-                    ) : (
-                        <>
-                            {added ? <Check size={18} /> : <ShoppingCart size={18} />}
-                            <span className="sm:hidden">{added ? "Feito!" : "Adicionar"}</span>
-                            <span className="hidden sm:inline">
-                                {added ? "Adicionado!" : "Adicionar ao Carrinho"}
-                            </span>
-                        </>
                     )}
-                </button>
-
-                {/* <Link href={`/provador?produto=${product.id}`}>
-                    <button className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-[#8C2F39] py-3 text-sm font-medium text-[#8C2F39] transition-all hover:bg-[#8C2F39] hover:text-[#FAF6F2] md:text-base">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                        <span className="sm:hidden">Provador</span>
-                        <span className="hidden sm:inline">Provador Virtual</span>
-                    </button>
-                </Link> */}
+                </div>
+                <p className="text-xs text-gray-500">
+                    R$ {pixFromPrice(effective).toFixed(2).replace(".", ",")} no PIX
+                </p>
             </div>
         </div>
     );

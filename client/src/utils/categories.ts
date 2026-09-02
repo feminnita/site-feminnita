@@ -30,6 +30,58 @@ export function buildTree(rows: CategoryRow[]): CategoryNode[] {
     return buildLevel(null, 1);
 }
 
+// ---------------------------------------------------------------------------
+// cleanCategoryTree — ajustes de EXIBIÇÃO da árvore de categorias no menu.
+//
+// A correção DEFINITIVA é recategorizar na fonte (Bling / cadastro): mover
+// "Menina" para debaixo de Infantil e eliminar o galho de importados sem
+// classificação. Enquanto isso não acontece, este helper mascara os problemas
+// só na UI, sem tocar nos dados.
+//
+//   - esconde o nó "Bling > Importados > Aguardando classificação";
+//   - move "Menina" (hoje sob Feminino) para dentro de Infantil;
+//   - "Menino" já vive em Infantil e é mantido como está.
+// ---------------------------------------------------------------------------
+const HIDDEN_CATEGORY_NAMES = new Set(["aguardando classificação"]);
+
+function normalizeCategoryName(name: string): string {
+    return name.trim().toLowerCase();
+}
+
+export function cleanCategoryTree(tree: CategoryNode[]): CategoryNode[] {
+    const clone = (node: CategoryNode): CategoryNode => ({
+        ...node,
+        children: node.children.map(clone),
+    });
+    let roots = tree.map(clone);
+
+    // 1. Remove galhos escondidos (ex.: "Aguardando classificação") em qualquer nível.
+    const prune = (nodes: CategoryNode[]): CategoryNode[] =>
+        nodes
+            .filter((n) => !HIDDEN_CATEGORY_NAMES.has(normalizeCategoryName(n.name)))
+            .map((n) => ({ ...n, children: prune(n.children) }));
+    roots = prune(roots);
+
+    // 2. Move "Menina" de Feminino para Infantil (correção só de exibição).
+    const feminino = roots.find(
+        (r) => normalizeCategoryName(r.name) === "feminino",
+    );
+    const infantil = roots.find(
+        (r) => normalizeCategoryName(r.name) === "infantil",
+    );
+    if (feminino && infantil) {
+        const idx = feminino.children.findIndex(
+            (c) => normalizeCategoryName(c.name) === "menina",
+        );
+        if (idx !== -1) {
+            const [menina] = feminino.children.splice(idx, 1);
+            infantil.children.push(menina);
+        }
+    }
+
+    return roots;
+}
+
 export function listFatherCandidates(rows: CategoryRow[]): CategoryRow[] {
     return rows.filter((r) => r.parentId === null);
 }
