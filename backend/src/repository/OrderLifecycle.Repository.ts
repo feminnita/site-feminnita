@@ -75,6 +75,9 @@ export async function cancelIfStillUnpaid(id: string) {
         .update(orders)
         .set({
             status: 'cancelled',
+            // payment_status também sai de 'pending' -> senão o pedido expirado
+            // continua poluindo a fila "Pendente" do painel para sempre.
+            paymentStatus: 'failed',
             updatedAt: new Date(),
         })
         .where(and(

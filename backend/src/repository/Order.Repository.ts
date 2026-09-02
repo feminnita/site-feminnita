@@ -156,6 +156,9 @@ export async function cancelOrdeAndReleaseStock(orderId: string) {
     await db
         .update(orders).set({
             status: 'cancelled',
+            // falha na criação da cobrança: payment_status vai para 'failed' para
+            // não aparecer como "Pendente" na fila de trabalho do painel.
+            paymentStatus: 'failed',
             updatedAt: new Date()
         })
         .where(eq(orders.id, orderId));
