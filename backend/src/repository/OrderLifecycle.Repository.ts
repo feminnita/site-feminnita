@@ -1,4 +1,4 @@
-import { eq, sql, and } from 'drizzle-orm';
+import { eq, sql, and, ne } from 'drizzle-orm';
 import { db } from '../config/db';
 import { orders, orderItems, productsSkus, customers } from '../db/schema';
 
@@ -25,6 +25,22 @@ export async function updateStatus(
         .where(eq(orders.id, id))
         .returning();
     return order;
+}
+
+// Marca como pago SÓ se ainda não estiver pago — a condição no WHERE é a
+// guarda atômica. Retorna a linha se transicionou (era não-pago) ou null se
+// já estava pago. Isso torna a confirmação idempotente e à prova de
+// concorrência: webhook duplicado ou paralelo não roda o efeito duas vezes.
+export async function markPaidOnce(
+    id: string,
+    status?: typeof orders.$inferSelect['status'],
+) {
+    const [order] = await db
+        .update(orders)
+        .set({ paymentStatus: 'paid', status, updatedAt: new Date() })
+        .where(and(eq(orders.id, id), ne(orders.paymentStatus, 'paid')))
+        .returning();
+    return order ?? null;
 }
 
 export function confirmSkuSale(skuId: string, quantity: number) {
