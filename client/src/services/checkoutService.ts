@@ -84,7 +84,7 @@ const ERROR_MESSAGES: [string, string][] = [
     ],
     [
         "PAYMENT_CREATION_FAILED",
-        "Não foi possível processar o pagamento. Confira os dados e tente novamente.",
+        "Não conseguimos gerar o pagamento agora. Tente de novo em instantes.",
     ],
 ];
 
