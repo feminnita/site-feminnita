@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { routes } from './routes/routes';
 import { startExpireOrderJob } from './jobs/expireOrder.Job';
+import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
 
@@ -46,6 +47,9 @@ app.use(express.json());
 // no app.ts, que NÃO é o entry executado (server.ts cria o próprio express).
 app.use(cookieParser());
 app.use(routes);
+// errorHandler por último: sem ele, um erro não tratado num controller vira
+// HTML 500 e o front não consegue extrair {error} pra exibir ("nada acontece").
+app.use(errorHandler);
 app.set('trust proxy', 1)
 
 const PORT = process.env.PORT || 3333;
