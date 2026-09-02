@@ -75,7 +75,7 @@ export async function getProductStock(idOrSlug: string) {
         const stockStatus =
             availableQty === 0 ? 'out_of_stock'
                 : availableQty <= 3 ? 'low_stock'
-                    : 'in_stoock';
+                    : 'in_stock';
 
         return {
             size: sku.size,

@@ -18,9 +18,13 @@ app.use((req, res, next) => {
     next();
 });
 
+const envOrigins = (process.env.ALLOWED_ORIGINS ?? '').split(',').map(s => s.trim()).filter(Boolean);
 const allowedOrigins = [
+    'https://feminnita.com.br',
+    'https://www.feminnita.com.br',
     'https://site-feminnita.vercel.app',
-    'http://localhost:3000'
+    'http://localhost:3000',
+    ...envOrigins,
 ];
 
 app.use(cors({
