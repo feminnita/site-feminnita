@@ -221,6 +221,25 @@ function OrderConfirmedContent() {
                         </div>
                     )}
 
+                    {/* Pagar de outra forma: a fatura do Asaas oferece os métodos
+                        habilitados na conta. Válvula de escape quando o PIX falha
+                        (ex.: incidente do Asaas) ou a cliente muda de ideia. */}
+                    {!paid && order.invoiceUrl && (
+                        <div className="mb-6 rounded-xl border bg-white p-4 text-center">
+                            <p className="mb-2 text-sm text-gray-600">
+                                Prefere pagar de outra forma, ou o PIX não funcionou?
+                            </p>
+                            <a
+                                href={order.invoiceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#8C2F39] px-4 py-2 text-sm font-medium text-[#8C2F39] hover:bg-rose-50"
+                            >
+                                <ExternalLink size={15} /> Ver outras formas de pagamento
+                            </a>
+                        </div>
+                    )}
+
                     {/* Boleto */}
                     {method === "boleto" && !paid && (
                         <div className="mb-6 rounded-xl border-2 border-yellow-200 bg-white p-6">
