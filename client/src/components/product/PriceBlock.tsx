@@ -28,8 +28,7 @@ export function PriceBlock({
                 </span>
             </div>
             <p className="mt-1 text-gray-600">
-                ou {installments}x de R$ {installmentValue.toFixed(2).replace(".", ",")}{" "}
-                sem juros
+                ou {installments}x de R$ {installmentValue.toFixed(2).replace(".", ",")}
             </p>
         </div>
     );

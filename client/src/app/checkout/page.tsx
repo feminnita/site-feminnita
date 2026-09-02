@@ -694,7 +694,7 @@ export default function CheckoutPage() {
                                         id: "card" as const,
                                         Icon: CreditCard,
                                         title: "Cartão de crédito",
-                                        subtitle: "Parcelamento em até 3x sem juros",
+                                        subtitle: "Parcelamento em até 3x",
                                     },
                                     {
                                         id: "boleto" as const,
@@ -797,8 +797,7 @@ export default function CheckoutPage() {
                                                     {n}× de R${" "}
                                                     {(total / n).toLocaleString("pt-BR", {
                                                         minimumFractionDigits: 2,
-                                                    })}{" "}
-                                                    sem juros
+                                                    })}
                                                 </option>
                                             ))}
                                         </select>
