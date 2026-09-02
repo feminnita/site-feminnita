@@ -42,6 +42,7 @@ export function ColorCarousel({
     };
 
     const circle = size === "lg" ? "h-11 w-11" : "h-8 w-8";
+    const pill = size === "lg" ? "h-11 px-3 text-sm" : "h-8 px-2 text-xs";
     const selectedStyle =
         size === "lg"
             ? "scale-110 border-black ring-2 ring-black ring-offset-2"
@@ -69,28 +70,46 @@ export function ColorCarousel({
                     const swatch = swatches.find(
                         (s) => s.name.toLowerCase() === color.toLowerCase(),
                     );
+                    const hasPhoto = Boolean(swatch?.imageUrl?.trim());
+                    const isSelected = selectedColor === color;
+
+                    if (hasPhoto) {
+                        return (
+                            <button
+                                key={color}
+                                type="button"
+                                onClick={() => onSelect(color)}
+                                aria-label={`Cor ${color}`}
+                                aria-pressed={isSelected}
+                                className={`${circle} flex-shrink-0 overflow-hidden rounded-full border-2 transition-all ${isSelected
+                                        ? selectedStyle
+                                        : "border-gray-300 hover:border-gray-400"
+                                    }`}
+                                title={color}
+                            >
+                                <img
+                                    src={swatch!.imageUrl}
+                                    alt={color}
+                                    className="h-full w-full object-cover"
+                                />
+                            </button>
+                        );
+                    }
 
                     return (
                         <button
                             key={color}
+                            type="button"
                             onClick={() => onSelect(color)}
-                            className={`${circle} flex-shrink-0 overflow-hidden rounded-full border-2 transition-all ${selectedColor === color
+                            aria-label={`Cor ${color}`}
+                            aria-pressed={isSelected}
+                            className={`${pill} inline-flex flex-shrink-0 items-center justify-center whitespace-nowrap rounded-md border-2 font-medium leading-none transition-all ${isSelected
                                     ? selectedStyle
-                                    : "border-gray-300 hover:border-gray-400"
+                                    : "border-gray-300 text-gray-700 hover:border-gray-400"
                                 }`}
                             title={color}
                         >
-                            {swatch?.imageUrl ? (
-                                <img
-                                    src={swatch.imageUrl}
-                                    alt={color}
-                                    className="h-full w-full object-cover"
-                                />
-                            ) : (
-                                <span className="flex h-full w-full items-center justify-center bg-gray-200 text-[8px] text-gray-500">
-                                    ?
-                                </span>
-                            )}
+                            {color}
                         </button>
                     );
                 })}
