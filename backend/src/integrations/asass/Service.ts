@@ -14,6 +14,34 @@ export async function ensureAsaasCustomer(customer: CustomerForCharge): Promise<
     return created.id;
 }
 
+function isInvalidCustomer(err: unknown): boolean {
+    return err instanceof Error && err.message.includes('invalid_customer');
+}
+
+// Garante o cliente e cobra, resiliente a asaas_customer_id inválido em produção
+// (id criado no sandbox, apagado, ou inconsistente). Se a cobrança falhar com
+// invalid_customer, recria o cliente e tenta UMA vez — em vez de derrubar o
+// pedido e deixar essa cliente permanentemente impedida de comprar. Retorna o id
+// efetivo para o chamador persistir.
+export async function createChargeWithCustomer(order: OrderForCharge, customer: CustomerForCharge) {
+    let asaasCustomerId = await ensureAsaasCustomer(customer);
+    try {
+        const result = await createChargeForOrder(order, asaasCustomerId);
+        return { ...result, asaasCustomerId };
+    } catch (err) {
+        if (!isInvalidCustomer(err)) throw err;
+        const recreated = await AsaasClient.createCustomer({
+            name: customer.name,
+            email: customer.email,
+            cpfCnpj: customer.cpf,
+            phone: customer.phone ?? undefined,
+        });
+        asaasCustomerId = recreated.id;
+        const result = await createChargeForOrder(order, asaasCustomerId);
+        return { ...result, asaasCustomerId };
+    }
+}
+
 function dueDateFor(paymentMethod: string): string {
     const date = new Date();
 

@@ -142,13 +142,7 @@ export async function createOrder(input: CreateOrderInput) {
     );
 
     try {
-        const asaasCustomerId = await AsaasService.ensureAsaasCustomer({ ...customer, cpf: customer.cpf });
-
-        if (!customer.asaasCustomerId) {
-            await OrderRepository.saveCustomerAsaasId(customer.id, asaasCustomerId);
-        }
-
-        const { payment, pixQrCode } = await AsaasService.createChargeForOrder(
+        const { payment, pixQrCode, asaasCustomerId } = await AsaasService.createChargeWithCustomer(
             {
                 ...order,
                 paymentMethod: input.paymentMethod,
@@ -164,8 +158,13 @@ export async function createOrder(input: CreateOrderInput) {
                 },
                 remoteIp: input.remoteIp,
             },
-            asaasCustomerId
+            { ...customer, cpf: customer.cpf },
         );
+
+        // Persiste o id efetivo do cliente Asaas (novo, ou recriado no retry de invalid_customer).
+        if (customer.asaasCustomerId !== asaasCustomerId) {
+            await OrderRepository.saveCustomerAsaasId(customer.id, asaasCustomerId);
+        }
         await OrderRepository.saveOrderAsaasPaymentId(order.id, payment.id);
 
         if (input.paymentMethod === 'card' && payment.status === 'CONFIRMED') {
