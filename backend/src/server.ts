@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { routes } from './routes/routes';
+import { startExpireOrderJob } from './jobs/expireOrder.Job';
 
 const app = express();
 
@@ -48,4 +49,9 @@ app.use(routes);
 app.set('trust proxy', 1)
 
 const PORT = process.env.PORT || 3333;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    // Libera a reserva de estoque de pedidos não pagos após o TTL. Sem isso,
+    // todo PIX abandonado prende estoque pra sempre (reserved_qty nunca volta).
+    startExpireOrderJob();
+});
