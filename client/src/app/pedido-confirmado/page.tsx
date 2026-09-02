@@ -16,8 +16,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "feminnita:lastOrder";
-const POLL_INTERVAL_MS = 5000;
-const POLL_MAX_MS = 10 * 60 * 1000;
+const POLL_START_MS = 3000;
+const POLL_MAX_INTERVAL_MS = 30000;
+const POLL_MAX_MS = 30 * 60 * 1000;
 
 function OrderConfirmedContent() {
     const [order, setOrder] = useState<OrderPaymentResult | null>(null);
@@ -46,28 +47,55 @@ function OrderConfirmedContent() {
         setLoaded(true);
     }, []);
 
-    // Polling: espera o webhook do Asaas confirmar o pagamento
+    // Polling do status do pagamento com backoff exponencial (3s->30s), teto de
+    // tempo, e pausa quando a aba não está visível. Antes: 5s fixo, sem parada
+    // -> ~720 req/cliente numa janela de PIX. (Ideal futuro: o webhook do Asaas
+    // empurra o estado via push, em vez do cliente puxar.)
     useEffect(() => {
         if (!order || paid || order.method === "card") return;
 
+        let stopped = false;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        let delay = POLL_START_MS;
         const startedAt = Date.now();
-        const interval = setInterval(async () => {
-            if (Date.now() - startedAt > POLL_MAX_MS) {
-                clearInterval(interval);
-                return;
-            }
+
+        const schedule = (ms: number) => {
+            timer = setTimeout(tick, ms);
+        };
+
+        const tick = async () => {
+            if (stopped) return;
+            if (Date.now() - startedAt > POLL_MAX_MS) return; // teto: para de puxar
+            if (document.visibilityState === "hidden") return; // pausa; retoma no visible
 
             const data = await apiGet<{ paymentStatus?: string }>(
                 `/api/store/orders/${order.orderId}`,
             );
-
+            if (stopped) return;
             if (data?.paymentStatus === "paid") {
                 setPaid(true);
-                clearInterval(interval);
+                return;
             }
-        }, POLL_INTERVAL_MS);
+            delay = Math.min(delay * 1.5, POLL_MAX_INTERVAL_MS);
+            schedule(delay);
+        };
 
-        return () => clearInterval(interval);
+        const onVisibility = () => {
+            if (stopped || document.visibilityState !== "visible") return;
+            if (Date.now() - startedAt > POLL_MAX_MS) return;
+            clearTimeout(timer);
+            delay = POLL_START_MS; // volta a olhar rápido ao retomar
+            schedule(500);
+        };
+
+        document.addEventListener("visibilitychange", onVisibility);
+        schedule(delay);
+
+        return () => {
+            stopped = true;
+            clearTimeout(timer);
+            document.removeEventListener("visibilitychange", onVisibility);
+        };
     }, [order, paid]);
 
     const copyPix = () => {
