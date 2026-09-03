@@ -29,6 +29,8 @@ import {
     PICKUP_ADDRESS,
     PICKUP_OPTION,
     PICKUP_SHIPPING_ID,
+    SOB_CONSULTA_SHIPPING_ID,
+    SOB_CONSULTA_SUBTITLE,
     type ShippingOption,
 } from "../../types/checkout/checkout";
 import {
@@ -683,16 +685,20 @@ export default function CheckoutPage() {
                                                         <p className="text-xs text-gray-500">
                                                             {opt.id === PICKUP_SHIPPING_ID
                                                                 ? PICKUP_ADDRESS
-                                                                : opt.deliveryDays > 0
-                                                                    ? `até ${opt.deliveryDays} dia${opt.deliveryDays > 1 ? "s" : ""} útil${opt.deliveryDays > 1 ? "eis" : ""}`
-                                                                    : "prazo a confirmar"}
+                                                                : opt.id === SOB_CONSULTA_SHIPPING_ID
+                                                                    ? SOB_CONSULTA_SUBTITLE
+                                                                    : opt.deliveryDays > 0
+                                                                        ? `até ${opt.deliveryDays} dia${opt.deliveryDays > 1 ? "s" : ""} útil${opt.deliveryDays > 1 ? "eis" : ""}`
+                                                                        : "prazo a confirmar"}
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <p className="text-sm font-semibold text-[#8C2F39]">
-                                                    {opt.price === 0
-                                                        ? "Grátis"
-                                                        : `R$ ${opt.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                                                    {opt.id === SOB_CONSULTA_SHIPPING_ID
+                                                        ? "Sob consulta"
+                                                        : opt.price === 0
+                                                            ? "Grátis"
+                                                            : `R$ ${opt.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                                                 </p>
                                             </label>
                                         ))}

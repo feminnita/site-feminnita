@@ -3,6 +3,7 @@ import * as OrderRepository from '../repository/Order.Repository';
 import * as OrderDomain from '../domain/Order.Domain';
 import * as EmailService from '../integrations/resend/Services';
 import * as MelhorEnvio from '../integrations/melhorEnvio/Service';
+import { computePackage } from '../integrations/melhorEnvio/Domain';
 import * as AdminOrderService from '../service/OrderLifecycle.Service';
 import * as SiteSettingsRepository from '../repository/SiteSettings.Repository';
 import type { CreateOrderInput } from '../types/order';
@@ -99,24 +100,39 @@ export async function createOrder(input: CreateOrderInput) {
     let shippingServiceId: number;
     let shippingMethod: string;
     let shippingCostCents: number;
+    // Pacote/volumes escolhidos (guardado no pedido p/ painel e etiqueta
+    // reconciliarem depois). null na retirada (não monta pacote).
+    let shippingPackage: unknown = null;
+
+    const quotable = input.items.map((item) => {
+        const product = productById.get(item.productId)!;
+        return {
+            weightKg: product.weightKg,
+            pkgHeightCm: product.pkgHeightCm,
+            pkgWidthCm: product.pkgWidthCm,
+            pkgLengthCm: product.pkgLengthCm,
+            quantity: item.quantity,
+            ref: item.productId,
+        };
+    });
 
     if (input.shippingServiceId === PICKUP_SHIPPING_ID) {
         // Retirada na fábrica: frete zero, sem cotar Melhor Envio nem montar pacote.
         shippingServiceId = PICKUP_SHIPPING_ID;
         shippingMethod = PICKUP_SHIPPING_METHOD;
         shippingCostCents = 0;
+    } else if (input.shippingServiceId === MelhorEnvio.SOB_CONSULTA_ID) {
+        // Frete sob consulta (pedido volumoso): recomputa o pacote no servidor e
+        // só aceita se ELE realmente cair em "sob consulta" — nunca confia no id
+        // que veio do front (impede burlar frete). Frete zero e pedido marcado
+        // "a combinar", destacável no painel pelo shippingServiceId = -2.
+        const pkg = computePackage(quotable);
+        if (!pkg.sobConsulta) throw new Error('SHIPPING_OPTION_UNAVAILABLE');
+        shippingServiceId = MelhorEnvio.SOB_CONSULTA_ID;
+        shippingMethod = `${MelhorEnvio.SOB_CONSULTA_METHOD} — a combinar`;
+        shippingCostCents = 0;
+        shippingPackage = pkg.log;
     } else {
-        const quotable = input.items.map((item) => {
-            const product = productById.get(item.productId)!;
-            return {
-                weightKg: product.weightKg,
-                pkgHeightCm: product.pkgHeightCm,
-                pkgWidthCm: product.pkgWidthCm,
-                pkgLengthCm: product.pkgLengthCm,
-                quantity: item.quantity,
-            };
-        });
-
         const shippingOptions = await MelhorEnvio.quoteShipping(toCep, quotable);
         const chosenShipping = shippingOptions.find((option) => option.id === input.shippingServiceId);
         if (!chosenShipping) throw new Error('SHIPPING_OPTION_UNAVAILABLE');
@@ -124,6 +140,8 @@ export async function createOrder(input: CreateOrderInput) {
         shippingServiceId = chosenShipping.id;
         shippingMethod = chosenShipping.name;
         shippingCostCents = OrderDomain.toCents(chosenShipping.price);
+        const pkg = computePackage(quotable);
+        shippingPackage = pkg.sobConsulta ? pkg.log : { ...pkg.log, volumes: pkg.volumes };
     }
 
     const totalCents = OrderDomain.calculateTotalCents(subtotalCents, discountCents, shippingCostCents);
@@ -156,6 +174,7 @@ export async function createOrder(input: CreateOrderInput) {
             shippingAddress,
             shippingServiceId,
             shippingMethod,
+            notes: shippingPackage ? JSON.stringify({ shippingPackage }) : undefined,
         },
         resolvedItems.map((item) => ({
             productId: item.productId,

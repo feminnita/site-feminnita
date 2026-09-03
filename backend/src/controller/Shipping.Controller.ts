@@ -35,7 +35,7 @@ export async function quote(req: Request, res: Response) {
                 pkgWidthCm: product.pkgWidthCm,
                 pkgLengthCm: product.pkgLengthCm,
                 quantity: item.quantity,
-
+                ref: product.id,
             };
         });
 

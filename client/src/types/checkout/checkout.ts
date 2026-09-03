@@ -23,6 +23,15 @@ export const PICKUP_OPTION: ShippingOption = {
     deliveryDays: 0,
 };
 
+// Frete sob consulta: opção SINTÉTICA que o backend devolve quando o pedido é
+// volumoso demais (3+ volumes) para cotar no Melhor Envio. Chega na lista de
+// opções como qualquer outra (id -2, preço 0). A compra segue normalmente e o
+// pedido nasce marcado "a combinar" — a operação cota a coleta depois.
+export const SOB_CONSULTA_SHIPPING_ID = -2;
+
+export const SOB_CONSULTA_SUBTITLE =
+    "Pedido volumoso — entraremos em contato para combinar o envio";
+
 export type ShippingAddress = {
     cep: string;
     street: string;
