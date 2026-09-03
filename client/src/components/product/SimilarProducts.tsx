@@ -24,6 +24,9 @@ export function SimilarProducts({ productId, categoryId }: Props) {
                     .filter(
                         (p) =>
                             p.id !== productId &&
+                            // ativo e com foto — sem quadrado bege nos similares
+                            p.active !== false &&
+                            (p.images?.length ?? 0) > 0 &&
                             (!categoryId || p.category_id === categoryId),
                     )
                     .slice(0, 6);

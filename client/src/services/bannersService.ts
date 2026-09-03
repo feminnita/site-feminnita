@@ -3,6 +3,7 @@ import type {
   CategoryBanner,
   HeroSlideRow,
   HomeBanners,
+  HomeSections,
   HomeSectionTitles,
   ImageGrid,
   IntermediateBanner,
@@ -126,6 +127,23 @@ export async function getCategoryBanner(
     href: found.href || "",
     active: found.active !== false,
   };
+}
+
+// Curadoria da vitrine (settings.home_sections): listas ordenadas de IDs por
+// seção. Ausência/ formato inválido => listas vazias => home usa o automático.
+function mapCuratedSections(value: any): HomeSections {
+  const list = (v: any): string[] =>
+    Array.isArray(v) ? v.filter((id) => typeof id === "string") : [];
+  return {
+    lancamentos: list(value?.lancamentos),
+    maisVendidos: list(value?.maisVendidos),
+    outlet: list(value?.outlet),
+  };
+}
+
+export async function getHomeSections(): Promise<HomeSections> {
+  const settingsMap = await apiGet<Record<string, any>>("/api/store/settings");
+  return mapCuratedSections(settingsMap?.home_sections);
 }
 
 export async function getHomeBanners(): Promise<HomeBanners> {
