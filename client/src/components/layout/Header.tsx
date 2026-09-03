@@ -24,7 +24,7 @@ import { CategoryDropdown, MobileCategoryAccordion } from "./CategoryNav";
 const NAV_LINKS = [
   { href: "/lancamentos", label: "LANÇAMENTOS" },
   { href: "/mais-vendidos", label: "MAIS VENDIDOS" },
-  { href: "/categoria/outlet", label: "OUTLET" },
+  { href: "/promocao", label: "PROMOÇÃO" },
 ];
 
 export function Header() {
