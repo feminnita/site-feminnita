@@ -154,6 +154,40 @@ export async function getHomeSections(): Promise<HomeSections> {
   return mapCuratedSections(settingsMap?.home_sections);
 }
 
+// Categoria-fonte de cada fileira da home (settings.home_section_categories):
+// cada valor é o SLUG de uma categoria; vazio/ausente => seção não configurada.
+export type HomeSectionCategories = {
+  lancamentos: string;
+  maisVendidos: string;
+  outlet: string;
+};
+
+// DEFAULTS aplicados APENAS quando a chave inteira está ausente.
+const HOME_SECTION_CATEGORIES_DEFAULT: HomeSectionCategories = {
+  lancamentos: "lancamentos",
+  maisVendidos: "",
+  outlet: "outlet",
+};
+
+function mapHomeSectionCategories(value: any): HomeSectionCategories {
+  // chave inteira ausente/ inválida => usa os defaults
+  if (!value || typeof value !== "object") {
+    return { ...HOME_SECTION_CATEGORIES_DEFAULT };
+  }
+  // chave presente => cada campo vazio significa seção não configurada ([])
+  const slug = (v: any): string => (typeof v === "string" ? v.trim() : "");
+  return {
+    lancamentos: slug(value.lancamentos),
+    maisVendidos: slug(value.maisVendidos),
+    outlet: slug(value.outlet),
+  };
+}
+
+export async function getHomeSectionCategories(): Promise<HomeSectionCategories> {
+  const settingsMap = await apiGet<Record<string, any>>("/api/store/settings");
+  return mapHomeSectionCategories(settingsMap?.home_section_categories);
+}
+
 export async function getHomeBanners(): Promise<HomeBanners> {
   const [slides, settingsMap] = await Promise.all([
     apiGet<HeroSlideRow[]>("/api/store/hero-slides"),
