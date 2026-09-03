@@ -74,7 +74,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
     }, [current, slides, isDesktop]);
 
     if (slides.length === 0) {
-        return <section className="h-[300px] bg-gray-100" />;
+        return <section className="aspect-[4/5] w-full bg-gray-100 md:aspect-video" />;
     }
 
     const slide = slides[current];
@@ -86,25 +86,30 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
             const mobileSrc = slide.srcMobile || slide.src;
             const desktopSrc = slide.src || slide.srcMobile || mobileSrc;
             // <picture>/media: só a imagem certa por largura é baixada (não CSS escondendo)
+            // container 4:5 no mobile / 16:9 no desktop: bate com o que a tela de
+            // upload manda exportar (1080×1350 mobile, 1920×1080 desktop) → object-cover
+            // so apara a beirada, nao corta a cabeca.
             return (
-                <picture>
-                    <source media="(min-width: 768px)" srcSet={desktopSrc} />
-                    <img
-                        src={mobileSrc}
-                        alt={slide.alt}
-                        className="block h-auto w-full"
-                        loading={isFirst ? "eager" : "lazy"}
-                        fetchPriority={isFirst ? "high" : "auto"}
-                        decoding={isFirst ? "auto" : "async"}
-                    />
-                </picture>
+                <div className="aspect-[4/5] w-full md:aspect-video">
+                    <picture className="block h-full w-full">
+                        <source media="(min-width: 768px)" srcSet={desktopSrc} />
+                        <img
+                            src={mobileSrc}
+                            alt={slide.alt}
+                            className="h-full w-full object-cover"
+                            loading={isFirst ? "eager" : "lazy"}
+                            fetchPriority={isFirst ? "high" : "auto"}
+                            decoding={isFirst ? "auto" : "async"}
+                        />
+                    </picture>
+                </div>
             );
         }
 
         // slide de vídeo no MOBILE (<768px): só o poster, sem <video> no DOM (não baixa o vídeo)
         if (!isDesktop) {
             return (
-                <div className="aspect-video w-full">
+                <div className="aspect-[4/5] w-full">
                     {slide.poster ? (
                         <img
                             src={slide.poster}

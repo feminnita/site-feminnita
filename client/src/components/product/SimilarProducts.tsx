@@ -36,7 +36,7 @@ export function SimilarProducts({ productId, categoryId }: Props) {
         return (
             <div className="mt-16">
                 <div className="mb-8 h-6 w-64 animate-pulse rounded bg-gray-200" />
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
                     {Array.from({ length: 6 }).map((_, i) => (
                         <div key={i} className="space-y-2">
                             <div className="aspect-square animate-pulse rounded bg-gray-200" />
