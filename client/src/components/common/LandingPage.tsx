@@ -1,6 +1,7 @@
 "use client";
 
 import { Header } from "../layout/Header";
+import { PRODUCT_GRID } from "../product/productGrid";
 import { useCart } from "../../hooks/cart/useCart";
 import type { StoreProduct } from "../../types/product/products";
 import { ImageOff, ShoppingCart } from "lucide-react";
@@ -117,7 +118,7 @@ export function LandingPage({
                         <p className="mb-6 text-sm text-gray-500">
                             {products.length} produtos encontrados
                         </p>
-                        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+                        <div className={PRODUCT_GRID}>
                             {products.map((product) => (
                                 <div key={product.id} className="group">
                                     <Link href={`/produto/${product.id}`}>

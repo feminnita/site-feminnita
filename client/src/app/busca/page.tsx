@@ -2,6 +2,7 @@
 
 import { Header } from "../../components/layout/Header";
 import { ProductCard } from "../../components/product/ProductCard";
+import { PRODUCT_GRID } from "../../components/product/productGrid";
 import { fetchProducts } from "../../services/productsService";
 import type { StoreProduct } from "../../types/product/products";
 import { Search } from "lucide-react";
@@ -107,7 +108,7 @@ function BuscaContent() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4 2xl:grid-cols-5">
+                            <div className={PRODUCT_GRID}>
                                 {results.map((product) => (
                                     <ProductCard key={product.id} product={product} />
                                 ))}

@@ -2,6 +2,7 @@
 
 import { Header } from "../../../components/layout/Header";
 import { ProductCard } from "../../../components/product/ProductCard";
+import { PRODUCT_GRID } from "../../../components/product/productGrid";
 import { CategoryBanner } from "../../../components/category/CategoryBanner";
 import { fetchProducts } from "../../../services/productsService";
 import { fetchCategories } from "../../../services/categoriesService";
@@ -94,7 +95,7 @@ export default function CategoryPage() {
                 </p>
 
                 {products.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4 2xl:grid-cols-5">
+                    <div className={PRODUCT_GRID}>
                         {products.map((product) => (
                             <ProductCard key={product.id} product={product} />
                         ))}

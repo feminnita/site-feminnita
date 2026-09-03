@@ -1,6 +1,7 @@
 "use client";
 
 import { ProductCard } from "../../components/product/ProductCard";
+import { PRODUCT_GRID } from "./productGrid";
 import { fetchProducts } from "../../services/productsService";
 import type { StoreProduct } from "../../types/product/products";
 import { useEffect, useState } from "react";
@@ -54,7 +55,7 @@ export function SimilarProducts({ productId, categoryId }: Props) {
     return (
         <section className="mt-16">
             <h2 className="mb-8 text-2xl font-light">Produtos similares</h2>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+            <div className={PRODUCT_GRID}>
                 {products.map((product) => (
                     <ProductCard key={product.id} product={product} />
                 ))}
