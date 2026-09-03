@@ -1,9 +1,19 @@
 import * as ProductRepository from '../repository/Product.Repository';
-import { PIX_DISCOUNT_RATE } from '../domain/Order.Domain';
+import { PIX_DISCOUNT_RATE, resolveUnitPriceCents } from '../domain/Order.Domain';
 import { sortSizes } from '../utils/sizes';
 import type { StoreProduct } from './types';
 
 type ProductRow = Awaited<ReturnType<typeof ProductRepository.findActiveProducts>>[number];
+
+// Trava de segurança (rede da Chris): um produto cujo PREÇO DE VENDA EFETIVO ≤ 0
+// NUNCA pode ser servido como visível/comprável na vitrine — não importa a origem
+// do dado (inclusive o que entra pelo sync do Bling, que não passa por cadastro aqui).
+// É filtro de LEITURA (serializer): não altera nada no banco, só deixa de expor o
+// produto quebrado. O preço efetivo é o MESMO que o checkout cobra (resolveUnitPriceCents):
+// salePrice quando válido (>0 e < base), senão basePrice. ≤ 0 => produto indisponível.
+function hasValidSalePrice(product: { basePrice: string; salePrice: string | null }): boolean {
+    return resolveUnitPriceCents(product) > 0;
+}
 type VariantRow = Awaited<ReturnType<typeof ProductRepository.findSkuVariantsByProductIds>>[number];
 type ColorImageRow = Awaited<ReturnType<typeof ProductRepository.findColorImagesByProductIds>>[number];
 
@@ -40,7 +50,8 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
 }
 
 export async function listProducts(options: { featured?: boolean; categorySlug?: string; limit?: number; q?: string }) {
-    const rows = await ProductRepository.findActiveProducts(options);
+    const rows = (await ProductRepository.findActiveProducts(options))
+        .filter((r) => hasValidSalePrice(r.product));
     if (rows.length === 0) return [];
 
     const ids = rows.map((r) => r.product.id);
@@ -54,7 +65,7 @@ export async function listProducts(options: { featured?: boolean; categorySlug?:
 
 export async function getProduct(idOrSlug: string) {
     const [row] = await ProductRepository.findActiveProductByIdOrSlug(idOrSlug);
-    if (!row) throw new Error('PRODUCT_NOT_FOUND');
+    if (!row || !hasValidSalePrice(row.product)) throw new Error('PRODUCT_NOT_FOUND');
 
     const [variants, colorImageRows] = await Promise.all([
         ProductRepository.findSkuVariantsByProductIds([row.product.id]),
@@ -66,7 +77,7 @@ export async function getProduct(idOrSlug: string) {
 
 export async function getProductStock(idOrSlug: string) {
     const [row] = await ProductRepository.findActiveProductByIdOrSlug(idOrSlug);
-    if (!row) throw new Error('PRODUCT_NOT_FOUND');
+    if (!row || !hasValidSalePrice(row.product)) throw new Error('PRODUCT_NOT_FOUND');
 
     const skus = await ProductRepository.findSkuStockByProductId(row.product.id);
 
@@ -88,7 +99,7 @@ export async function getProductStock(idOrSlug: string) {
 
 export async function registerView(idOrSlug: string) {
     const [row] = await ProductRepository.findActiveProductByIdOrSlug(idOrSlug);
-    if (!row) throw new Error('PRODUCT_NOT_FOUND');
+    if (!row || !hasValidSalePrice(row.product)) throw new Error('PRODUCT_NOT_FOUND');
 
     await ProductRepository.incrementViewCount(row.product.id);
 }
