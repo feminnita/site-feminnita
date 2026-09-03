@@ -74,10 +74,20 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
     }, [current, slides, isDesktop]);
 
     if (slides.length === 0) {
-        return <section className="aspect-[4/5] w-full bg-gray-100 md:aspect-video" />;
+        return <section className="aspect-[4/5] w-full bg-gray-100 md:aspect-[12/5] md:max-h-[720px]" />;
     }
 
     const slide = slides[current];
+
+    // textPosition (ex. "bottom-center") → classes flex de alinhamento do bloco de texto
+    const overlayAlign = (pos?: string | null) => {
+        const [v, h] = (pos || "center-center").split("-");
+        const vClass =
+            v === "top" ? "items-start" : v === "bottom" ? "items-end" : "items-center";
+        const hClass =
+            h === "left" ? "justify-start" : h === "right" ? "justify-end" : "justify-center";
+        return `${vClass} ${hClass}`;
+    };
 
     const renderMedia = () => {
         if (slide.type === "image") {
@@ -85,22 +95,18 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
             // mobile é obrigatório; desktop opcional → se faltar, cai pro mobile
             const mobileSrc = slide.srcMobile || slide.src;
             const desktopSrc = slide.src || slide.srcMobile || mobileSrc;
-            // SEM imagem mobile própria: não corta em silêncio — mostra inteira
-            // (object-contain, com fundo). Com mobile 4:5, object-cover preenche certo.
-            const hasMobile = !!slide.srcMobile;
-            const fit = hasMobile ? "object-cover" : "object-contain";
             // <picture>/media: só a imagem certa por largura é baixada (não CSS escondendo)
-            // container 4:5 no mobile / 16:9 no desktop: bate com o que a tela de
-            // upload manda exportar (1080×1350 mobile, 1920×1080 desktop) → object-cover
-            // so apara a beirada, nao corta a cabeca.
+            // container 4:5 no mobile / 12:5 no desktop (max 720px): object-cover apara a
+            // beirada e o objectPosition (ponto focal) decide o que fica no corte.
             return (
-                <div className="aspect-[4/5] w-full md:aspect-video">
+                <div className="aspect-[4/5] w-full md:aspect-[12/5] md:max-h-[720px]">
                     <picture className="block h-full w-full">
                         <source media="(min-width: 768px)" srcSet={desktopSrc} />
                         <img
                             src={mobileSrc}
                             alt={slide.alt}
-                            className={`h-full w-full ${fit}`}
+                            className="h-full w-full object-cover"
+                            style={{ objectPosition: slide.focal || "center" }}
                             loading={isFirst ? "eager" : "lazy"}
                             fetchPriority={isFirst ? "high" : "auto"}
                             decoding={isFirst ? "auto" : "async"}
@@ -113,12 +119,13 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         // slide de vídeo no MOBILE (<768px): só o poster, sem <video> no DOM (não baixa o vídeo)
         if (!isDesktop) {
             return (
-                <div className="aspect-[4/5] w-full">
+                <div className="aspect-[4/5] w-full md:aspect-[12/5] md:max-h-[720px]">
                     {slide.poster ? (
                         <img
                             src={slide.poster}
                             alt=""
                             className="h-full w-full object-cover"
+                            style={{ objectPosition: slide.focal || "center" }}
                         />
                     ) : null}
                 </div>
@@ -127,12 +134,13 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
 
         // slide de vídeo no DESKTOP: preload="none" + poster; play só via IntersectionObserver
         return (
-            <div className="aspect-video w-full">
+            <div className="aspect-[4/5] w-full md:aspect-[12/5] md:max-h-[720px]">
                 <video
                     ref={videoRef}
                     src={slide.src}
                     poster={slide.poster || undefined}
                     className="h-full w-full object-cover"
+                    style={{ objectPosition: slide.focal || "center" }}
                     muted
                     playsInline
                     loop={false}
@@ -153,14 +161,32 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
 
             <div className="pointer-events-none absolute inset-0 bg-black/30" />
 
-            {slide.cta && (
-                <div className="absolute inset-0 flex items-end justify-center px-4 pb-6 sm:pb-10 md:pb-16">
-                    <a
-                        href={slide.cta.href}
-                        className="max-w-full whitespace-normal bg-white px-4 py-3 text-center text-sm font-semibold tracking-widest text-black transition-colors duration-300 hover:bg-black hover:text-white sm:px-8"
-                    >
-                        {slide.cta.text}
-                    </a>
+            {(slide.title || slide.subtitle || slide.cta) && (
+                <div
+                    className={`pointer-events-none absolute inset-0 flex ${overlayAlign(
+                        slide.textPosition,
+                    )} p-6 sm:p-10 md:p-16`}
+                >
+                    <div className="pointer-events-auto max-w-2xl rounded-lg bg-black/30 px-6 py-5 text-center">
+                        {slide.title && (
+                            <h2 className="text-2xl font-bold leading-tight text-white drop-shadow-lg sm:text-3xl md:text-5xl">
+                                {slide.title}
+                            </h2>
+                        )}
+                        {slide.subtitle && (
+                            <p className="mt-2 text-sm text-white/90 drop-shadow-md sm:text-base md:text-lg">
+                                {slide.subtitle}
+                            </p>
+                        )}
+                        {slide.cta && (
+                            <a
+                                href={slide.cta.href}
+                                className="mt-4 inline-block max-w-full whitespace-normal bg-white px-4 py-3 text-center text-sm font-semibold tracking-widest text-black transition-colors duration-300 hover:bg-black hover:text-white sm:px-8"
+                            >
+                                {slide.cta.text}
+                            </a>
+                        )}
+                    </div>
                 </div>
             )}
 
