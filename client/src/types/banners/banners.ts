@@ -8,6 +8,8 @@ export type Slide =
         subtitle?: string | null;
         textPosition?: string | null;
         textTheme?: string | null;
+        textPositionMobile?: string | null;
+        textThemeMobile?: string | null;
         focal?: string | null;
         cta?: {
             text: string;
@@ -22,6 +24,8 @@ export type Slide =
         subtitle?: string | null;
         textPosition?: string | null;
         textTheme?: string | null;
+        textPositionMobile?: string | null;
+        textThemeMobile?: string | null;
         focal?: string | null;
         cta?: {
             text: string;
@@ -41,6 +45,8 @@ export type HeroSlideRow = {
     subtitle?: string | null;
     textPosition?: string | null;
     textTheme?: string | null;
+    textPositionMobile?: string | null;
+    textThemeMobile?: string | null;
     focal?: string | null;
     orderIndex: number;
     active: boolean;
