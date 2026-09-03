@@ -1,4 +1,17 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// Sem fallback hardcoded: um fallback silencioso para uma URL errada fez o
+// front bater no backend errado sem ninguém perceber. Sem a env, falha em
+// RUNTIME com mensagem (na hora da requisição) — não no build, que quebraria
+// dev/CI onde NEXT_PUBLIC_API_URL não existe.
+function apiUrl(): string {
+    if (!API_URL) {
+        throw new Error(
+            "NEXT_PUBLIC_API_URL não configurada — defina a URL do backend no ambiente.",
+        );
+    }
+    return API_URL;
+}
 
 export class ApiError extends Error {
   status: number;
@@ -12,9 +25,10 @@ export class ApiError extends Error {
 
 async function send<T>(method: string, path: string, body?: unknown): Promise<T | null> {
 
+  const base = apiUrl();
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetch(`${base}${path}`, {
       method,
       credentials: "include",
       headers: body === undefined ? undefined : { "Content-Type": "application/json" },
@@ -44,8 +58,9 @@ async function send<T>(method: string, path: string, body?: unknown): Promise<T 
 }
 
 export async function apiGet<T>(path: string): Promise<T | null> {
+  const base = apiUrl();
   try {
-    const response = await fetch(`${API_URL}${path}`, {
+    const response = await fetch(`${base}${path}`, {
       credentials: "include",
     });
 
