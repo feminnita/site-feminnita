@@ -2,6 +2,7 @@ export type Slide =
     | {
         type: "image";
         src: string;
+        srcMobile: string | null;
         alt: string;
         cta?: {
             text: string;
@@ -21,6 +22,7 @@ export type Slide =
 export type HeroSlideRow = {
     type: string;
     src: string;
+    srcMobile: string | null;
     alt: string | null;
     poster: string | null;
     ctaText: string | null;

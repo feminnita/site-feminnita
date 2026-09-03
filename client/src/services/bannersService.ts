@@ -30,6 +30,7 @@ function mapSlideRow(row: HeroSlideRow): Slide {
   return {
     type: "image",
     src: row.src,
+    srcMobile: row.srcMobile ?? null,
     alt: row.alt ?? "",
     cta,
   };
