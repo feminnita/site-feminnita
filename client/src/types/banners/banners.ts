@@ -33,6 +33,9 @@ export type IntermediateBanner = {
     src: string;
     alt: string;
     href?: string;
+    title?: string;
+    subtitle?: string;
+    ctaText?: string;
 };
 
 export type VideoSection = {

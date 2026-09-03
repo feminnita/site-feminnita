@@ -41,6 +41,9 @@ function mapIntermediateBanner(value: any): IntermediateBanner | null {
     src: value.src,
     alt: value.alt ?? "",
     href: value.href || undefined,
+    title: value.title || undefined,
+    subtitle: value.subtitle || undefined,
+    ctaText: value.ctaText || undefined,
   };
 }
 
