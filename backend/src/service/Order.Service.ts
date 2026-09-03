@@ -7,6 +7,12 @@ import * as AdminOrderService from '../service/OrderLifecycle.Service';
 import * as SiteSettingsRepository from '../repository/SiteSettings.Repository';
 import type { CreateOrderInput } from '../types/order';
 
+// Retirada na fábrica: id sintético de frete (não é serviço do Melhor Envio).
+// Deve casar com PICKUP_SHIPPING_ID do client. Quando escolhido, não cota o ME e
+// grava shippingMethod contendo "retir" (o push do Bling deriva fretePorConta=9
+// de /retir/i — NÃO alterar esse texto).
+const PICKUP_SHIPPING_ID = -1;
+const PICKUP_SHIPPING_METHOD = 'Retirar na fábrica';
 
 
 export async function createOrder(input: CreateOrderInput) {
@@ -90,22 +96,35 @@ export async function createOrder(input: CreateOrderInput) {
     const toCep = String((input.shippingAddress as { cep?: string })?.cep ?? '');
     if (!toCep) throw new Error('SHIPPING_CEP_REQUIRED');
 
-    const quotable = input.items.map((item) => {
-        const product = productById.get(item.productId)!;
-        return {
-            weightKg: product.weightKg,
-            pkgHeightCm: product.pkgHeightCm,
-            pkgWidthCm: product.pkgWidthCm,
-            pkgLengthCm: product.pkgLengthCm,
-            quantity: item.quantity,
-        };
-    });
+    let shippingServiceId: number;
+    let shippingMethod: string;
+    let shippingCostCents: number;
 
-    const shippingOptions = await MelhorEnvio.quoteShipping(toCep, quotable);
-    const chosenShipping = shippingOptions.find((option) => option.id === input.shippingServiceId);
-    if (!chosenShipping) throw new Error('SHIPPING_OPTION_UNAVAILABLE');
+    if (input.shippingServiceId === PICKUP_SHIPPING_ID) {
+        // Retirada na fábrica: frete zero, sem cotar Melhor Envio nem montar pacote.
+        shippingServiceId = PICKUP_SHIPPING_ID;
+        shippingMethod = PICKUP_SHIPPING_METHOD;
+        shippingCostCents = 0;
+    } else {
+        const quotable = input.items.map((item) => {
+            const product = productById.get(item.productId)!;
+            return {
+                weightKg: product.weightKg,
+                pkgHeightCm: product.pkgHeightCm,
+                pkgWidthCm: product.pkgWidthCm,
+                pkgLengthCm: product.pkgLengthCm,
+                quantity: item.quantity,
+            };
+        });
 
-    const shippingCostCents = OrderDomain.toCents(chosenShipping.price);
+        const shippingOptions = await MelhorEnvio.quoteShipping(toCep, quotable);
+        const chosenShipping = shippingOptions.find((option) => option.id === input.shippingServiceId);
+        if (!chosenShipping) throw new Error('SHIPPING_OPTION_UNAVAILABLE');
+
+        shippingServiceId = chosenShipping.id;
+        shippingMethod = chosenShipping.name;
+        shippingCostCents = OrderDomain.toCents(chosenShipping.price);
+    }
 
     const totalCents = OrderDomain.calculateTotalCents(subtotalCents, discountCents, shippingCostCents);
 
@@ -135,8 +154,8 @@ export async function createOrder(input: CreateOrderInput) {
             shippingCost: OrderDomain.fromCents(shippingCostCents),
             total: OrderDomain.fromCents(totalCents),
             shippingAddress,
-            shippingServiceId: chosenShipping.id,
-            shippingMethod: chosenShipping.name,
+            shippingServiceId,
+            shippingMethod,
         },
         resolvedItems.map((item) => ({
             productId: item.productId,

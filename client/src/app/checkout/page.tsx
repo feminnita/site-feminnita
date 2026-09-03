@@ -25,7 +25,12 @@ import { PIX_DISCOUNT_RATE, formatBRL, installmentValue } from "../../utils/pric
 import { MinimumProgress } from "../../components/cart/MinimumProgress";
 import { useStoreMinOrder } from "../../hooks/cart/useStoreMinOrder";
 import type { AccountCustomer } from "../../types/account/account";
-import type { ShippingOption } from "../../types/checkout/checkout";
+import {
+    PICKUP_ADDRESS,
+    PICKUP_OPTION,
+    PICKUP_SHIPPING_ID,
+    type ShippingOption,
+} from "../../types/checkout/checkout";
 import {
     AlertCircle,
     Barcode,
@@ -224,18 +229,21 @@ export default function CheckoutPage() {
         setShippingError("");
         try {
             const options = await quoteShipping(cep, selectedItems);
-            setShippingOptions(options);
-            if (options[0]) {
-                setSelectedShipping(options[0]);
-                trackAddShippingInfo(selectedItems, subtotal, options[0].name);
-            }
+            // Retirada na fábrica entra SEMPRE junto das transportadoras.
+            const withPickup = [...options, PICKUP_OPTION];
+            setShippingOptions(withPickup);
+            const first = withPickup[0];
+            setSelectedShipping(first);
+            trackAddShippingInfo(selectedItems, subtotal, first.name);
         } catch {
-            // Cotação falhou: NUNCA mostrar R$ 0,00 nem "frete grátis" e NUNCA
-            // esconder o erro. Zera as opções (bloqueia o avanço, pois exige
-            // selectedShipping) e mostra mensagem pedindo para tentar de novo.
-            setShippingOptions([]);
+            // Cotação das transportadoras falhou: NUNCA mostrar R$ 0,00 nem
+            // "frete grátis" para transportadora e NUNCA esconder o erro. Mas a
+            // retirada na fábrica continua disponível (é frete real R$ 0,00, não
+            // um "grátis" forjado), então mantemos essa opção selecionável.
+            setShippingOptions([PICKUP_OPTION]);
+            setSelectedShipping(PICKUP_OPTION);
             setShippingError(
-                "Não conseguimos calcular o frete agora. Tente novamente.",
+                "Não conseguimos calcular o frete das transportadoras agora. Você ainda pode retirar na fábrica ou tentar de novo.",
             );
         } finally {
             setIsCalculatingShipping(false);
@@ -673,9 +681,11 @@ export default function CheckoutPage() {
                                                             {opt.name}
                                                         </p>
                                                         <p className="text-xs text-gray-500">
-                                                            {opt.deliveryDays > 0
-                                                                ? `até ${opt.deliveryDays} dia${opt.deliveryDays > 1 ? "s" : ""} útil${opt.deliveryDays > 1 ? "eis" : ""}`
-                                                                : "prazo a confirmar"}
+                                                            {opt.id === PICKUP_SHIPPING_ID
+                                                                ? PICKUP_ADDRESS
+                                                                : opt.deliveryDays > 0
+                                                                    ? `até ${opt.deliveryDays} dia${opt.deliveryDays > 1 ? "s" : ""} útil${opt.deliveryDays > 1 ? "eis" : ""}`
+                                                                    : "prazo a confirmar"}
                                                         </p>
                                                     </div>
                                                 </div>
