@@ -207,7 +207,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
                     <div
                         className={`pointer-events-none absolute inset-0 flex ${overlayAlign(
                             pos,
-                        )} p-6 md:p-10`}
+                        )} p-6 md:p-10 pb-20 md:pb-28 ${pos?.endsWith("-right") ? "pr-24 md:pr-32" : ""}`}
                     >
                         <div className={`pointer-events-auto max-w-md ${overlayTextAlign(pos)}`}>
                             {slide.title && (
