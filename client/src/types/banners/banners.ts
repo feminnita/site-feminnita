@@ -96,3 +96,11 @@ export type HomeBanners = {
     imageGrid: ImageGrid;
     sections: HomeSectionTitles;
 };
+
+// Curadoria da vitrine: listas ORDENADAS de IDs de produto por seção da home
+// (settings.home_sections). Lista vazia = seção usa o modo automático.
+export type HomeSections = {
+    lancamentos: string[];
+    maisVendidos: string[];
+    outlet: string[];
+};

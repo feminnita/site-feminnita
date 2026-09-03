@@ -5,29 +5,66 @@ import { Vitrine } from "../components/home/Vitrine";
 // import { Newsletter } from "../components/Newsletter";
 import { ProductCard } from "../components/product/ProductCard";
 import { PRODUCT_GRID } from "../components/product/productGrid";
-import { getHomeBanners } from "../services/bannersService";
+import { getHomeBanners, getHomeSections } from "../services/bannersService";
 import { fetchProducts } from "../services/productsService";
+import type { StoreProduct } from "../types/product/products";
 import Image from "next/image";
 import Link from "next/link";
 
 // home renderizada por request: reflete Hero/Banners/títulos na hora, sem esperar publish
 export const dynamic = "force-dynamic";
 
+// Quantos produtos uma seção CURADA pode exibir.
+const SECTION_LIMIT = 8;
+
+// Só entra na vitrine produto ATIVO e COM FOTO — evita o quadrado bege da home.
+function hasPhoto(p: StoreProduct): boolean {
+  return p.active !== false && Array.isArray(p.images) && p.images.length > 0;
+}
+
 async function getHomeProducts() {
-  const products = await fetchProducts({ limit: 20 });
+  const [products, curated] = await Promise.all([
+    fetchProducts({ limit: 200 }),
+    getHomeSections(),
+  ]);
+
+  // Base de todas as seções (automáticas e curadas): apenas ativos com foto.
+  const withPhoto = products.filter(hasPhoto);
+  const byId = new Map(withPhoto.map((p) => [p.id, p]));
+
+  // Curada: resolve os IDs NA ORDEM salva, ignorando inativo/sem foto, com limite.
+  const curate = (ids: string[]): StoreProduct[] => {
+    const out: StoreProduct[] = [];
+    for (const id of ids) {
+      const p = byId.get(id);
+      if (p) out.push(p);
+      if (out.length >= SECTION_LIMIT) break;
+    }
+    return out;
+  };
+
+  // Curadoria preenchida => usa a lista curada; senão => automático já filtrado.
+  const pick = (ids: string[], auto: StoreProduct[]) =>
+    ids.length ? curate(ids) : auto;
 
   return {
-    novidades: products.filter((p) => p.isNew).slice(0, 4),
-    destaques: products
-      .filter((p) => p.featured || p.isBestseller)
-      .slice(0, 4),
-    outlet: products.filter((p) => p.salePrice).slice(0, 4),
-    all: products.slice(0, 8),
+    novidades: pick(
+      curated.lancamentos,
+      withPhoto.filter((p) => p.isNew).slice(0, 4),
+    ),
+    destaques: pick(
+      curated.maisVendidos,
+      withPhoto.filter((p) => p.featured || p.isBestseller).slice(0, 4),
+    ),
+    outlet: pick(
+      curated.outlet,
+      withPhoto.filter((p) => p.salePrice).slice(0, 4),
+    ),
   };
 }
 
 export default async function Home() {
-  const [{ novidades, destaques, outlet, all }, homeBanners] =
+  const [{ novidades, destaques, outlet }, homeBanners] =
     await Promise.all([getHomeProducts(), getHomeBanners()]);
 
   const { slides, intermediateBanner, videoSection, imageGrid, sections } =
@@ -40,15 +77,17 @@ export default async function Home() {
       {/* Newsletter */}
       {/* <Newsletter /> */}
 
-      {/* Lançamentos */}
-      <section className="container mx-auto px-4 py-16">
-        <h2 className="mb-12 text-center text-3xl font-light">{sections.lancamentos}</h2>
-        <div className={PRODUCT_GRID}>
-          {(novidades.length ? novidades : all.slice(0, 4)).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
+      {/* Lançamentos — omite a seção se não sobrar produto com foto */}
+      {novidades.length > 0 && (
+        <section className="container mx-auto px-4 py-16">
+          <h2 className="mb-12 text-center text-3xl font-light">{sections.lancamentos}</h2>
+          <div className={PRODUCT_GRID}>
+            {novidades.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Banner Intermediário — clicável, com overlay editável no painel */}
       {intermediateBanner && (
@@ -78,15 +117,17 @@ export default async function Home() {
         </section>
       )}
 
-      {/* Mais Vendidos */}
-      <section className="container mx-auto px-4 py-16">
-        <h2 className="mb-12 text-center text-3xl font-light">{sections.maisVendidos}</h2>
-        <div className={PRODUCT_GRID}>
-          {(destaques.length ? destaques : all.slice(0, 4)).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
+      {/* Mais Vendidos — omite a seção se não sobrar produto com foto */}
+      {destaques.length > 0 && (
+        <section className="container mx-auto px-4 py-16">
+          <h2 className="mb-12 text-center text-3xl font-light">{sections.maisVendidos}</h2>
+          <div className={PRODUCT_GRID}>
+            {destaques.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Grid de Imagens — faixa de borda a borda.
           aspect-[3/4] = proporção da origem: object-cover não corta cabeça.
@@ -148,18 +189,20 @@ export default async function Home() {
         </section>
       )}
 
-      {/* Outlet */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="mb-12 text-center">
-          <h2 className="mb-2 text-3xl font-light">{sections.outlet}</h2>
-          <p className="text-xl font-semibold text-red-600">{sections.outletSubtitle}</p>
-        </div>
-        <div className={PRODUCT_GRID}>
-          {(outlet.length ? outlet : all.slice(0, 4)).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
+      {/* Outlet — omite a seção se não sobrar produto com foto */}
+      {outlet.length > 0 && (
+        <section className="container mx-auto px-4 py-16">
+          <div className="mb-12 text-center">
+            <h2 className="mb-2 text-3xl font-light">{sections.outlet}</h2>
+            <p className="text-xl font-semibold text-red-600">{sections.outletSubtitle}</p>
+          </div>
+          <div className={PRODUCT_GRID}>
+            {outlet.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/*VIDEO*/}
       {videoSection && <Vitrine videoSection={videoSection} />}
