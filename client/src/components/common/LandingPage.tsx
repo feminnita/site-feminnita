@@ -19,6 +19,7 @@ type Props = {
     accentColor: string;
     products: StoreProduct[];
     countdown?: Date;
+    hideHero?: boolean;
 };
 
 function Countdown({ target }: { target: Date }) {
@@ -74,6 +75,7 @@ export function LandingPage({
     accentColor,
     products,
     countdown,
+    hideHero,
 }: Props) {
     const { add } = useCart();
 
@@ -96,16 +98,20 @@ export function LandingPage({
             <Header />
 
             {/* Hero */}
-            <div className={`${themeHero[theme]} px-4 py-16 text-center text-white`}>
-                <span className="mb-4 inline-block rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold uppercase tracking-widest">
-                    {badge}
-                </span>
-                <h1 className="mb-3 text-5xl font-black tracking-tight md:text-7xl">
-                    {title}
-                </h1>
-                <p className="text-lg opacity-80">{subtitle}</p>
-                {countdown && <Countdown target={countdown} />}
-            </div>
+            {hideHero ? (
+                <h1 className="text-3xl font-light text-center py-8">{title}</h1>
+            ) : (
+                <div className={`${themeHero[theme]} px-4 py-16 text-center text-white`}>
+                    <span className="mb-4 inline-block rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold uppercase tracking-widest">
+                        {badge}
+                    </span>
+                    <h1 className="mb-3 text-5xl font-black tracking-tight md:text-7xl">
+                        {title}
+                    </h1>
+                    <p className="text-lg opacity-80">{subtitle}</p>
+                    {countdown && <Countdown target={countdown} />}
+                </div>
+            )}
 
             {/* Products */}
             <div className="container mx-auto px-4 py-12">

@@ -21,6 +21,7 @@ export default async function LancamentosPage() {
             badge="Nova coleção"
             accentColor="#8C2F39"
             products={products}
+            hideHero
         />
     );
 }
