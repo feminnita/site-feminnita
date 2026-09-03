@@ -70,6 +70,16 @@ export default async function Home() {
   const { slides, intermediateBanner, videoSection, imageGrid, sections } =
     homeBanners;
 
+  // Outlet: maior desconto REAL (base→sale) entre os produtos exibidos.
+  // 0 = nenhum desconto calculável → subtítulo é omitido (não inventa "até X% OFF").
+  const outletMaxOff = outlet.reduce((max, p) => {
+    if (p.salePrice && p.price > 0 && p.salePrice < p.price) {
+      return Math.max(max, (p.price - p.salePrice) / p.price);
+    }
+    return max;
+  }, 0);
+  const outletOffPct = Math.round(outletMaxOff * 100);
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -158,21 +168,26 @@ export default async function Home() {
                 <>
                   <Image
                     src={img.src}
-                    alt={img.alt}
+                    alt={img.alt || img.title || ""}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
                     quality={90}
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  {/* título é elemento do DOM, NUNCA embutido na imagem; scrim só quando há texto */}
-                  {img.title && (
-                    <>
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
-                      <span className="pointer-events-none absolute inset-x-0 bottom-0 p-3 text-sm font-semibold uppercase tracking-wide text-white drop-shadow md:p-4 md:text-lg">
+                  {/* scrim SÓ na base (~40%), não véu chapado — preserva a arte */}
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/55 via-black/15 to-transparent" />
+                  {/* título é elemento do DOM, NUNCA embutido na imagem; ancorado embaixo à esquerda */}
+                  <div className="pointer-events-none absolute bottom-0 left-0 p-4 md:p-6">
+                    {img.title && (
+                      <span className="block font-semibold tracking-wide text-white drop-shadow">
                         {img.title}
                       </span>
-                    </>
-                  )}
+                    )}
+                    {/* a compradora não sabe que o bloco direciona — sempre mostrar */}
+                    <span className="mt-1 block text-sm text-white/90 drop-shadow">
+                      Clique aqui →
+                    </span>
+                  </div>
                 </>
               );
               return img.href ? (
@@ -189,12 +204,16 @@ export default async function Home() {
         </section>
       )}
 
-      {/* Outlet — omite a seção se não sobrar produto com foto */}
-      {outlet.length > 0 && (
+      {/* Outlet — só renderiza com >= 4 produtos; subtítulo = desconto REAL, senão omitido */}
+      {outlet.length >= 4 && (
         <section className="container mx-auto px-4 py-16">
           <div className="mb-12 text-center">
             <h2 className="mb-2 text-3xl font-light">{sections.outlet}</h2>
-            <p className="text-xl font-semibold text-red-600">{sections.outletSubtitle}</p>
+            {outletOffPct > 0 && (
+              <p className="text-xl font-semibold text-red-600">
+                até {outletOffPct}% OFF
+              </p>
+            )}
           </div>
           <div className={PRODUCT_GRID}>
             {outlet.map((product) => (
@@ -217,8 +236,8 @@ export default async function Home() {
             <div>
               <h3 className="mb-4 text-xl font-bold">Feminnita</h3>
               <p className="text-sm text-gray-600">
-                Moda fitness feminina com design inovador e qualidade
-                excepcional
+                Pijamas e moda íntima feminina — atacado direto da fábrica,
+                pedido mínimo R$ 199.
               </p>
             </div>
 
