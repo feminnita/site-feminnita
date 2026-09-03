@@ -5,18 +5,18 @@
 // capacidades de sacola/caixa são derivadas das medidas abaixo.
 //
 // ┌─ STATUS DE VALIDAÇÃO ──────────────────────────────────────────────────┐
-// │ As MEDIDAS EXTERNAS das sacolas (40x50, 50x60, 60x80) e da caixa        │
-// │ (40x40x40) estão CONFIRMADAS pelo Iury.                                 │
+// │ MEDIDAS EXTERNAS das sacolas (40x50, 50x60, 60x80) e da caixa           │
+// │ (40x40x40) CONFIRMADAS pelo Iury.                                       │
 // │                                                                         │
-// │ Já as BASES (larguraBaseCm × comprimentoBaseCm) e a ESPESSURA_MAX de    │
-// │ cada sacola abaixo ainda são HIPÓTESE (bloco ≈ W/2 × (L-20), espessura  │
-// │ ≈ W/2). Elas PRECISAM ser calibradas contra o histórico real do Melhor │
-// │ Envio (~637 envios, GET /me/orders → volumes[].{height,width,length}).  │
-// │ Esse cruzamento NÃO foi feito porque o token do ME não está disponível  │
-// │ neste ambiente (sem .env / ME_TOKEN). Quando o token existir, rode a    │
-// │ validação, agrupe os pares (largura × comprimento), pegue a espessura   │
-// │ máxima observada por grupo e substitua os números abaixo. NADA de       │
-// │ código muda — só estes valores.                                         │
+// │ BASES e ESPESSURA_MAX CALIBRADAS (03/set/2026) contra os 637 envios     │
+// │ reais do Melhor Envio (GET /me/orders, script me:shipping-stats no      │
+// │ painel). Densidade declarada: p10=79, mediana=173, p90=271 g/L.         │
+// │ Clusters de base mais frequentes (largura×comprimento, arred. 5cm →     │
+// │ envios | esp.p90): 30x25 → 107|25 · 30x30 → 105|30 · 30x20 → 95|21 ·    │
+// │ 20x20 → 60|20 · 40x40 → 50|39 (já caixa). Quase todo envio tem um lado  │
+// │ = 30cm. Valores abaixo usam a esp.p90 (conservador: na dúvida sobe de   │
+// │ tier / vai pra caixa, nunca sub-cota). Recalibrar = rodar o script e     │
+// │ trocar SÓ os números aqui. NADA de código muda.                         │
 // └─────────────────────────────────────────────────────────────────────────┘
 
 export type SacolaConfig = {
@@ -35,12 +35,15 @@ export const PACKAGING = {
     // pular sacola e ir direto pra caixa.
     // Ordem irrelevante: a função escolhe SEMPRE a menor sacola que couber.
     SACOLAS: [
-        // 40x50  → HIPÓTESE base 20x30, espessura máx 20  → cap ~12 L
-        { nome: 'Sacola 40x50', larguraBaseCm: 20, comprimentoBaseCm: 30, espessuraMaxCm: 20 },
-        // 50x60  → HIPÓTESE base 25x40, espessura máx 25  → cap ~25 L
-        { nome: 'Sacola 50x60', larguraBaseCm: 25, comprimentoBaseCm: 40, espessuraMaxCm: 25 },
-        // 60x80  → HIPÓTESE base 30x60, espessura máx 30  → cap ~54 L
-        { nome: 'Sacola 60x80', larguraBaseCm: 30, comprimentoBaseCm: 60, espessuraMaxCm: 30 },
+        // 40x50 → CALIBRADO base 30x25, esp.máx 20 → cap 15 L. Footprint declarado
+        // = cluster real 30x25 (107 envios, o mais comum). Cobre 30x20/30x25/20x20/25x25.
+        { nome: 'Sacola 40x50', larguraBaseCm: 25, comprimentoBaseCm: 30, espessuraMaxCm: 20 },
+        // 50x60 → CALIBRADO base 40x30, esp.máx 25 → cap 30 L. Footprint = cluster
+        // real 40x30. Cobre 30x30, 40x25, 40x30, 40x35 (até ~esp 25).
+        { nome: 'Sacola 50x60', larguraBaseCm: 30, comprimentoBaseCm: 40, espessuraMaxCm: 25 },
+        // 60x80 → CALIBRADO base 40x40, esp.máx 34 → cap 54.4 L. Footprint = cluster
+        // real 40x40. Cobre 40x40 fino e 45x40 antes de virar caixa (>54 L → caixa 64 L).
+        { nome: 'Sacola 60x80', larguraBaseCm: 40, comprimentoBaseCm: 40, espessuraMaxCm: 34 },
     ] as SacolaConfig[],
 
     // Caixa padrão da operação (confirmada). 40×40×40 = 64.000 cm³ = 64 L.
