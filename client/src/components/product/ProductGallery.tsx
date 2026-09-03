@@ -13,7 +13,6 @@ export function ProductGallery({
     onSelectImage,
     showVideo,
     onShowVideo,
-    embedUrl,
 }: ProductGalleryProps) {
     const [zoomOrigin, setZoomOrigin] = useState("50% 50%");
     const [zooming, setZooming] = useState(false);
@@ -80,21 +79,20 @@ export function ProductGallery({
             )}
 
             <div
-                className={`relative w-full max-w-sm self-center overflow-hidden rounded-lg bg-gray-100 md:max-w-none md:flex-1 md:self-auto ${showVideo && videoUrl
-                        ? "aspect-video"
-                        : "aspect-[4/5] md:aspect-[2/3]"
-                    }`}
+                className="relative aspect-[4/5] w-full max-w-sm self-center overflow-hidden rounded-lg bg-gray-100 md:aspect-[2/3] md:max-w-none md:flex-1 md:self-auto"
                 onMouseMove={handleMouseMove}
                 onMouseEnter={() => canHover && setZooming(true)}
                 onMouseLeave={() => setZooming(false)}
             >
                 {showVideo && videoUrl ? (
-                    <iframe
-                        src={embedUrl}
-                        title={productName}
-                        className="absolute inset-0 h-full w-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
+                    <video
+                        src={videoUrl}
+                        className="absolute inset-0 h-full w-full object-cover"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        preload="none"
                     />
                 ) : images[selectedImage] ? (
                     <Image

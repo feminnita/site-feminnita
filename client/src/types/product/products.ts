@@ -42,7 +42,6 @@ export type ProductGalleryProps = {
   onSelectImage: (index: number) => void;
   showVideo: boolean;
   onShowVideo: () => void;
-  embedUrl: string;
 };
 
 export type ColorSelectorProps = {

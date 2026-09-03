@@ -2,14 +2,6 @@ import type { CartItem } from "../types/cart/cart";
 import type { CartItemInput, StoreProduct } from "../types/product/products";
 import { effectivePrice, pixFromPrice } from "./pricing";
 
-export function toEmbedUrl(url: string): string {
-  if (!url) return "";
-  if (url.includes("/embed/")) return url;
-  const m = url.match(/(?:youtu\.be\/|v=|shorts\/)([\w-]{11})/);
-  if (m) return `https://www.youtube.com/embed/${m[1]}`;
-  return url;
-}
-
 export function getDisplayImages(
   product: Pick<StoreProduct, "images" | "colorImages">,
   selectedColor: string,
