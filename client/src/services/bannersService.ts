@@ -42,6 +42,9 @@ function mapIntermediateBanner(value: any): IntermediateBanner | null {
     src: value.src,
     alt: value.alt ?? "",
     href: value.href || undefined,
+    title: value.title || undefined,
+    subtitle: value.subtitle || undefined,
+    ctaText: value.ctaText || undefined,
   };
 }
 
@@ -58,8 +61,15 @@ function mapImageGrid(value: any): ImageGrid {
   const images = Array.isArray(value?.images) ? value.images : [];
   return {
     images: images
-      .filter((img: any) => img?.src)
-      .map((img: any) => ({ src: img.src, alt: img.alt ?? "" })),
+      // só bloco com imagem e não desativado; ordem definida no painel
+      .filter((img: any) => img?.src && img?.active !== false)
+      .sort((a: any, b: any) => (a?.order ?? 0) - (b?.order ?? 0))
+      .map((img: any) => ({
+        src: img.src,
+        alt: img.alt ?? "",
+        href: img.href || undefined,
+        title: img.title || undefined,
+      })),
   };
 }
 

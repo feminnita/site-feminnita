@@ -35,6 +35,9 @@ export type IntermediateBanner = {
     src: string;
     alt: string;
     href?: string;
+    title?: string;
+    subtitle?: string;
+    ctaText?: string;
 };
 
 export type VideoSection = {
@@ -46,6 +49,8 @@ export type VideoSection = {
 export type ImageGridItem = {
     src: string;
     alt: string;
+    href?: string;
+    title?: string;
 };
 
 export type ImageGrid = {

@@ -49,24 +49,31 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Banner Intermediário */}
+      {/* Banner Intermediário — clicável, com overlay editável no painel */}
       {intermediateBanner && (
         <section className="w-full bg-gray-200">
-          {intermediateBanner.href ? (
-            <Link href={intermediateBanner.href} className="block">
-              <img
-                src={intermediateBanner.src}
-                alt={intermediateBanner.alt}
-                className="block h-auto w-full"
-              />
-            </Link>
-          ) : (
+          <Link
+            href={intermediateBanner.href || "/categoria/blusas"}
+            className="group relative block cursor-pointer overflow-hidden"
+          >
             <img
               src={intermediateBanner.src}
               alt={intermediateBanner.alt}
-              className="block h-auto w-full"
+              className="block h-auto w-full transition-transform duration-500 group-hover:scale-105"
             />
-          )}
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/30 px-4 text-center transition-colors group-hover:bg-black/40">
+              <h2 className="text-3xl font-semibold tracking-wide text-white drop-shadow md:text-5xl">
+                {intermediateBanner.title || "BLUSAS FEMININAS"}
+              </h2>
+              <p className="max-w-2xl text-sm text-white/90 drop-shadow md:text-lg">
+                {intermediateBanner.subtitle ||
+                  "Atacado direto da fábrica · pedido mínimo R$ 199"}
+              </p>
+              <span className="mt-2 inline-block rounded-full bg-[#8C2F39] px-8 py-3 text-sm font-semibold text-white shadow-lg transition-colors group-hover:bg-[#7a2832] md:text-base">
+                {intermediateBanner.ctaText || "VER BLUSAS →"}
+              </span>
+            </div>
+          </Link>
         </section>
       )}
 
@@ -80,23 +87,62 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Grid de Imagens */}
+      {/* Grid de Imagens — faixa de borda a borda.
+          aspect-[3/4] = proporção da origem: object-cover não corta cabeça.
+          gap-0 + sem rounded = coladas. Colunas DERIVADAS da quantidade ativa:
+          desktop = N (teto 6); mobile = 2, e se ímpar a última ocupa as duas. */}
       {imageGrid.images.length > 0 && (
-        <section className="container mx-auto px-4 py-16">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {imageGrid.images.map((img, i) => (
-              <div
-                key={i}
-                className="relative aspect-square overflow-hidden rounded-lg"
-              >
-                <Image
-                  src={img.src}
-                  alt={img.alt}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ))}
+        <section className="w-full py-8">
+          <div
+            className={`grid grid-cols-2 gap-0 ${
+              {
+                1: "md:grid-cols-1",
+                2: "md:grid-cols-2",
+                3: "md:grid-cols-3",
+                4: "md:grid-cols-4",
+                5: "md:grid-cols-5",
+                6: "md:grid-cols-6",
+              }[Math.min(imageGrid.images.length, 6)] ?? "md:grid-cols-6"
+            }`}
+          >
+            {imageGrid.images.map((img, i) => {
+              const isLastOdd =
+                imageGrid.images.length % 2 === 1 &&
+                i === imageGrid.images.length - 1;
+              const cls = `group relative block aspect-[3/4] overflow-hidden ${
+                isLastOdd ? "col-span-2 md:col-span-1" : ""
+              }`;
+              const inner = (
+                <>
+                  <Image
+                    src={img.src}
+                    alt={img.alt}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    quality={90}
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  {/* título é elemento do DOM, NUNCA embutido na imagem; scrim só quando há texto */}
+                  {img.title && (
+                    <>
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
+                      <span className="pointer-events-none absolute inset-x-0 bottom-0 p-3 text-sm font-semibold uppercase tracking-wide text-white drop-shadow md:p-4 md:text-lg">
+                        {img.title}
+                      </span>
+                    </>
+                  )}
+                </>
+              );
+              return img.href ? (
+                <Link key={i} href={img.href} className={`${cls} cursor-pointer`}>
+                  {inner}
+                </Link>
+              ) : (
+                <div key={i} className={cls}>
+                  {inner}
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
