@@ -69,16 +69,27 @@ export default function ProductPage() {
         );
     }
 
+    // Categoria "Aguardando classificação" (bucket sem classificação) não deve
+    // aparecer para o cliente — some do breadcrumb (visível e JSON-LD).
+    const showCategoryCrumb =
+        !!product.category &&
+        product.category !== "Aguardando classificação" &&
+        product.category !== "bling-aguardando-classificacao";
+
     return (
         <div className="min-h-screen bg-white pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
             <JsonLd data={productSchema(product)} />
             <JsonLd
                 data={breadcrumbSchema([
                     { name: "Home", url: "https://feminnita.com.br/" },
-                    {
-                        name: product.category,
-                        url: `https://feminnita.com.br/categoria/${product.category}`,
-                    },
+                    ...(showCategoryCrumb
+                        ? [
+                              {
+                                  name: product.category,
+                                  url: `https://feminnita.com.br/categoria/${product.category}`,
+                              },
+                          ]
+                        : []),
                     {
                         name: product.name,
                         url: `https://feminnita.com.br/produto/${product.id}`,
@@ -99,13 +110,17 @@ export default function ProductPage() {
                     <Link href="/" className="hover:underline">
                         Home
                     </Link>
-                    {" / "}
-                    <Link
-                        href={`/categoria/${product.category}`}
-                        className="hover:underline"
-                    >
-                        {product.category}
-                    </Link>
+                    {showCategoryCrumb && (
+                        <>
+                            {" / "}
+                            <Link
+                                href={`/categoria/${product.category}`}
+                                className="hover:underline"
+                            >
+                                {product.category}
+                            </Link>
+                        </>
+                    )}
                     {" / "}
                     <span>{product.name}</span>
                 </div>
