@@ -22,6 +22,7 @@ function mapSlideRow(row: HeroSlideRow): Slide {
   const title = row.title ?? null;
   const subtitle = row.subtitle ?? null;
   const textPosition = row.textPosition ?? "center-center";
+  const textTheme = row.textTheme ?? "light";
   const focal = row.focal ?? "center";
 
   if (row.type === "video") {
@@ -32,6 +33,7 @@ function mapSlideRow(row: HeroSlideRow): Slide {
       title,
       subtitle,
       textPosition,
+      textTheme,
       focal,
       cta,
     };
@@ -45,6 +47,7 @@ function mapSlideRow(row: HeroSlideRow): Slide {
     title,
     subtitle,
     textPosition,
+    textTheme,
     focal,
     cta,
   };
