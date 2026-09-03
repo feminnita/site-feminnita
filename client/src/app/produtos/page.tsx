@@ -7,6 +7,7 @@ import { ProductCard } from "../../components/product/ProductCard";
 import { ProductGridSelecton } from "@/src/components/product/ProductCardSelecton";
 import { FilterBar } from "@/src/components/catalog/FilterBar";
 import { useProductsPage } from "@/src/hooks/product/useProductsPage";
+import { PRODUCT_GRID } from "@/src/components/product/productGrid";
 
 function ProdutosContent() {
     const vm = useProductsPage();
@@ -61,7 +62,7 @@ function ProdutosContent() {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-3">
+                    <div className={PRODUCT_GRID}>
                         {vm.results.map((product) => (
                             <ProductCard key={product.id} product={product} />
                         ))}

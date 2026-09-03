@@ -4,6 +4,7 @@ import { Vitrine } from "../components/home/Vitrine";
 // import { InstagramFeed } from "../components/InstagramFeed";
 // import { Newsletter } from "../components/Newsletter";
 import { ProductCard } from "../components/product/ProductCard";
+import { PRODUCT_GRID } from "../components/product/productGrid";
 import { getHomeBanners } from "../services/bannersService";
 import { fetchProducts } from "../services/productsService";
 import Image from "next/image";
@@ -42,7 +43,7 @@ export default async function Home() {
       {/* Lançamentos */}
       <section className="container mx-auto px-4 py-16">
         <h2 className="mb-12 text-center text-3xl font-light">{sections.lancamentos}</h2>
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className={PRODUCT_GRID}>
           {(novidades.length ? novidades : all.slice(0, 4)).map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -80,7 +81,7 @@ export default async function Home() {
       {/* Mais Vendidos */}
       <section className="container mx-auto px-4 py-16">
         <h2 className="mb-12 text-center text-3xl font-light">{sections.maisVendidos}</h2>
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className={PRODUCT_GRID}>
           {(destaques.length ? destaques : all.slice(0, 4)).map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -153,7 +154,7 @@ export default async function Home() {
           <h2 className="mb-2 text-3xl font-light">{sections.outlet}</h2>
           <p className="text-xl font-semibold text-red-600">{sections.outletSubtitle}</p>
         </div>
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className={PRODUCT_GRID}>
           {(outlet.length ? outlet : all.slice(0, 4)).map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
