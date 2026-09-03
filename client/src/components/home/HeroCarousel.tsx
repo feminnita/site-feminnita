@@ -81,12 +81,23 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
 
     const renderMedia = () => {
         if (slide.type === "image") {
+            const isFirst = current === 0;
+            // mobile é obrigatório; desktop opcional → se faltar, cai pro mobile
+            const mobileSrc = slide.srcMobile || slide.src;
+            const desktopSrc = slide.src || slide.srcMobile || mobileSrc;
+            // <picture>/media: só a imagem certa por largura é baixada (não CSS escondendo)
             return (
-                <img
-                    src={slide.src}
-                    alt={slide.alt}
-                    className="block h-auto w-full"
-                />
+                <picture>
+                    <source media="(min-width: 768px)" srcSet={desktopSrc} />
+                    <img
+                        src={mobileSrc}
+                        alt={slide.alt}
+                        className="block h-auto w-full"
+                        loading={isFirst ? "eager" : "lazy"}
+                        fetchPriority={isFirst ? "high" : "auto"}
+                        decoding={isFirst ? "auto" : "async"}
+                    />
+                </picture>
             );
         }
 
