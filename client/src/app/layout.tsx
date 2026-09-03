@@ -19,31 +19,33 @@ const cormorant = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   title: {
-    default: "Feminnita | Moda Fitness Feminina",
+    default: "Feminnita | Pijamas e Moda Íntima no Atacado",
     template: "%s | Feminnita",
   },
   description:
-    "Moda fitness feminina com design exclusivo. Tops, leggings, shorts e conjuntos. Atacado e varejo com entrega para todo o Brasil.",
+    "Pijamas e moda íntima feminina no atacado, direto da fábrica. Pedido mínimo R$ 199. Para revendedoras e lojistas, com entrega para todo o Brasil.",
   keywords: [
-    "moda fitness",
-    "roupas fitness femininas",
-    "legging",
-    "top fitness",
-    "conjuntos fitness",
-    "atacado fitness",
+    "pijama atacado",
+    "pijama feminino atacado",
+    "moda íntima atacado",
+    "camisola atacado",
+    "pijama direto da fábrica",
+    "atacado para revenda",
   ],
   authors: [{ name: "Feminnita" }],
   openGraph: {
-    title: "Feminnita | Moda Fitness Feminina",
-    description: "Moda fitness feminina com design exclusivo.",
+    title: "Feminnita | Pijamas e Moda Íntima no Atacado",
+    description:
+      "Pijamas e moda íntima feminina, atacado direto da fábrica. Pedido mínimo R$ 199.",
     type: "website",
     locale: "pt_BR",
     siteName: "Feminnita",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Feminnita | Moda Fitness Feminina",
-    description: "Moda fitness feminina com design exclusivo.",
+    title: "Feminnita | Pijamas e Moda Íntima no Atacado",
+    description:
+      "Pijamas e moda íntima feminina, atacado direto da fábrica. Pedido mínimo R$ 199.",
   },
   robots: { index: true, follow: true },
 };
