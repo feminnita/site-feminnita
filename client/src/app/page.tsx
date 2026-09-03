@@ -50,15 +50,15 @@ async function getHomeProducts() {
   return {
     novidades: pick(
       curated.lancamentos,
-      withPhoto.filter((p) => p.isNew).slice(0, 4),
+      withPhoto.filter((p) => p.isNew).slice(0, 5),
     ),
     destaques: pick(
       curated.maisVendidos,
-      withPhoto.filter((p) => p.featured || p.isBestseller).slice(0, 4),
+      withPhoto.filter((p) => p.featured || p.isBestseller).slice(0, 5),
     ),
     outlet: pick(
       curated.outlet,
-      withPhoto.filter((p) => p.salePrice).slice(0, 4),
+      withPhoto.filter((p) => p.salePrice).slice(0, 5),
     ),
   };
 }
@@ -103,7 +103,11 @@ export default async function Home() {
       {intermediateBanner && (
         <section className="w-full bg-gray-200">
           <Link
-            href={intermediateBanner.href || "/categoria/blusa"}
+            href={
+              intermediateBanner.href && intermediateBanner.href !== "/blusas"
+                ? intermediateBanner.href
+                : "/categoria/blusa"
+            }
             className="group relative block cursor-pointer overflow-hidden"
           >
             <img
@@ -111,15 +115,18 @@ export default async function Home() {
               alt={intermediateBanner.alt}
               className="block h-auto w-full transition-transform duration-500 group-hover:scale-105"
             />
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/30 px-4 text-center transition-colors group-hover:bg-black/40">
-              <h2 className="text-3xl font-semibold tracking-wide text-white drop-shadow md:text-5xl">
+            {/* gradiente direcional só na base (mesma regra do hero) — sem véu chapado, preserva a arte */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
+            {/* texto ancorado embaixo à esquerda, não centralizado por cima das modelos */}
+            <div className="absolute inset-0 flex flex-col items-start justify-end gap-3 p-6 text-left md:p-10">
+              <h2 className="text-3xl font-semibold tracking-wide text-white drop-shadow md:text-4xl">
                 {intermediateBanner.title || "BLUSAS FEMININAS"}
               </h2>
-              <p className="max-w-2xl text-sm text-white/90 drop-shadow md:text-lg">
+              <p className="max-w-xl text-sm text-white/90 drop-shadow md:text-lg">
                 {intermediateBanner.subtitle ||
                   "Atacado direto da fábrica · pedido mínimo R$ 199"}
               </p>
-              <span className="mt-2 inline-block rounded-full bg-[#8C2F39] px-8 py-3 text-sm font-semibold text-white shadow-lg transition-colors group-hover:bg-[#7a2832] md:text-base">
+              <span className="mt-1 inline-block rounded-full bg-[#8C2F39] px-8 py-3 text-sm font-semibold text-white shadow-lg transition-colors group-hover:bg-[#7a2832] md:text-base">
                 {intermediateBanner.ctaText || "VER BLUSAS →"}
               </span>
             </div>
