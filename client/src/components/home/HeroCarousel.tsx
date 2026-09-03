@@ -102,8 +102,16 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         return `linear-gradient(${dir}, rgba(${c},.55), rgba(${c},.15) 45%, transparent 70%)`;
     };
 
+    // posição/tema por breakpoint: mobile usa o seu valor; se vazio, cai no desktop
+    const pos = isDesktop
+        ? slide.textPosition
+        : slide.textPositionMobile || slide.textPosition;
+    const themeSource = isDesktop
+        ? slide.textTheme
+        : slide.textThemeMobile || slide.textTheme;
+
     // light = texto branco (gradiente escuro) · dark = texto escuro (gradiente branco)
-    const textTheme = slide.textTheme === "dark" ? "dark" : "light";
+    const textTheme = themeSource === "dark" ? "dark" : "light";
     const textColor = textTheme === "dark" ? "#1c1512" : "#ffffff";
     const textShadow =
         textTheme === "dark"
@@ -184,11 +192,11 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
                 <>
                     <div
                         className="pointer-events-none absolute inset-0"
-                        style={{ background: gradientFor(slide.textPosition, textTheme) }}
+                        style={{ background: gradientFor(pos, textTheme) }}
                     />
                     <div
                         className={`pointer-events-none absolute inset-0 flex ${overlayAlign(
-                            slide.textPosition,
+                            pos,
                         )} p-6 sm:p-10 md:p-16`}
                     >
                         <div className="pointer-events-auto max-w-2xl text-center">
