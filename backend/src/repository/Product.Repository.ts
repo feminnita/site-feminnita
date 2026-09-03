@@ -5,7 +5,16 @@ import { products, categories, productsSkus, productsColors, productColorImages 
 export function findActiveProducts(options: { featured?: boolean; categorySlug?: string; limit?: number; q?: string }) {
     const conditions: SQL<unknown>[] = [eq(products.active, true)];
     if (options.featured) conditions.push(eq(products.featured, true));
-    if (options.categorySlug) conditions.push(eq(categories.slug, options.categorySlug));
+    // Categoria via LIGAÇÃO M:N (product_categories): um produto pode estar em várias
+    // categorias. O backfill copiou o category_id antigo pra ligação, então filtrar pela
+    // ligação retorna tanto os antigos quanto os novos. (Antes: eq(products.categoryId).)
+    if (options.categorySlug) {
+        conditions.push(sql`EXISTS (
+            SELECT 1 FROM product_categories pc
+            JOIN categories c ON c.id = pc.category_id
+            WHERE pc.product_id = ${products.id} AND c.slug = ${options.categorySlug}
+        )`);
+    }
 
     // Busca livre: casa em NOME, SKU (code) e CATEGORIA.
     const term = options.q?.trim();
