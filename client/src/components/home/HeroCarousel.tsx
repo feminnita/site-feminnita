@@ -89,6 +89,27 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         return `${vClass} ${hClass}`;
     };
 
+    // gradiente DIRECIONAL só do lado do texto (não escurece a arte toda).
+    // direção vem do textPosition; cor vem do textTheme (light=preto / dark=branco).
+    const gradientFor = (pos?: string | null, theme?: string | null) => {
+        const c = theme === "dark" ? "255,255,255" : "0,0,0";
+        const [v, h] = (pos || "center-center").split("-");
+        let dir: string;
+        if (h === "left") dir = "to right";
+        else if (h === "right") dir = "to left";
+        else if (v === "top") dir = "to bottom";
+        else dir = "to top"; // bottom, centro-centro e mobile
+        return `linear-gradient(${dir}, rgba(${c},.55), rgba(${c},.15) 45%, transparent 70%)`;
+    };
+
+    // light = texto branco (gradiente escuro) · dark = texto escuro (gradiente branco)
+    const textTheme = slide.textTheme === "dark" ? "dark" : "light";
+    const textColor = textTheme === "dark" ? "#1c1512" : "#ffffff";
+    const textShadow =
+        textTheme === "dark"
+            ? "0 1px 3px rgba(255,255,255,.5)"
+            : "0 1px 3px rgba(0,0,0,.45)";
+
     const renderMedia = () => {
         if (slide.type === "image") {
             const isFirst = current === 0;
@@ -159,35 +180,45 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
                 {renderMedia()}
             </div>
 
-            <div className="pointer-events-none absolute inset-0 bg-black/30" />
-
             {(slide.title || slide.subtitle || slide.cta) && (
-                <div
-                    className={`pointer-events-none absolute inset-0 flex ${overlayAlign(
-                        slide.textPosition,
-                    )} p-6 sm:p-10 md:p-16`}
-                >
-                    <div className="pointer-events-auto max-w-2xl rounded-lg bg-black/30 px-6 py-5 text-center">
-                        {slide.title && (
-                            <h2 className="text-2xl font-bold leading-tight text-white drop-shadow-lg sm:text-3xl md:text-5xl">
-                                {slide.title}
-                            </h2>
-                        )}
-                        {slide.subtitle && (
-                            <p className="mt-2 text-sm text-white/90 drop-shadow-md sm:text-base md:text-lg">
-                                {slide.subtitle}
-                            </p>
-                        )}
-                        {slide.cta && (
-                            <a
-                                href={slide.cta.href}
-                                className="mt-4 inline-block max-w-full whitespace-normal bg-white px-4 py-3 text-center text-sm font-semibold tracking-widest text-black transition-colors duration-300 hover:bg-black hover:text-white sm:px-8"
-                            >
-                                {slide.cta.text}
-                            </a>
-                        )}
+                <>
+                    <div
+                        className="pointer-events-none absolute inset-0"
+                        style={{ background: gradientFor(slide.textPosition, textTheme) }}
+                    />
+                    <div
+                        className={`pointer-events-none absolute inset-0 flex ${overlayAlign(
+                            slide.textPosition,
+                        )} p-6 sm:p-10 md:p-16`}
+                    >
+                        <div className="pointer-events-auto max-w-2xl text-center">
+                            {slide.title && (
+                                <h2
+                                    className="text-2xl font-bold leading-tight sm:text-3xl md:text-5xl"
+                                    style={{ color: textColor, textShadow }}
+                                >
+                                    {slide.title}
+                                </h2>
+                            )}
+                            {slide.subtitle && (
+                                <p
+                                    className="mt-2 text-sm sm:text-base md:text-lg"
+                                    style={{ color: textColor, textShadow }}
+                                >
+                                    {slide.subtitle}
+                                </p>
+                            )}
+                            {slide.cta && (
+                                <a
+                                    href={slide.cta.href}
+                                    className="mt-4 inline-block max-w-full whitespace-normal rounded-md bg-[#8C2F39] px-4 py-3 text-center text-sm font-semibold tracking-widest text-white shadow-md transition-colors duration-300 hover:bg-[#7a2832] sm:px-8"
+                                >
+                                    {slide.cta.text}
+                                </a>
+                            )}
+                        </div>
                     </div>
-                </div>
+                </>
             )}
 
             <button

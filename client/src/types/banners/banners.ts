@@ -7,6 +7,7 @@ export type Slide =
         title?: string | null;
         subtitle?: string | null;
         textPosition?: string | null;
+        textTheme?: string | null;
         focal?: string | null;
         cta?: {
             text: string;
@@ -20,6 +21,7 @@ export type Slide =
         title?: string | null;
         subtitle?: string | null;
         textPosition?: string | null;
+        textTheme?: string | null;
         focal?: string | null;
         cta?: {
             text: string;
@@ -38,6 +40,7 @@ export type HeroSlideRow = {
     title?: string | null;
     subtitle?: string | null;
     textPosition?: string | null;
+    textTheme?: string | null;
     focal?: string | null;
     orderIndex: number;
     active: boolean;
