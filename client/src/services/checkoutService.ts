@@ -12,6 +12,9 @@ export async function createOrder(input: {
     couponCode?: string;
     shippingServiceId: number;
     shippingAddress: ShippingAddress;
+    // Checkout sem login: dados do visitante para o backend criar a conta em
+    // silêncio. Omitido quando o cliente já está logado (o backend usa a sessão).
+    customer?: { name: string; email: string; cpf: string; phone: string };
 }): Promise<OrderPaymentResult> {
 
     const payload = {
@@ -26,6 +29,7 @@ export async function createOrder(input: {
         couponCode: input.couponCode || undefined,
         shippingServiceId: input.shippingServiceId,
         shippingAddress: input.shippingAddress,
+        customer: input.customer,
         creditCard: input.paymentMethod === "card" && input.card ? {
             holderName: input.card.name,
             number: input.card.number.replace(/\s/g, ""),
@@ -76,7 +80,9 @@ const ERROR_MESSAGES: [string, string][] = [
     ["COUPON_INACTIVE", "Este cupom não está mais ativo."],
     ["COUPON_EXPIRED", "Este cupom expirou."],
     ["COUPON_MIN_ORDER", "O pedido não atinge o valor mínimo deste cupom."],
+    ["CUSTOMER_EMAIL_REQUIRED", "Informe um e-mail válido para continuar."],
     ["CPF_REQUIRED", "Informe um CPF válido para continuar."],
+    ["MINIMUM_ORDER_NOT_MET", "Seu pedido não atingiu o valor mínimo para finalizar a compra."],
     ["SHIPPING_CEP_REQUIRED", "Informe o CEP de entrega."],
     [
         "SHIPPING_OPTION_UNAVAILABLE",

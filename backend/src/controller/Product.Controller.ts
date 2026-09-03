@@ -10,6 +10,16 @@ export async function list(req: Request, res: Response) {
     }));
 }
 
+export async function suggestions(req: Request, res: Response) {
+    const excludeIds =
+        typeof req.query.exclude === 'string' && req.query.exclude.length > 0
+            ? req.query.exclude.split(',').map((id) => id.trim()).filter(Boolean)
+            : [];
+    const limit = req.query.limit ? Number(req.query.limit) : 6;
+
+    res.json(await ProductService.getSuggestions({ excludeIds, limit }));
+}
+
 export async function getOne(req: Request, res: Response) {
     const idOrSlug = req.params.idOrSlug as string;
     try {

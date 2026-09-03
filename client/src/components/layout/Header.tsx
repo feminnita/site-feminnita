@@ -20,6 +20,7 @@ import { fetchCategories } from "../../services/categoriesService";
 import { buildTree, cleanCategoryTree } from "../../utils/categories";
 import type { CategoryNode } from "../../types/categories/categories";
 import { CategoryDropdown, MobileCategoryAccordion } from "./CategoryNav";
+import { CartDrawer } from "../cart/CartDrawer";
 
 const NAV_LINKS = [
   { href: "/lancamentos", label: "LANÇAMENTOS" },
@@ -29,7 +30,7 @@ const NAV_LINKS = [
 
 export function Header() {
   const router = useRouter();
-  const { count: cartCount } = useCart();
+  const { count: cartCount, openDrawer } = useCart();
   const { customer, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -179,9 +180,11 @@ export function Header() {
             >
               <Heart size={20} />
             </Link>
-            <Link
-              href="/carrinho"
+            <button
+              type="button"
+              onClick={openDrawer}
               className="relative -m-2 p-2.5 hover:text-gray-600"
+              aria-label="Abrir carrinho"
             >
               <ShoppingCart size={20} />
               {cartCount > 0 && (
@@ -189,7 +192,7 @@ export function Header() {
                   {cartCount}
                 </span>
               )}
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -274,6 +277,8 @@ export function Header() {
           </nav>
         )}
       </div>
+
+      <CartDrawer />
     </header>
   );
 }

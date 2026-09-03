@@ -24,6 +24,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const { customer, loading: authLoading } = useAuth();
     const [items, setItems] = useState<CartItem[]>([]);
     const [ready, setReady] = useState(false);
+    const [drawerOpen, setDrawerOpen] = useState(false);
 
     useEffect(() => {
         if (authLoading) return;
@@ -45,23 +46,33 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         let cancelled = false;
 
         (async () => {
+            // Ao logar, FUNDE o carrinho anônimo (localStorage) na conta —
+            // nunca substitui nem limpa. mergeServerCart soma os itens locais
+            // aos já salvos no servidor e devolve o resultado combinado.
             const pending = cartService.readCart();
-            const serverItems =
-                pending.length > 0
-                    ? await cartService.mergeServerCart(pending)
-                    : await cartService.fetchServerCart();
+            try {
+                const serverItems =
+                    pending.length > 0
+                        ? await cartService.mergeServerCart(pending)
+                        : await cartService.fetchServerCart();
 
-            if (cancelled) return;
-            if (pending.length > 0) cartService.clearCart();
+                if (cancelled) return;
 
-            setItems(serverItems);
-            setReady(true);
-        })().catch(() => {
-            if (!cancelled) {
-                setItems([]);
+                // Só limpa o carrinho anônimo DEPOIS que o merge foi confirmado
+                // pelo servidor. Assim, se o merge falhar, nada é perdido.
+                if (pending.length > 0) cartService.clearCart();
+
+                setItems(serverItems);
+                setReady(true);
+            } catch {
+                if (cancelled) return;
+                // NUNCA esvaziar ao logar. Se o merge/fetch falhar (ex.: cold
+                // start da Render, 500 transitório), mantém os itens anônimos
+                // visíveis e preserva o localStorage — o carrinho não some.
+                if (pending.length > 0) setItems(pending);
                 setReady(true);
             }
-        });
+        })();
 
         return () => {
             cancelled = true;
@@ -89,6 +100,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         selectedCount: selectedCount(items),
         selectedSubtotal: selectedSubTotal(items),
         removeSelected: () => persist(removeSelected(items)),
+        drawerOpen,
+        openDrawer: () => setDrawerOpen(true),
+        closeDrawer: () => setDrawerOpen(false),
     };
 
     return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

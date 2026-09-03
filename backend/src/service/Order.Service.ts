@@ -3,9 +3,17 @@ import * as OrderRepository from '../repository/Order.Repository';
 import * as OrderDomain from '../domain/Order.Domain';
 import * as EmailService from '../integrations/resend/Services';
 import * as MelhorEnvio from '../integrations/melhorEnvio/Service';
+import { computePackage } from '../integrations/melhorEnvio/Domain';
 import * as AdminOrderService from '../service/OrderLifecycle.Service';
+import * as SiteSettingsRepository from '../repository/SiteSettings.Repository';
 import type { CreateOrderInput } from '../types/order';
 
+// Retirada na fábrica: id sintético de frete (não é serviço do Melhor Envio).
+// Deve casar com PICKUP_SHIPPING_ID do client. Quando escolhido, não cota o ME e
+// grava shippingMethod contendo "retir" (o push do Bling deriva fretePorConta=9
+// de /retir/i — NÃO alterar esse texto).
+const PICKUP_SHIPPING_ID = -1;
+const PICKUP_SHIPPING_METHOD = 'Retirar na fábrica';
 
 
 export async function createOrder(input: CreateOrderInput) {
@@ -55,6 +63,16 @@ export async function createOrder(input: CreateOrderInput) {
 
     const subtotalCents = OrderDomain.calculateSubtotalCents(resolvedItems);
 
+    // Pedido mínimo controlável pelo painel (chave `store_min_order` em site_settings).
+    // Default quando ausente: ativo=true, valor=199. Se ativo=false, é no-op.
+    const minOrderSetting = await SiteSettingsRepository.findByKey('store_min_order');
+    const minOrder = (minOrderSetting?.value ?? {}) as { ativo?: boolean; valor?: number };
+    const minOrderAtivo = minOrder.ativo ?? true;
+    const minOrderValor = minOrder.valor ?? 199;
+    if (minOrderAtivo && subtotalCents < minOrderValor * 100) {
+        throw new Error('MINIMUM_ORDER_NOT_MET');
+    }
+
     let coupon = null;
     let couponDiscountCents = 0;
 
@@ -79,6 +97,13 @@ export async function createOrder(input: CreateOrderInput) {
     const toCep = String((input.shippingAddress as { cep?: string })?.cep ?? '');
     if (!toCep) throw new Error('SHIPPING_CEP_REQUIRED');
 
+    let shippingServiceId: number;
+    let shippingMethod: string;
+    let shippingCostCents: number;
+    // Pacote/volumes escolhidos (guardado no pedido p/ painel e etiqueta
+    // reconciliarem depois). null na retirada (não monta pacote).
+    let shippingPackage: unknown = null;
+
     const quotable = input.items.map((item) => {
         const product = productById.get(item.productId)!;
         return {
@@ -87,14 +112,37 @@ export async function createOrder(input: CreateOrderInput) {
             pkgWidthCm: product.pkgWidthCm,
             pkgLengthCm: product.pkgLengthCm,
             quantity: item.quantity,
+            ref: item.productId,
         };
     });
 
-    const shippingOptions = await MelhorEnvio.quoteShipping(toCep, quotable);
-    const chosenShipping = shippingOptions.find((option) => option.id === input.shippingServiceId);
-    if (!chosenShipping) throw new Error('SHIPPING_OPTION_UNAVAILABLE');
+    if (input.shippingServiceId === PICKUP_SHIPPING_ID) {
+        // Retirada na fábrica: frete zero, sem cotar Melhor Envio nem montar pacote.
+        shippingServiceId = PICKUP_SHIPPING_ID;
+        shippingMethod = PICKUP_SHIPPING_METHOD;
+        shippingCostCents = 0;
+    } else if (input.shippingServiceId === MelhorEnvio.SOB_CONSULTA_ID) {
+        // Frete sob consulta (pedido volumoso): recomputa o pacote no servidor e
+        // só aceita se ELE realmente cair em "sob consulta" — nunca confia no id
+        // que veio do front (impede burlar frete). Frete zero e pedido marcado
+        // "a combinar", destacável no painel pelo shippingServiceId = -2.
+        const pkg = computePackage(quotable);
+        if (!pkg.sobConsulta) throw new Error('SHIPPING_OPTION_UNAVAILABLE');
+        shippingServiceId = MelhorEnvio.SOB_CONSULTA_ID;
+        shippingMethod = `${MelhorEnvio.SOB_CONSULTA_METHOD} — a combinar`;
+        shippingCostCents = 0;
+        shippingPackage = pkg.log;
+    } else {
+        const shippingOptions = await MelhorEnvio.quoteShipping(toCep, quotable);
+        const chosenShipping = shippingOptions.find((option) => option.id === input.shippingServiceId);
+        if (!chosenShipping) throw new Error('SHIPPING_OPTION_UNAVAILABLE');
 
-    const shippingCostCents = OrderDomain.toCents(chosenShipping.price);
+        shippingServiceId = chosenShipping.id;
+        shippingMethod = chosenShipping.name;
+        shippingCostCents = OrderDomain.toCents(chosenShipping.price);
+        const pkg = computePackage(quotable);
+        shippingPackage = pkg.sobConsulta ? pkg.log : { ...pkg.log, volumes: pkg.volumes };
+    }
 
     const totalCents = OrderDomain.calculateTotalCents(subtotalCents, discountCents, shippingCostCents);
 
@@ -124,8 +172,9 @@ export async function createOrder(input: CreateOrderInput) {
             shippingCost: OrderDomain.fromCents(shippingCostCents),
             total: OrderDomain.fromCents(totalCents),
             shippingAddress,
-            shippingServiceId: chosenShipping.id,
-            shippingMethod: chosenShipping.name,
+            shippingServiceId,
+            shippingMethod,
+            notes: shippingPackage ? JSON.stringify({ shippingPackage }) : undefined,
         },
         resolvedItems.map((item) => ({
             productId: item.productId,
@@ -195,13 +244,17 @@ export async function createOrder(input: CreateOrderInput) {
     }
 }
 
-export async function previewCoupon(customerId: string, couponCode: string, subtotal: number) {
+export async function previewCoupon(customerId: string | null, couponCode: string, subtotal: number) {
 
     const coupon = await OrderRepository.findCouponByCode(couponCode);
     if (!coupon) throw new Error('COUPON_NOT_FOUND');
 
-    const alreadyUsed = await OrderRepository.findOrderByCustomerAndCoupon(customerId, coupon.id);
-    if (alreadyUsed) throw new Error('COUPON_ALREADY_USED');
+    // Visitante (checkout sem login) ainda não tem cliente: valida o cupom sem
+    // checar uso por cliente. O uso único por conta é reforçado ao criar o pedido.
+    if (customerId) {
+        const alreadyUsed = await OrderRepository.findOrderByCustomerAndCoupon(customerId, coupon.id);
+        if (alreadyUsed) throw new Error('COUPON_ALREADY_USED');
+    }
 
     if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
         throw new Error('COUPON_MAX_USES_REACHED');

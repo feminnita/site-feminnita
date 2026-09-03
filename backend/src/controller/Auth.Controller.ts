@@ -8,7 +8,7 @@ import { env } from '../config/env';
 const isProduction = process.env.NODE_ENV === 'production';
 const OAUTH_STATE_COOKIE = 'feminnita_oauth_state';
 
-function setSessionCookie(res: Response, token: string) {
+export function setSessionCookie(res: Response, token: string) {
     res.cookie(CUSTOMER_SESSION_COOKIE, token, {
         httpOnly: true,
         secure: isProduction,
