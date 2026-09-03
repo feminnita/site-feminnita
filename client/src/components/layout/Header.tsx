@@ -21,10 +21,13 @@ import { buildTree, cleanCategoryTree } from "../../utils/categories";
 import type { CategoryNode } from "../../types/categories/categories";
 import { CategoryDropdown, MobileCategoryAccordion } from "./CategoryNav";
 
+// Menu aponta SÓ para /categoria/[slug]. Só entram categorias COM produto —
+// aba que leva a página vazia é pior que aba faltando. Reativar MAIS VENDIDOS e
+// OUTLET (descomentar) quando a cliente popular essas categorias no painel.
 const NAV_LINKS = [
-  { href: "/lancamentos", label: "LANÇAMENTOS" },
-  { href: "/mais-vendidos", label: "MAIS VENDIDOS" },
-  { href: "/promocao", label: "PROMOÇÃO" },
+  { href: "/categoria/lancamentos", label: "LANÇAMENTOS" },
+  // { href: "/categoria/mais-vendidos", label: "MAIS VENDIDOS" }, // vazia — publicar quando tiver produto
+  // { href: "/categoria/outlet", label: "OUTLET" },              // vazia — publicar quando tiver produto (pente-fino)
 ];
 
 export function Header() {

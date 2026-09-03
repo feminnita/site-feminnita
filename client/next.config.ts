@@ -20,6 +20,16 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "ugc.same-assets.com", pathname: "/**" },
     ],
   },
+  // Canônico único: /categoria/[slug]. As rotas nomeadas antigas redirecionam
+  // permanente (308 — permanente, equivalente a 301 para SEO) para consolidar
+  // o índice antes do Google indexar duplicado.
+  async redirects() {
+    return [
+      { source: "/lancamentos", destination: "/categoria/lancamentos", permanent: true },
+      { source: "/mais-vendidos", destination: "/categoria/mais-vendidos", permanent: true },
+      { source: "/promocao", destination: "/categoria/outlet", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;
