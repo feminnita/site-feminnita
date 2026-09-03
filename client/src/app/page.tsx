@@ -5,7 +5,7 @@ import { Vitrine } from "../components/home/Vitrine";
 // import { Newsletter } from "../components/Newsletter";
 import { ProductCard } from "../components/product/ProductCard";
 import { HOME_SECTION_GRID } from "../components/product/productGrid";
-import { getHomeBanners, getHomeSections } from "../services/bannersService";
+import { getHomeBanners, getHomeSectionCategories } from "../services/bannersService";
 import { fetchProducts } from "../services/productsService";
 import type { StoreProduct } from "../types/product/products";
 import Image from "next/image";
@@ -14,53 +14,28 @@ import Link from "next/link";
 // home renderizada por request: reflete Hero/Banners/títulos na hora, sem esperar publish
 export const dynamic = "force-dynamic";
 
-// Quantos produtos uma seção CURADA pode exibir.
-const SECTION_LIMIT = 8;
-
 // Só entra na vitrine produto ATIVO e COM FOTO — evita o quadrado bege da home.
 function hasPhoto(p: StoreProduct): boolean {
   return p.active !== false && Array.isArray(p.images) && p.images.length > 0;
 }
 
 async function getHomeProducts() {
-  const [products, curated] = await Promise.all([
-    fetchProducts({ limit: 200 }),
-    getHomeSections(),
+  // Cada fileira sai de uma CATEGORIA (slug). Vazio => seção não configurada => [].
+  const cats = await getHomeSectionCategories();
+
+  const fromCategory = async (slug: string): Promise<StoreProduct[]> => {
+    if (!slug) return [];
+    const products = await fetchProducts({ category_slug: slug, limit: 30 });
+    return products.filter(hasPhoto).slice(0, 5);
+  };
+
+  const [novidades, destaques, outlet] = await Promise.all([
+    fromCategory(cats.lancamentos),
+    fromCategory(cats.maisVendidos),
+    fromCategory(cats.outlet),
   ]);
 
-  // Base de todas as seções (automáticas e curadas): apenas ativos com foto.
-  const withPhoto = products.filter(hasPhoto);
-  const byId = new Map(withPhoto.map((p) => [p.id, p]));
-
-  // Curada: resolve os IDs NA ORDEM salva, ignorando inativo/sem foto, com limite.
-  const curate = (ids: string[]): StoreProduct[] => {
-    const out: StoreProduct[] = [];
-    for (const id of ids) {
-      const p = byId.get(id);
-      if (p) out.push(p);
-      if (out.length >= SECTION_LIMIT) break;
-    }
-    return out;
-  };
-
-  // Curadoria preenchida => usa a lista curada; senão => automático já filtrado.
-  const pick = (ids: string[], auto: StoreProduct[]) =>
-    ids.length ? curate(ids) : auto;
-
-  return {
-    novidades: pick(
-      curated.lancamentos,
-      withPhoto.filter((p) => p.isNew).slice(0, 5),
-    ),
-    destaques: pick(
-      curated.maisVendidos,
-      withPhoto.filter((p) => p.featured || p.isBestseller).slice(0, 5),
-    ),
-    outlet: pick(
-      curated.outlet,
-      withPhoto.filter((p) => p.salePrice).slice(0, 5),
-    ),
-  };
+  return { novidades, destaques, outlet };
 }
 
 export default async function Home() {
