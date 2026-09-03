@@ -1,5 +1,6 @@
 import { apiGet } from "./api";
 import type {
+  CategoryBanner,
   HeroSlideRow,
   HomeBanners,
   HomeSectionTitles,
@@ -82,6 +83,32 @@ function mapHomeSections(
     maisVendidos: value?.maisVendidos || "Mais Vendidos",
     outlet: value?.outlet || "Outlet",
     outletSubtitle: value?.outletSubtitle || "até 50% OFF",
+  };
+}
+
+// Banner do topo da página de categoria: settings.home_category_banners é um
+// ARRAY; escolhe o item cujo categorySlug bate e que não está desativado.
+export async function getCategoryBanner(
+  slug: string,
+): Promise<CategoryBanner | null> {
+  const settingsMap = await apiGet<Record<string, any>>("/api/store/settings");
+  const list = settingsMap?.home_category_banners;
+  if (!Array.isArray(list)) return null;
+
+  const found = list.find(
+    (b: any) => b?.categorySlug === slug && b?.active !== false,
+  );
+  if (!found || (!found.desktopSrc && !found.mobileSrc)) return null;
+
+  return {
+    categorySlug: found.categorySlug,
+    // desktop cai pro mobile se faltar, e vice-versa
+    desktopSrc: found.desktopSrc || found.mobileSrc || "",
+    mobileSrc: found.mobileSrc || found.desktopSrc || "",
+    title: found.title || "",
+    subtitle: found.subtitle || "",
+    href: found.href || "",
+    active: found.active !== false,
   };
 }
 

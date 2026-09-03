@@ -2,10 +2,13 @@
 
 import { Header } from "../../../components/layout/Header";
 import { ProductCard } from "../../../components/product/ProductCard";
+import { CategoryBanner } from "../../../components/category/CategoryBanner";
 import { fetchProducts } from "../../../services/productsService";
 import { fetchCategories } from "../../../services/categoriesService";
+import { getCategoryBanner } from "../../../services/bannersService";
 import { collectDescendantGrandchildrenIds } from "../../../utils/categories";
 import type { CategoryRow } from "../../../types/categories/categories";
+import type { CategoryBanner as CategoryBannerType } from "../../../types/banners/banners";
 import type { StoreProduct } from "../../../types/product/products";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -16,6 +19,7 @@ export default function CategoryPage() {
 
     const [category, setCategory] = useState<CategoryRow | null>(null);
     const [products, setProducts] = useState<StoreProduct[]>([]);
+    const [banner, setBanner] = useState<CategoryBannerType | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -24,7 +28,11 @@ export default function CategoryPage() {
         async function load() {
             setLoading(true);
 
-            const allCats = await fetchCategories();
+            const [allCats, catBanner] = await Promise.all([
+                fetchCategories(),
+                getCategoryBanner(slug),
+            ]);
+            setBanner(catBanner);
             const cat = allCats.find((c) => c.slug === slug) ?? null;
             setCategory(cat);
 
@@ -73,6 +81,8 @@ export default function CategoryPage() {
     return (
         <div className="min-h-screen bg-white">
             <Header />
+
+            {banner && <CategoryBanner banner={banner} />}
 
             <div className="container mx-auto px-4 py-8">
                 <h1 className="mb-2 text-4xl font-light">{category.name}</h1>

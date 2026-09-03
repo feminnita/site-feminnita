@@ -57,6 +57,16 @@ export type ImageGrid = {
     images: ImageGridItem[];
 };
 
+export type CategoryBanner = {
+    categorySlug: string;
+    desktopSrc: string;
+    mobileSrc: string;
+    title: string;
+    subtitle: string;
+    href: string;
+    active: boolean;
+};
+
 export type HomeSectionTitles = {
     lancamentos: string;
     maisVendidos: string;
