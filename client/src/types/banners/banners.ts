@@ -4,6 +4,10 @@ export type Slide =
         src: string;
         srcMobile: string | null;
         alt: string;
+        title?: string | null;
+        subtitle?: string | null;
+        textPosition?: string | null;
+        focal?: string | null;
         cta?: {
             text: string;
             href: string;
@@ -13,6 +17,10 @@ export type Slide =
         type: "video";
         src: string;
         poster: string | null;
+        title?: string | null;
+        subtitle?: string | null;
+        textPosition?: string | null;
+        focal?: string | null;
         cta?: {
             text: string;
             href: string;
@@ -27,6 +35,10 @@ export type HeroSlideRow = {
     poster: string | null;
     ctaText: string | null;
     ctaHref: string | null;
+    title?: string | null;
+    subtitle?: string | null;
+    textPosition?: string | null;
+    focal?: string | null;
     orderIndex: number;
     active: boolean;
 };

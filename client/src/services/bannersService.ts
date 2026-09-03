@@ -19,11 +19,20 @@ function mapSlideRow(row: HeroSlideRow): Slide {
       }
       : undefined;
 
+  const title = row.title ?? null;
+  const subtitle = row.subtitle ?? null;
+  const textPosition = row.textPosition ?? "center-center";
+  const focal = row.focal ?? "center";
+
   if (row.type === "video") {
     return {
       type: "video",
       src: row.src,
       poster: row.poster ?? null,
+      title,
+      subtitle,
+      textPosition,
+      focal,
       cta,
     };
   }
@@ -33,6 +42,10 @@ function mapSlideRow(row: HeroSlideRow): Slide {
     src: row.src,
     srcMobile: row.srcMobile ?? null,
     alt: row.alt ?? "",
+    title,
+    subtitle,
+    textPosition,
+    focal,
     cta,
   };
 }
