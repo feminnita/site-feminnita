@@ -85,6 +85,10 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
             // mobile é obrigatório; desktop opcional → se faltar, cai pro mobile
             const mobileSrc = slide.srcMobile || slide.src;
             const desktopSrc = slide.src || slide.srcMobile || mobileSrc;
+            // SEM imagem mobile própria: não corta em silêncio — mostra inteira
+            // (object-contain, com fundo). Com mobile 4:5, object-cover preenche certo.
+            const hasMobile = !!slide.srcMobile;
+            const fit = hasMobile ? "object-cover" : "object-contain";
             // <picture>/media: só a imagem certa por largura é baixada (não CSS escondendo)
             // container 4:5 no mobile / 16:9 no desktop: bate com o que a tela de
             // upload manda exportar (1080×1350 mobile, 1920×1080 desktop) → object-cover
@@ -96,7 +100,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
                         <img
                             src={mobileSrc}
                             alt={slide.alt}
-                            className="h-full w-full object-cover"
+                            className={`h-full w-full ${fit}`}
                             loading={isFirst ? "eager" : "lazy"}
                             fetchPriority={isFirst ? "high" : "auto"}
                             decoding={isFirst ? "auto" : "async"}
