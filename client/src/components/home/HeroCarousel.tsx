@@ -99,6 +99,10 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         else if (h === "right") dir = "to left";
         else if (v === "top") dir = "to bottom";
         else dir = "to top"; // bottom, centro-centro e mobile
+        // light + texto na base: banner claro (perna da modelo) exige scrim mais forte
+        if (dir === "to top" && c === "0,0,0") {
+            return `linear-gradient(to top, rgba(0,0,0,.68), rgba(0,0,0,.28) 22%, transparent 40%)`;
+        }
         return `linear-gradient(${dir}, rgba(${c},.55), rgba(${c},.15) 45%, transparent 70%)`;
     };
 
