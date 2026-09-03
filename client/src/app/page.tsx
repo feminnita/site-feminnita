@@ -4,7 +4,7 @@ import { Vitrine } from "../components/home/Vitrine";
 // import { InstagramFeed } from "../components/InstagramFeed";
 // import { Newsletter } from "../components/Newsletter";
 import { ProductCard } from "../components/product/ProductCard";
-import { PRODUCT_GRID } from "../components/product/productGrid";
+import { HOME_SECTION_GRID } from "../components/product/productGrid";
 import { getHomeBanners, getHomeSections } from "../services/bannersService";
 import { fetchProducts } from "../services/productsService";
 import type { StoreProduct } from "../types/product/products";
@@ -91,7 +91,7 @@ export default async function Home() {
       {novidades.length > 0 && (
         <section className="container mx-auto px-4 py-16">
           <h2 className="mb-12 text-center text-3xl font-light">{sections.lancamentos}</h2>
-          <div className={PRODUCT_GRID}>
+          <div className={HOME_SECTION_GRID}>
             {novidades.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -103,7 +103,7 @@ export default async function Home() {
       {intermediateBanner && (
         <section className="w-full bg-gray-200">
           <Link
-            href={intermediateBanner.href || "/categoria/blusas"}
+            href={intermediateBanner.href || "/categoria/blusa"}
             className="group relative block cursor-pointer overflow-hidden"
           >
             <img
@@ -131,7 +131,7 @@ export default async function Home() {
       {destaques.length > 0 && (
         <section className="container mx-auto px-4 py-16">
           <h2 className="mb-12 text-center text-3xl font-light">{sections.maisVendidos}</h2>
-          <div className={PRODUCT_GRID}>
+          <div className={HOME_SECTION_GRID}>
             {destaques.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -179,11 +179,11 @@ export default async function Home() {
                   {/* título é elemento do DOM, NUNCA embutido na imagem; ancorado embaixo à esquerda */}
                   <div className="pointer-events-none absolute bottom-0 left-0 p-4 md:p-6">
                     {img.title && (
-                      <span className="block font-semibold tracking-wide text-white drop-shadow">
+                      <span className="block text-lg font-bold uppercase tracking-wide text-white drop-shadow md:text-xl">
                         {img.title}
                       </span>
                     )}
-                    {/* a compradora não sabe que o bloco direciona — sempre mostrar */}
+                    {/* a compradora não sabe que o bloco direciona — sempre mostrar, abaixo do título */}
                     <span className="mt-1 block text-sm text-white/90 drop-shadow">
                       Clique aqui →
                     </span>
@@ -204,8 +204,8 @@ export default async function Home() {
         </section>
       )}
 
-      {/* Outlet — só renderiza com >= 4 produtos; subtítulo = desconto REAL, senão omitido */}
-      {outlet.length >= 4 && (
+      {/* Outlet — renderiza com >= 1 produto (com foto); subtítulo = desconto REAL, senão omitido */}
+      {outlet.length > 0 && (
         <section className="container mx-auto px-4 py-16">
           <div className="mb-12 text-center">
             <h2 className="mb-2 text-3xl font-light">{sections.outlet}</h2>
@@ -215,7 +215,7 @@ export default async function Home() {
               </p>
             )}
           </div>
-          <div className={PRODUCT_GRID}>
+          <div className={HOME_SECTION_GRID}>
             {outlet.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

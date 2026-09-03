@@ -74,7 +74,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
     }, [current, slides, isDesktop]);
 
     if (slides.length === 0) {
-        return <section className="aspect-[4/5] w-full bg-gray-100 md:aspect-[12/5] md:max-h-[720px]" />;
+        return <section className="aspect-[4/5] w-full bg-gray-100 md:aspect-[12/5]" />;
     }
 
     const slide = slides[current];
@@ -87,6 +87,12 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         const hClass =
             h === "left" ? "justify-start" : h === "right" ? "justify-end" : "justify-center";
         return `${vClass} ${hClass}`;
+    };
+
+    // alinhamento do TEXTO segue a âncora horizontal: right quando *-right, senão left (nunca center)
+    const overlayTextAlign = (pos?: string | null) => {
+        const [, h] = (pos || "center-center").split("-");
+        return h === "right" ? "text-right" : "text-left";
     };
 
     // gradiente DIRECIONAL só do lado do texto (não escurece a arte toda).
@@ -132,7 +138,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
             // container 4:5 no mobile / 12:5 no desktop (max 720px): object-cover apara a
             // beirada e o objectPosition (ponto focal) decide o que fica no corte.
             return (
-                <div className="aspect-[4/5] w-full md:aspect-[12/5] md:max-h-[720px]">
+                <div className="aspect-[4/5] w-full md:aspect-[12/5]">
                     <picture className="block h-full w-full">
                         <source media="(min-width: 768px)" srcSet={desktopSrc} />
                         <img
@@ -152,7 +158,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         // slide de vídeo no MOBILE (<768px): só o poster, sem <video> no DOM (não baixa o vídeo)
         if (!isDesktop) {
             return (
-                <div className="aspect-[4/5] w-full md:aspect-[12/5] md:max-h-[720px]">
+                <div className="aspect-[4/5] w-full md:aspect-[12/5]">
                     {slide.poster ? (
                         <img
                             src={slide.poster}
@@ -167,7 +173,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
 
         // slide de vídeo no DESKTOP: preload="none" + poster; play só via IntersectionObserver
         return (
-            <div className="aspect-[4/5] w-full md:aspect-[12/5] md:max-h-[720px]">
+            <div className="aspect-[4/5] w-full md:aspect-[12/5]">
                 <video
                     ref={videoRef}
                     src={slide.src}
@@ -201,12 +207,12 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
                     <div
                         className={`pointer-events-none absolute inset-0 flex ${overlayAlign(
                             pos,
-                        )} p-6 sm:p-10 md:p-16`}
+                        )} p-6 md:p-10`}
                     >
-                        <div className="pointer-events-auto max-w-2xl text-center">
+                        <div className={`pointer-events-auto max-w-md ${overlayTextAlign(pos)}`}>
                             {slide.title && (
                                 <h2
-                                    className="text-2xl font-bold leading-tight sm:text-3xl md:text-5xl"
+                                    className="text-xl font-semibold leading-tight sm:text-2xl md:text-3xl"
                                     style={{ color: textColor, textShadow }}
                                 >
                                     {slide.title}
@@ -214,7 +220,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
                             )}
                             {slide.subtitle && (
                                 <p
-                                    className="mt-2 text-sm sm:text-base md:text-lg"
+                                    className="mt-2 text-sm md:text-base"
                                     style={{ color: textColor, textShadow }}
                                 >
                                     {slide.subtitle}
