@@ -109,21 +109,37 @@ export default async function Home() {
               const isLastOdd =
                 imageGrid.images.length % 2 === 1 &&
                 i === imageGrid.images.length - 1;
-              return (
-                <div
-                  key={i}
-                  className={`relative aspect-[3/4] overflow-hidden ${
-                    isLastOdd ? "col-span-2 md:col-span-1" : ""
-                  }`}
-                >
+              const cls = `group relative block aspect-[3/4] overflow-hidden ${
+                isLastOdd ? "col-span-2 md:col-span-1" : ""
+              }`;
+              const inner = (
+                <>
                   <Image
                     src={img.src}
                     alt={img.alt}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
                     quality={90}
-                    className="object-cover"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
+                  {/* título é elemento do DOM, NUNCA embutido na imagem; scrim só quando há texto */}
+                  {img.title && (
+                    <>
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
+                      <span className="pointer-events-none absolute inset-x-0 bottom-0 p-3 text-sm font-semibold uppercase tracking-wide text-white drop-shadow md:p-4 md:text-lg">
+                        {img.title}
+                      </span>
+                    </>
+                  )}
+                </>
+              );
+              return img.href ? (
+                <Link key={i} href={img.href} className={`${cls} cursor-pointer`}>
+                  {inner}
+                </Link>
+              ) : (
+                <div key={i} className={cls}>
+                  {inner}
                 </div>
               );
             })}
