@@ -80,19 +80,23 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Grid de Imagens */}
+      {/* Grid de Imagens — faixa de borda a borda.
+          aspect-[3/4] = proporção da origem (1086x1448): object-cover não corta
+          cabeça. gap-0 + sem rounded = 4 coladas. Largura total, sem container. */}
       {imageGrid.images.length > 0 && (
-        <section className="container mx-auto px-4 py-16">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <section className="w-full py-8">
+          <div className="grid grid-cols-2 gap-0 md:grid-cols-4">
             {imageGrid.images.map((img, i) => (
               <div
                 key={i}
-                className="relative aspect-square overflow-hidden rounded-lg"
+                className="relative aspect-[3/4] overflow-hidden"
               >
                 <Image
                   src={img.src}
                   alt={img.alt}
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  quality={90}
                   className="object-cover"
                 />
               </div>
