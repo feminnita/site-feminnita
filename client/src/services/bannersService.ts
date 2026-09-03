@@ -126,6 +126,8 @@ export async function getCategoryBanner(
     subtitle: found.subtitle || "",
     href: found.href || "",
     active: found.active !== false,
+    textPosition: found.textPosition || "bottom-left",
+    textTheme: found.textTheme === "dark" ? "dark" : "light",
   };
 }
 

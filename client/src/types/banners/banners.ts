@@ -80,6 +80,8 @@ export type CategoryBanner = {
     subtitle: string;
     href: string;
     active: boolean;
+    textPosition?: string;
+    textTheme?: "light" | "dark";
 };
 
 export type HomeSectionTitles = {
