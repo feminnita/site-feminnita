@@ -19,7 +19,7 @@ export function ProductCardSelecton() {
 
 export function ProductGridSelecton({ count = 8 }: { count?: number }) {
     return (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4 2xl:grid-cols-5">
             {Array.from({ length: count }).map((_, i) => (
                 <ProductCardSelecton key={i} />
             ))}
