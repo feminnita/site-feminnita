@@ -72,6 +72,7 @@ export type ProductActionsProps = {
   isFavorite: boolean;
   onToggleFavorite: () => void;
   onAddToCart: () => void;
+  disabled?: boolean;
 };
 
 export type StickyMobileCtaProps = {
@@ -79,6 +80,7 @@ export type StickyMobileCtaProps = {
   productName: string;
   price: number;
   onAddToCart: () => void;
+  disabled?: boolean;
 };
 
 export type PriceBlockProps = {

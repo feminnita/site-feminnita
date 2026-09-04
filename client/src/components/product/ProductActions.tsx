@@ -10,16 +10,19 @@ export function ProductActions({
     isFavorite,
     onToggleFavorite,
     onAddToCart,
+    disabled = false,
 }: ProductActionsProps) {
     return (
         <>
             <div ref={ctaRef} className="flex gap-4">
                 <button
                     onClick={onAddToCart}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#8C2F39] py-4 font-semibold text-[#FAF6F2] transition-colors hover:bg-[#7a2832]"
+                    disabled={disabled}
+                    title={disabled ? "Selecione um tamanho" : undefined}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#8C2F39] py-4 font-semibold text-[#FAF6F2] transition-colors hover:bg-[#7a2832] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 disabled:hover:bg-gray-300"
                 >
                     <ShoppingCart size={20} />
-                    Adicionar ao Carrinho
+                    {disabled ? "Selecione um tamanho" : "Adicionar ao Carrinho"}
                 </button>
                 <button
                     onClick={onToggleFavorite}
