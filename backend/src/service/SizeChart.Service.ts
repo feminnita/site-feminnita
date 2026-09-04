@@ -15,7 +15,7 @@
 export type SizeChartType = 'feminino' | 'plus' | 'masculino' | 'infantil' | 'pet';
 
 type SettingChartRow = { label?: string; equiv?: string | null; values?: (string | number)[] };
-type SettingChart = { name?: string; columns?: string[]; footer?: string; rows?: SettingChartRow[] };
+type SettingChart = { name?: string; columns?: string[]; footer?: string; rows?: SettingChartRow[]; howToMeasureImage?: string };
 export type SizeChartsSetting = Partial<Record<SizeChartType, SettingChart>>;
 
 export type ResolvedSizeChartRow = { label: string; equiv: string | null; values: (string | number)[] };
@@ -25,6 +25,7 @@ export type ResolvedSizeChart = {
     columns: string[];
     footer: string;
     rows: ResolvedSizeChartRow[];
+    howToMeasureImage?: string;
 };
 
 // Mapa slug -> tipo. Ordem de prioridade abaixo em PRIORITY; feminino é o default.
@@ -101,6 +102,10 @@ function fromSettingChart(chart: SettingChart | undefined): ResolvedSizeChart | 
         columns: chart.columns,
         footer: chart.footer ?? '',
         rows,
+        howToMeasureImage:
+            typeof chart.howToMeasureImage === 'string' && chart.howToMeasureImage.trim() !== ''
+                ? chart.howToMeasureImage
+                : undefined,
     };
 }
 
