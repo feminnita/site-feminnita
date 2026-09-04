@@ -4,6 +4,7 @@ import * as OrderDomain from '../domain/Order.Domain';
 import * as EmailService from '../integrations/resend/Services';
 import * as MelhorEnvio from '../integrations/melhorEnvio/Service';
 import * as AdminOrderService from '../service/OrderLifecycle.Service';
+import * as ResaleTermService from '../service/ResaleTerm.Service';
 import type { CreateOrderInput } from '../types/order';
 
 
@@ -102,6 +103,14 @@ export async function createOrder(input: CreateOrderInput) {
     if (!customer) throw new Error('CUSTOMER_NOT_FOUND');
     if (!customer.cpf) throw new Error('CPF_REQUIRED');
 
+    // Gate de revenda só vale com termo ATIVO (content não-vazio). Desligado, o
+    // pedido sai normal e carimba resale_term_version = null.
+    const resaleTerm = await ResaleTermService.getCurrentResaleTerm();
+    if (resaleTerm.active && customer.resaleTermVersion !== resaleTerm.version) {
+        throw new Error(`RESALE_TERM_REACCEPT_REQUIRED:${resaleTerm.version}`);
+    }
+    const orderResaleTermVersion = resaleTerm.active ? resaleTerm.version : null;
+
     const address = input.shippingAddress as Record<string, unknown>;
     const shippingAddress = {
         cep: String(address?.cep ?? ''),
@@ -126,6 +135,7 @@ export async function createOrder(input: CreateOrderInput) {
             shippingAddress,
             shippingServiceId: chosenShipping.id,
             shippingMethod: chosenShipping.name,
+            resaleTermVersion: orderResaleTermVersion,
         },
         resolvedItems.map((item) => ({
             productId: item.productId,

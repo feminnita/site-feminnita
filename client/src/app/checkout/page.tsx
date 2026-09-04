@@ -13,6 +13,7 @@ import {
     previewCoupon,
 } from "../../services/checkoutService";
 import { quoteShipping } from "../../services/shippingService";
+import { acceptResaleTerm, parseReacceptVersion } from "../../services/resaleTermService";
 import { ApiError } from "../../services/api";
 import {
     trackAddPaymentInfo,
@@ -121,6 +122,10 @@ export default function CheckoutPage() {
     const [profile, setProfile] = useState<AccountCustomer | null>(null);
     const [paymentMethod, setPaymentMethod] = useState<"pix" | "boleto" | "card">("pix");
     const [isProcessing, setIsProcessing] = useState(false);
+    // Reaceite do Termo de Revenda no checkout: versão vigente exigida pelo backend
+    // quando o termo mudou desde o último aceite do cliente.
+    const [reacceptVersion, setReacceptVersion] = useState<number | null>(null);
+    const [reacceptChecked, setReacceptChecked] = useState(false);
     const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
     const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
     const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
@@ -327,10 +332,21 @@ export default function CheckoutPage() {
         if (submittingRef.current) return;
         submittingRef.current = true;
 
+        // Se o termo foi atualizado, o backend exige reaceite aqui antes do pedido.
+        if (reacceptVersion !== null && !reacceptChecked) {
+            setError("É necessário aceitar o Termo de Revenda atualizado para continuar.");
+            return;
+        }
+
         setError("");
         setIsProcessing(true);
 
         try {
+            if (reacceptVersion !== null && reacceptChecked) {
+                await acceptResaleTerm();
+                setReacceptVersion(null);
+            }
+
             await updateProfile({
                 name: form.name,
                 phone: form.phone,
@@ -377,11 +393,18 @@ export default function CheckoutPage() {
 
             router.push("/pedido-confirmado");
         } catch (err) {
-            setError(
-                err instanceof ApiError
-                    ? mapOrderError(err.message)
-                    : "Erro ao processar o pedido. Tente novamente.",
-            );
+            const reVersion = err instanceof ApiError ? parseReacceptVersion(err.message) : null;
+            if (reVersion !== null) {
+                setReacceptVersion(reVersion);
+                setReacceptChecked(false);
+                setError("");
+            } else {
+                setError(
+                    err instanceof ApiError
+                        ? mapOrderError(err.message)
+                        : "Erro ao processar o pedido. Tente novamente.",
+                );
+            }
             setIsProcessing(false);
             submittingRef.current = false;
         }

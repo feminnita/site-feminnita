@@ -8,7 +8,7 @@ type AuthValue = {
     customer: Customer | null;
     loading: boolean;
     login: (email: string, password: string) => Promise<Customer>;
-    register: (name: string, email: string, password: string) => Promise<Customer>;
+    register: (name: string, email: string, password: string, cnpj?: string, acceptResaleTerm?: boolean) => Promise<Customer>;
     logout: () => Promise<void>;
     refresh: () => Promise<void>;
 };
@@ -32,8 +32,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return logged;
     };
 
-    const register = async (name: string, email: string, password: string) => {
-        await authService.register(name, email, password);
+    const register = async (name: string, email: string, password: string, cnpj?: string, acceptResaleTerm?: boolean) => {
+        await authService.register(name, email, password, cnpj, acceptResaleTerm);
         return login(email, password);
     };
 

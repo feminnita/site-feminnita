@@ -13,9 +13,28 @@ export function findCustomerById(id: string) {
     });
 }
 
-export async function insertCustomer(values: { name: string; email: string; passwordHash: string }) {
+export async function insertCustomer(values: {
+    name: string;
+    email: string;
+    passwordHash: string;
+    cnpj?: string;
+    resaleTermVersion?: number;
+    resaleTermAcceptedAt?: Date;
+    resaleTermAcceptedIp?: string | null;
+}) {
     const [customer] = await db.insert(customers).values(values).returning();
     return customer;
+}
+
+export function acceptResaleTerm(customerId: string, version: number, ip: string | null) {
+    return db
+        .update(customers)
+        .set({
+            resaleTermVersion: version,
+            resaleTermAcceptedAt: new Date(),
+            resaleTermAcceptedIp: ip,
+        })
+        .where(eq(customers.id, customerId));
 }
 
 export function insertSession(values: { tokenHash: string; customerId: string; userAgent: string; expiresAt: Date }) {

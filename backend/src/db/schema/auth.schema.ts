@@ -4,6 +4,9 @@ export const registerSchema = z.object({
     name: z.string().trim().min(2, 'Nome muito curto').max(100, 'Nome muito Longo'),
     email: z.email('E-mail invalido').trim().toLowerCase(),
     password: z.string().min(8, 'A senha precisa de pelo menos 8 caracteres').max(72, 'Senha muito longa'),
+    // CNPJ opcional (a loja aceita CPF ou CNPJ). Aceite do Termo de Revenda obrigatório.
+    cnpj: z.string().trim().max(20, 'CNPJ inválido').optional(),
+    acceptResaleTerm: z.boolean().optional(),
 });
 
 export const loginSchema = z.object({
