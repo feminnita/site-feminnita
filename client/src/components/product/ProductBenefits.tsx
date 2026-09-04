@@ -1,5 +1,8 @@
-import { RefreshCw, Shield, Truck } from "lucide-react";
+import { PackageCheck, ShieldAlert, Store, Truck } from "lucide-react";
 
+// Venda de ATACADO para revendedora — NÃO é varejo. Direito de arrependimento
+// não se aplica e não é oferecido. Política de trocas restrita a divergência de
+// pedido e defeito de fabricação.
 export function ProductBenefits() {
     return (
         <div className="space-y-4 border-t pt-6">
@@ -7,25 +10,40 @@ export function ProductBenefits() {
                 <Truck className="mt-1 text-green-600" size={20} />
                 <div>
                     <p className="font-medium">Frete calculado por CEP</p>
+                    <p className="text-sm text-gray-600">Correios e transportadora</p>
+                </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+                <PackageCheck className="mt-1 text-blue-600" size={20} />
+                <div>
+                    <p className="font-medium">Confira ao receber</p>
                     <p className="text-sm text-gray-600">
-                        Correios e transportadora
+                        Divergência de quantidade, tamanho ou cor: avise em até 3 dias
+                        úteis, com foto da caixa e das peças.
                     </p>
                 </div>
             </div>
+
             <div className="flex items-start gap-3">
-                <RefreshCw className="mt-1 text-blue-600" size={20} />
+                <ShieldAlert className="mt-1 text-amber-600" size={20} />
                 <div>
-                    <p className="font-medium">Troca em até 7 dias</p>
+                    <p className="font-medium">Defeito de fabricação</p>
                     <p className="text-sm text-gray-600">
-                        Defeito de fabricação em até 30 dias
+                        Peça sem uso, com etiqueta, com foto. Peças usadas, lavadas ou
+                        sem etiqueta não são trocadas.
                     </p>
                 </div>
             </div>
+
             <div className="flex items-start gap-3">
-                <Shield className="mt-1 text-purple-600" size={20} />
+                <Store className="mt-1 text-purple-600" size={20} />
                 <div>
-                    <p className="font-medium">Compra Segura</p>
-                    <p className="text-sm text-gray-600">Ambiente seguro e protegido</p>
+                    <p className="font-medium">Venda no atacado</p>
+                    <p className="text-sm text-gray-600">
+                        Não há troca por arrependimento nem devolução de mercadoria não
+                        vendida.
+                    </p>
                 </div>
             </div>
         </div>
