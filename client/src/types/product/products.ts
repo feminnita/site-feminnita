@@ -13,6 +13,7 @@ export type ResolvedSizeChart = {
   columns: string[];
   footer: string;
   rows: ResolvedSizeChartRow[];
+  howToMeasureImage?: string;
 };
 
 export type StoreProduct = {

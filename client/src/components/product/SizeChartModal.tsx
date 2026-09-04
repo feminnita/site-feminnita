@@ -107,7 +107,16 @@ export function SizeChartModal({ chart, onClose }: Props) {
                 </div>
 
                 <p className="mb-2 text-center text-sm text-gray-500">Como medir</p>
-                <HowToMeasure columns={chart.columns} />
+                {chart.howToMeasureImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={chart.howToMeasureImage}
+                        alt="Como medir"
+                        className="mx-auto h-auto w-full max-w-xs rounded-lg object-contain"
+                    />
+                ) : (
+                    <HowToMeasure columns={chart.columns} />
+                )}
 
                 <div className="mt-6 overflow-x-auto">
                     <table className="w-full border-collapse text-sm">
