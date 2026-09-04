@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, date, timestamp, bigint } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, date, timestamp, bigint, integer } from "drizzle-orm/pg-core";
 
 
 export const customers = pgTable('customers', {
@@ -10,8 +10,13 @@ export const customers = pgTable('customers', {
     googleId: text('google_id').unique(),
     phone: text('phone'),
     cpf: text('cpf'),
+    cnpj: text('cnpj'),
     birthDate: date('birth_date'),
     blingId: bigint('bling_id', { mode: 'number' }),
+    // Aceite do Termo de Revenda por conta, versionado. Colunas já aplicadas no banco.
+    resaleTermVersion: integer('resale_term_version'),
+    resaleTermAcceptedAt: timestamp('resale_term_accepted_at', { withTimezone: true }),
+    resaleTermAcceptedIp: text('resale_term_accepted_ip'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 

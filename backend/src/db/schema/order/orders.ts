@@ -34,6 +34,8 @@ export const orders = pgTable('orders', {
     blingOrderId: bigint('bling_order_id', { mode: 'number' }),
     installments: integer('installments'),
     shippingMethod: text('shipping_method'),
+    // Versão vigente do Termo de Revenda aceita no momento do pedido. Coluna já aplicada no banco.
+    resaleTermVersion: integer('resale_term_version'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({

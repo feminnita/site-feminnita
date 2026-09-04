@@ -9,8 +9,20 @@ export async function login(email: string, password: string): Promise<Customer> 
     return (await apiPost<Customer>("/api/store/auth/login", { email, password })) as Customer;
 }
 
-export async function register(name: string, email: string, password: string): Promise<Customer> {
-    return (await apiPost<Customer>("/api/store/auth/register", { name, email, password })) as Customer;
+export async function register(
+    name: string,
+    email: string,
+    password: string,
+    cnpj?: string,
+    acceptResaleTerm?: boolean,
+): Promise<Customer> {
+    return (await apiPost<Customer>("/api/store/auth/register", {
+        name,
+        email,
+        password,
+        cnpj: cnpj || undefined,
+        acceptResaleTerm,
+    })) as Customer;
 }
 
 export async function logout(): Promise<void> {

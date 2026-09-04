@@ -247,6 +247,11 @@ export default async function Home() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/termo-de-revenda" className="hover:underline">
+                    Termo de Revenda
+                  </Link>
+                </li>
+                <li>
                   <Link href="/privacidade" className="hover:underline">
                     Política de Privacidade
                   </Link>

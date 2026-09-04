@@ -1,5 +1,6 @@
 import { AppError } from '../errors/AppError';
 import * as AuthRepository from '../repository/Auth.Repository';
+import * as ResaleTermService from './ResaleTerm.Service';
 import * as EmailService from '../integrations/resend/Services';
 import { hashPassword, verifyPassword } from '../utils/password';
 import { generateSessionToken, hashSessionToken } from '../utils/sessionToken';
@@ -24,12 +25,36 @@ export async function createSessionForCustomer(customerId: string, userAgent?: s
     return token;
 }
 
-export async function registerCustomer(input: { name: string; email: string; password: string }) {
+export async function registerCustomer(input: {
+    name: string;
+    email: string;
+    password: string;
+    cnpj?: string;
+    acceptResaleTerm?: boolean;
+    acceptedIp?: string | null;
+}) {
+    const term = await ResaleTermService.getCurrentResaleTerm();
+
+    // Gate de revenda só vale com termo ATIVO (content não-vazio). Com termo em
+    // branco a funcionalidade fica desligada: cadastro normal, sem exigir aceite.
+    if (term.active && input.acceptResaleTerm !== true) {
+        throw new AppError('É necessário aceitar o Termo de Revenda', 400);
+    }
+
     const existing = await AuthRepository.findCustomerByEmail(input.email);
     if (existing) throw new Error('EMAIL_ALREADY_IN_USE');
 
     const passwordHash = await hashPassword(input.password);
-    const customer = await AuthRepository.insertCustomer({ name: input.name, email: input.email, passwordHash });
+    const customer = await AuthRepository.insertCustomer({
+        name: input.name,
+        email: input.email,
+        passwordHash,
+        cnpj: input.cnpj?.trim() || undefined,
+        // Só carimba o aceite quando o termo está ativo.
+        resaleTermVersion: term.active ? term.version : undefined,
+        resaleTermAcceptedAt: term.active ? new Date() : undefined,
+        resaleTermAcceptedIp: term.active ? (input.acceptedIp ?? null) : undefined,
+    });
 
     await EmailService.sendWelcome({ customerName: customer.name, customerEmail: customer.email });
 

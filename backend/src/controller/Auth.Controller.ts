@@ -22,8 +22,15 @@ function setSessionCookie(res: Response, token: string) {
 }
 
 export async function register(req: Request, res: Response) {
-    const { name, email, password } = req.body;
-    const customer = await AuthService.registerCustomer({ name, email, password });
+    const { name, email, password, cnpj, acceptResaleTerm } = req.body;
+    const customer = await AuthService.registerCustomer({
+        name,
+        email,
+        password,
+        cnpj,
+        acceptResaleTerm,
+        acceptedIp: req.ip ?? null,
+    });
     res.status(201).json({
         id: customer.id,
         name: customer.name,

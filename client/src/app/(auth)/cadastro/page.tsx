@@ -2,11 +2,12 @@
 
 import { ApiError } from "@/src/services/api";
 import { GOOGLE_LOGIN_URL } from "@/src/services/authService";
+import { getResaleTerm, isResaleTermActive } from "@/src/services/resaleTermService";
 import { useAuth } from "@/src/hooks/count/useAuth";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function CadastroPage() {
     const router = useRouter();
@@ -15,17 +16,33 @@ export default function CadastroPage() {
     const [form, setForm] = useState({
         name: "",
         email: "",
+        cnpj: "",
         password: "",
         confirm: "",
     });
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [acceptedTerm, setAcceptedTerm] = useState(false);
+    const [termVersion, setTermVersion] = useState<number | null>(null);
+    // Termo só é exigido quando ativo (content não-vazio no painel).
+    const [termActive, setTermActive] = useState(false);
+
+    useEffect(() => {
+        getResaleTerm().then((term) => {
+            setTermVersion(term?.version ?? null);
+            setTermActive(isResaleTermActive(term));
+        });
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
 
+        if (termActive && !acceptedTerm) {
+            setError("É necessário aceitar o Termo de Revenda para criar a conta.");
+            return;
+        }
         if (form.password !== form.confirm) {
             setError("As senhas não coincidem.");
             return;
@@ -38,7 +55,7 @@ export default function CadastroPage() {
         setLoading(true);
 
         try {
-            await register(form.name, form.email, form.password);
+            await register(form.name, form.email, form.password, form.cnpj || undefined, acceptedTerm);
             router.push("/");
             router.refresh();
         } catch (err) {
@@ -121,6 +138,21 @@ export default function CadastroPage() {
 
                         <div>
                             <label className="mb-1 block text-sm font-medium text-gray-700">
+                                CNPJ (opcional)
+                            </label>
+                            <input
+                                type="text"
+                                value={form.cnpj}
+                                onChange={(e) =>
+                                    setForm((p) => ({ ...p, cnpj: e.target.value }))
+                                }
+                                className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-[#8C2F39]"
+                                placeholder="Se você tem CNPJ (não obrigatório)"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-gray-700">
                                 Senha *
                             </label>
                             <div className="relative">
@@ -160,9 +192,32 @@ export default function CadastroPage() {
                             />
                         </div>
 
+                        {termActive && (
+                            <label className="flex items-start gap-2 text-sm text-gray-600">
+                                <input
+                                    type="checkbox"
+                                    checked={acceptedTerm}
+                                    onChange={(e) => setAcceptedTerm(e.target.checked)}
+                                    required
+                                    className="mt-0.5 h-4 w-4 accent-[#8C2F39]"
+                                />
+                                <span>
+                                    Li e aceito o{" "}
+                                    <Link
+                                        href="/termo-de-revenda"
+                                        target="_blank"
+                                        className="font-medium text-[#8C2F39] hover:underline"
+                                    >
+                                        Termo de Revenda
+                                        {termVersion ? ` (v${termVersion})` : ""}
+                                    </Link>
+                                </span>
+                            </label>
+                        )}
+
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || (termActive && !acceptedTerm)}
                             className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-[#8C2F39] py-3 font-semibold text-white transition-colors hover:bg-[#7a2832] disabled:opacity-50"
                         >
                             {loading ? <Loader2 size={18} className="animate-spin" /> : null}
