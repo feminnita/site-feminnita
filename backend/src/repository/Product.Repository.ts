@@ -79,6 +79,19 @@ export function findSkuStockByProductId(productId: string) {
         .where(eq(productsSkus.productId, productId));
 }
 
+// Todos os slugs de categoria do produto via ligação M:N (product_categories) —
+// MESMA fonte que o filtro da vitrine usa (findActiveProducts). Serve para resolver
+// a herança da tabela de medidas por categoria.
+export async function findCategorySlugsByProductId(productId: string): Promise<string[]> {
+    const result = await db.execute(sql`
+        SELECT c.slug
+        FROM product_categories pc
+        JOIN categories c ON c.id = pc.category_id
+        WHERE pc.product_id = ${productId}
+    `);
+    return (result.rows as Array<{ slug: string }>).map((r) => r.slug).filter(Boolean);
+}
+
 export function incrementViewCount(id: string) {
     return db
         .update(products)

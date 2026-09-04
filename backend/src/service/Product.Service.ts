@@ -1,6 +1,8 @@
 import * as ProductRepository from '../repository/Product.Repository';
+import * as SiteSettingsRepository from '../repository/SiteSettings.Repository';
 import { PIX_DISCOUNT_RATE, resolveUnitPriceCents } from '../domain/Order.Domain';
 import { sortSizes } from '../utils/sizes';
+import { resolveSizeChart, type SizeChartsSetting } from './SizeChart.Service';
 import type { StoreProduct } from './types';
 
 type ProductRow = Awaited<ReturnType<typeof ProductRepository.findActiveProducts>>[number];
@@ -67,12 +69,26 @@ export async function getProduct(idOrSlug: string) {
     const [row] = await ProductRepository.findActiveProductByIdOrSlug(idOrSlug);
     if (!row || !hasValidSalePrice(row.product)) throw new Error('PRODUCT_NOT_FOUND');
 
-    const [variants, colorImageRows] = await Promise.all([
+    const [variants, colorImageRows, categorySlugs, sizeChartsSetting] = await Promise.all([
         ProductRepository.findSkuVariantsByProductIds([row.product.id]),
         ProductRepository.findColorImagesByProductIds([row.product.id]),
+        ProductRepository.findCategorySlugsByProductId(row.product.id),
+        SiteSettingsRepository.findByKey('size_charts'),
     ]);
 
-    return mapProduct(row, variants, colorImageRows);
+    const mapped = mapProduct(row, variants, colorImageRows);
+
+    // Categorias do produto: ligação M:N (mesma fonte da vitrine) + a categoria
+    // legada do próprio produto, para máxima consistência na herança.
+    const allSlugs = [...categorySlugs, ...(row.categorySlug ? [row.categorySlug] : [])];
+    const sizeChart = resolveSizeChart({
+        productChart: row.product.sizeChart,
+        charts: (sizeChartsSetting?.value as SizeChartsSetting) ?? {},
+        categorySlugs: allSlugs,
+        sizes: mapped.sizes,
+    });
+
+    return { ...mapped, sizeChart };
 }
 
 export async function getProductStock(idOrSlug: string) {
