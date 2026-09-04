@@ -165,7 +165,7 @@ export type HomeSectionCategories = {
 // DEFAULTS aplicados APENAS quando a chave inteira está ausente.
 const HOME_SECTION_CATEGORIES_DEFAULT: HomeSectionCategories = {
   lancamentos: "lancamentos",
-  maisVendidos: "",
+  maisVendidos: "mais-vendidos",
   outlet: "outlet",
 };
 
