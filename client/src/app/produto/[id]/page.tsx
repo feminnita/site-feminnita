@@ -157,6 +157,7 @@ export default function ProductPage() {
                             selectedColor={selectedColor}
                             onSelect={selectColor}
                             swatches={swatches}
+                            colorImages={product.colorImages}
                         />
 
                         <div>

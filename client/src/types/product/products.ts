@@ -65,6 +65,7 @@ export type ColorSelectorProps = {
   selectedColor: string;
   onSelect: (color: string) => void;
   swatches: ColorSwatch[];
+  colorImages?: Record<string, string[]>;
 };
 
 export type SizeSelectorProps = {
