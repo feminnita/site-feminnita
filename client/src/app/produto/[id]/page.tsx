@@ -16,6 +16,7 @@ import { ProductDescription } from "../../../components/product/ProductDescripti
 import { ProductGallery } from "../../../components/product/ProductGallery";
 import { QuantitySelector } from "../../../components/product/QuantitySelector";
 import { SizeSelector } from "../../../components/product/SizeSelector";
+import { SizeChartTrigger } from "../../../components/product/SizeChartTrigger";
 import { StickyMobileCta } from "../../../components/product/StickMobileCta";
 import { useProductPage } from "../../../hooks/product/useProductPage";
 import { toEmbedUrl } from "../../../utils/product";
@@ -158,14 +159,19 @@ export default function ProductPage() {
                             swatches={swatches}
                         />
 
-                        <SizeSelector
-                            productId={product.id}
-                            sizes={product.sizes}
-                            selectedSize={selectedSize}
-                            selectedColor={selectedColor}
-                            skus={skus}
-                            onSelect={setSelectedSize}
-                        />
+                        <div>
+                            <div className="mb-2 flex items-center justify-end">
+                                <SizeChartTrigger chart={product.sizeChart} />
+                            </div>
+                            <SizeSelector
+                                productId={product.id}
+                                sizes={product.sizes}
+                                selectedSize={selectedSize}
+                                selectedColor={selectedColor}
+                                skus={skus}
+                                onSelect={setSelectedSize}
+                            />
+                        </div>
 
                         <QuantitySelector quantity={quantity} onChange={setQuantity} />
 

@@ -1,3 +1,5 @@
+import type { ResolvedSizeChart } from './SizeChart.Service';
+
 export type StoreProduct = {
     id: string;
     code: string;
@@ -22,4 +24,5 @@ export type StoreProduct = {
     active: boolean;
     stock: number;
     view_count: number;
+    sizeChart?: ResolvedSizeChart;
 };

@@ -1,6 +1,20 @@
 import type { ColorSwatch } from "../colors/colors";
 import type { RefObject } from "react";
 
+export type ResolvedSizeChartRow = {
+  label: string;
+  equiv: string | null;
+  values: (string | number)[];
+};
+
+export type ResolvedSizeChart = {
+  source: "product" | "category";
+  name: string;
+  columns: string[];
+  footer: string;
+  rows: ResolvedSizeChartRow[];
+};
+
 export type StoreProduct = {
   id: string;
   code: string;
@@ -25,6 +39,7 @@ export type StoreProduct = {
   active: boolean;
   stock: number;
   view_count: number;
+  sizeChart?: ResolvedSizeChart;
 };
 
 export type CartItemInput = {
