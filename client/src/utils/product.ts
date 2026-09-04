@@ -14,7 +14,7 @@ export function toEmbedUrl(url: string): string {
 // A chave de colors e a de colorImages divergem em alguns produtos (ex. 31700:
 // colors=preto/MARINHO/Lilas, colorImages=Preto/Marinho/Lilas) — sem normalizar,
 // a foto da cor não carrega.
-function normalizeColorKey(s: string): string {
+export function normalizeColorKey(s: string): string {
   return s
     .trim()
     .toLowerCase()
