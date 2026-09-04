@@ -8,6 +8,7 @@ export function StickyMobileCta({
     productName,
     price,
     onAddToCart,
+    disabled = false,
 }: StickyMobileCtaProps) {
     return (
         <div
@@ -24,10 +25,12 @@ export function StickyMobileCta({
                 </div>
                 <button
                     onClick={onAddToCart}
-                    className="flex items-center gap-2 rounded-xl bg-[#8C2F39] px-5 py-3 text-sm font-semibold text-white transition-transform active:scale-95"
+                    disabled={disabled}
+                    title={disabled ? "Selecione um tamanho" : undefined}
+                    className="flex items-center gap-2 rounded-xl bg-[#8C2F39] px-5 py-3 text-sm font-semibold text-white transition-transform active:scale-95 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 disabled:active:scale-100"
                 >
                     <ShoppingCart size={18} />
-                    Adicionar
+                    {disabled ? "Escolha o tamanho" : "Adicionar"}
                 </button>
             </div>
         </div>

@@ -103,6 +103,7 @@ export default function ProductPage() {
                 productName={product.name}
                 price={product.price}
                 onAddToCart={handleAddToCart}
+                disabled={!selectedSize}
             />
 
             <div className="container mx-auto px-4 py-8">
@@ -174,6 +175,7 @@ export default function ProductPage() {
                             isFavorite={isFavorite}
                             onToggleFavorite={() => setIsFavorite(!isFavorite)}
                             onAddToCart={handleAddToCart}
+                            disabled={!selectedSize}
                         />
 
                         <ProductBenefits />

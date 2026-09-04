@@ -10,12 +10,30 @@ export function toEmbedUrl(url: string): string {
   return url;
 }
 
+// Compara nome de cor tolerante a CAIXA e ACENTO ("preto"=="Preto", "Lilás"=="Lilas").
+// A chave de colors e a de colorImages divergem em alguns produtos (ex. 31700:
+// colors=preto/MARINHO/Lilas, colorImages=Preto/Marinho/Lilas) — sem normalizar,
+// a foto da cor não carrega.
+function normalizeColorKey(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+}
+
 export function getDisplayImages(
   product: Pick<StoreProduct, "images" | "colorImages">,
   selectedColor: string,
 ): string[] {
-  const colorSpecific = product.colorImages?.[selectedColor];
-  return colorSpecific?.length ? colorSpecific : product.images;
+  const map = product.colorImages;
+  if (map && selectedColor) {
+    const target = normalizeColorKey(selectedColor);
+    const key = Object.keys(map).find((k) => normalizeColorKey(k) === target);
+    const colorSpecific = key ? map[key] : undefined;
+    if (colorSpecific?.length) return colorSpecific;
+  }
+  return product.images;
 }
 
 export function buildCartItem(input: CartItemInput): CartItem {
