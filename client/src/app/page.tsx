@@ -8,7 +8,6 @@ import { HOME_SECTION_GRID } from "../components/product/productGrid";
 import { getHomeBanners, getHomeSectionCategories } from "../services/bannersService";
 import { fetchProducts } from "../services/productsService";
 import type { StoreProduct } from "../types/product/products";
-import Image from "next/image";
 import Link from "next/link";
 
 // home renderizada por request: reflete Hero/Banners/títulos na hora, sem esperar publish
@@ -85,11 +84,17 @@ export default async function Home() {
             }
             className="group relative block cursor-pointer overflow-hidden"
           >
-            <img
-              src={intermediateBanner.src}
-              alt={intermediateBanner.alt}
-              className="block h-auto w-full transition-transform duration-500 group-hover:scale-105"
-            />
+            <picture>
+              <source
+                media="(min-width: 768px)"
+                srcSet={intermediateBanner.src}
+              />
+              <img
+                src={intermediateBanner.srcMobile || intermediateBanner.src}
+                alt={intermediateBanner.alt}
+                className="block h-auto w-full transition-transform duration-500 group-hover:scale-105"
+              />
+            </picture>
             {/* gradiente direcional só na base (mesma regra do hero) — sem véu chapado, preserva a arte */}
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
             {/* texto ancorado embaixo à esquerda, não centralizado por cima das modelos */}
@@ -148,14 +153,14 @@ export default async function Home() {
               }`;
               const inner = (
                 <>
-                  <Image
-                    src={img.src}
-                    alt={img.alt || img.title || ""}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    quality={90}
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                  <picture>
+                    <source media="(min-width: 768px)" srcSet={img.src} />
+                    <img
+                      src={img.srcMobile || img.src}
+                      alt={img.alt || img.title || ""}
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </picture>
                   {/* scrim SÓ na base (~40%), não véu chapado — preserva a arte */}
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/55 via-black/15 to-transparent" />
                   {/* título é elemento do DOM, NUNCA embutido na imagem; ancorado embaixo à esquerda */}
