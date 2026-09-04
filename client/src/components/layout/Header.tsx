@@ -17,17 +17,19 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/count/useAuth";
 import { useCart } from "../../hooks/cart/useCart";
 import { fetchCategories } from "../../services/categoriesService";
+import { fetchProducts } from "../../services/productsService";
 import { buildTree, cleanCategoryTree } from "../../utils/categories";
 import type { CategoryNode } from "../../types/categories/categories";
 import { CategoryDropdown, MobileCategoryAccordion } from "./CategoryNav";
 
-// Menu aponta SÓ para /categoria/[slug]. Só entram categorias COM produto —
-// aba que leva a página vazia é pior que aba faltando. Reativar MAIS VENDIDOS e
-// OUTLET (descomentar) quando a cliente popular essas categorias no painel.
-const NAV_LINKS = [
-  { href: "/categoria/lancamentos", label: "LANÇAMENTOS" },
-  // { href: "/categoria/mais-vendidos", label: "MAIS VENDIDOS" }, // vazia — publicar quando tiver produto
-  // { href: "/categoria/outlet", label: "OUTLET" },              // vazia — publicar quando tiver produto (pente-fino)
+// Abas de categoria no topo. Cada uma só aparece se a categoria tiver >=1 produto
+// (verificado ao vivo) — aba que leva a página vazia é pior que aba faltando.
+// Assim MAIS VENDIDOS e OUTLET nascem escondidas e aparecem sozinhas no minuto em
+// que a cliente marcar a primeira peça, sem deploy. LANÇAMENTOS tem produto, fica.
+const CATEGORY_TABS = [
+  { slug: "lancamentos", label: "LANÇAMENTOS" },
+  { slug: "mais-vendidos", label: "MAIS VENDIDOS" },
+  { slug: "outlet", label: "OUTLET" },
 ];
 
 export function Header() {
@@ -37,11 +39,37 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryTree, setCategoryTree] = useState<CategoryNode[]>([]);
+  // Começa só com LANÇAMENTOS (tem produto) para não piscar; o efeito confirma
+  // ao vivo e adiciona MAIS VENDIDOS / OUTLET se tiverem >=1 produto.
+  const [navTabs, setNavTabs] = useState<{ href: string; label: string }[]>([
+    { href: "/categoria/lancamentos", label: "LANÇAMENTOS" },
+  ]);
 
   useEffect(() => {
     fetchCategories()
       .then((rows) => setCategoryTree(cleanCategoryTree(buildTree(rows))))
       .catch(() => setCategoryTree([]));
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all(
+      CATEGORY_TABS.map(async (t) => {
+        try {
+          const prods = await fetchProducts({ category_slug: t.slug, limit: 1 });
+          return prods.length > 0
+            ? { href: `/categoria/${t.slug}`, label: t.label }
+            : null;
+        } catch {
+          return null;
+        }
+      }),
+    ).then((res) => {
+      if (alive) setNavTabs(res.filter((x): x is { href: string; label: string } => x !== null));
+    });
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const firstName = customer?.name.split(" ")[0];
@@ -105,7 +133,7 @@ export function Header() {
                 )}
               </div>
 
-              {NAV_LINKS.map((link) => (
+              {navTabs.map((link) => (
                 <Link key={link.href} href={link.href} className="hover:underline">
                   {link.label}
                 </Link>
@@ -232,7 +260,7 @@ export function Header() {
             />
 
             <div className="mt-1 border-t pt-2">
-              {NAV_LINKS.map((link) => (
+              {navTabs.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
