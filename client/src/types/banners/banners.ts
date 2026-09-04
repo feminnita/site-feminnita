@@ -54,6 +54,7 @@ export type HeroSlideRow = {
 
 export type IntermediateBanner = {
     src: string;
+    srcMobile?: string | null;
     alt: string;
     href?: string;
     title?: string;
@@ -69,6 +70,7 @@ export type VideoSection = {
 
 export type ImageGridItem = {
     src: string;
+    srcMobile?: string | null;
     alt: string;
     href?: string;
     title?: string;

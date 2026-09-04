@@ -64,6 +64,7 @@ function mapIntermediateBanner(value: any): IntermediateBanner | null {
   if (!value?.src) return null;
   return {
     src: value.src,
+    srcMobile: value.srcMobile ?? null,
     alt: value.alt ?? "",
     href: value.href || undefined,
     title: value.title || undefined,
@@ -90,6 +91,7 @@ function mapImageGrid(value: any): ImageGrid {
       .sort((a: any, b: any) => (a?.order ?? 0) - (b?.order ?? 0))
       .map((img: any) => ({
         src: img.src,
+        srcMobile: img.srcMobile ?? null,
         alt: img.alt ?? "",
         href: img.href || undefined,
         title: img.title || undefined,
