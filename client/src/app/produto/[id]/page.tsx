@@ -152,14 +152,6 @@ export default function ProductPage() {
                             installmentPrice={product.installmentPrice}
                         />
 
-                        <ColorSelector
-                            colors={product.colors}
-                            selectedColor={selectedColor}
-                            onSelect={selectColor}
-                            swatches={swatches}
-                            colorImages={product.colorImages}
-                        />
-
                         <div>
                             <div className="mb-2 flex items-center justify-end">
                                 <SizeChartTrigger chart={product.sizeChart} />
@@ -183,6 +175,17 @@ export default function ProductPage() {
                             onToggleFavorite={() => setIsFavorite(!isFavorite)}
                             onAddToCart={handleAddToCart}
                             disabled={!selectedSize}
+                        />
+
+                        {/* Grade de estampas ABAIXO do botão de comprar: com até 41 cores,
+                            fica no fim da coluna pra não empurrar tamanho/comprar pra baixo.
+                            Clicar troca a foto grande (getDisplayImages). */}
+                        <ColorSelector
+                            colors={product.colors}
+                            selectedColor={selectedColor}
+                            onSelect={selectColor}
+                            swatches={swatches}
+                            colorImages={product.colorImages}
                         />
 
                         <ProductBenefits />
