@@ -61,6 +61,10 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
         // Avaliações: infra de reviews ainda não existe (fonte é decisão pendente da
         // dona). Retornamos vazio por enquanto — o display no site some quando vazio.
         reviews: [],
+        // SEO por produto: a dona pode deixar em branco no cadastro. O fallback (nome
+        // e descrição) é resolvido no front (generateMetadata) — aqui só expomos o dado.
+        metaTitle: p.metaTitle ?? null,
+        metaDescription: p.metaDescription ?? null,
     };
 }
 

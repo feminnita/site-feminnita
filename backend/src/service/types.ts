@@ -35,5 +35,7 @@ export type StoreProduct = {
     stock: number;
     view_count: number;
     reviews: Review[];
+    metaTitle: string | null;
+    metaDescription: string | null;
     sizeChart?: ResolvedSizeChart;
 };
