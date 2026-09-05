@@ -21,6 +21,7 @@ export type StoreProduct = {
     featured: boolean;
     isNew: boolean;
     isBestseller: boolean;
+    isOutlet: boolean;
     active: boolean;
     stock: number;
     view_count: number;

@@ -5,7 +5,7 @@ import { Vitrine } from "../components/home/Vitrine";
 // import { Newsletter } from "../components/Newsletter";
 import { ProductCard } from "../components/product/ProductCard";
 import { HOME_SECTION_GRID } from "../components/product/productGrid";
-import { getHomeBanners, getHomeSectionCategories } from "../services/bannersService";
+import { getHomeBanners } from "../services/bannersService";
 import { fetchProducts } from "../services/productsService";
 import type { StoreProduct } from "../types/product/products";
 import Link from "next/link";
@@ -19,19 +19,20 @@ function hasPhoto(p: StoreProduct): boolean {
 }
 
 async function getHomeProducts() {
-  // Cada fileira sai de uma CATEGORIA (slug). Vazio => seção não configurada => [].
-  const cats = await getHomeSectionCategories();
-
-  const fromCategory = async (slug: string): Promise<StoreProduct[]> => {
-    if (!slug) return [];
-    const products = await fetchProducts({ category_slug: slug, limit: 30 });
+  // Cada fileira sai de um MARCADOR (flag) do produto: is_new / is_bestseller /
+  // is_outlet. As categorias homônimas foram desativadas — a fileira nasce e some
+  // sozinha conforme a cliente marca a flag, sem depender de home_section_categories.
+  const fromFlag = async (
+    flag: "is_new" | "is_bestseller" | "is_outlet",
+  ): Promise<StoreProduct[]> => {
+    const products = await fetchProducts({ flag, limit: 30 });
     return products.filter(hasPhoto).slice(0, 5);
   };
 
   const [novidades, destaques, outlet] = await Promise.all([
-    fromCategory(cats.lancamentos),
-    fromCategory(cats.maisVendidos),
-    fromCategory(cats.outlet),
+    fromFlag("is_new"),
+    fromFlag("is_bestseller"),
+    fromFlag("is_outlet"),
   ]);
 
   return { novidades, destaques, outlet };

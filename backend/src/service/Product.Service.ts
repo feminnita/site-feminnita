@@ -47,11 +47,12 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
         colors, sizes,
         category: row.categoryName ?? '', category_id: p.categoryId ?? null,
         featured: p.featured ?? false, isNew: p.isNew ?? false, isBestseller: p.isBestseller ?? false,
+        isOutlet: p.isOutlet ?? false,
         active: p.active ?? true, stock, view_count: p.viewCount ?? 0,
     };
 }
 
-export async function listProducts(options: { featured?: boolean; categorySlug?: string; limit?: number; q?: string }) {
+export async function listProducts(options: { featured?: boolean; categorySlug?: string; flag?: 'is_new' | 'is_bestseller' | 'is_outlet'; limit?: number; q?: string }) {
     const rows = (await ProductRepository.findActiveProducts(options))
         .filter((r) => hasValidSalePrice(r.product));
     if (rows.length === 0) return [];
