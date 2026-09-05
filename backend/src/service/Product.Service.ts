@@ -1,6 +1,6 @@
 import * as ProductRepository from '../repository/Product.Repository';
 import * as SiteSettingsRepository from '../repository/SiteSettings.Repository';
-import { PIX_DISCOUNT_RATE, resolveUnitPriceCents } from '../domain/Order.Domain';
+import { PIX_DISCOUNT_RATE, resolveUnitPriceCents, toCents } from '../domain/Order.Domain';
 import { sortSizes } from '../utils/sizes';
 import { resolveSizeChart, type SizeChartsSetting } from './SizeChart.Service';
 import type { StoreProduct } from './types';
@@ -13,8 +13,15 @@ type ProductRow = Awaited<ReturnType<typeof ProductRepository.findActiveProducts
 // É filtro de LEITURA (serializer): não altera nada no banco, só deixa de expor o
 // produto quebrado. O preço efetivo é o MESMO que o checkout cobra (resolveUnitPriceCents):
 // salePrice quando válido (>0 e < base), senão basePrice. ≤ 0 => produto indisponível.
-function hasValidSalePrice(product: { basePrice: string; salePrice: string | null }): boolean {
+function hasValidSalePrice(product: { basePrice: string; salePrice: string | null; saleStart?: Date | string | null; saleEnd?: Date | string | null }): boolean {
     return resolveUnitPriceCents(product) > 0;
+}
+
+// Promo ATIVA agora = o preço efetivo cobrado é menor que o base, ou seja, salePrice
+// é válido E está dentro da janela (resolveUnitPriceCents já aplica a janela). Base
+// do filtro de Outlet: só entra na vitrine de Outlet quem tem promo válida no momento.
+function isPromoActive(product: { basePrice: string; salePrice: string | null; saleStart?: Date | string | null; saleEnd?: Date | string | null }): boolean {
+    return resolveUnitPriceCents(product) < toCents(product.basePrice);
 }
 type VariantRow = Awaited<ReturnType<typeof ProductRepository.findSkuVariantsByProductIds>>[number];
 type ColorImageRow = Awaited<ReturnType<typeof ProductRepository.findColorImagesByProductIds>>[number];
@@ -41,6 +48,8 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
     return {
         id: p.id, code: p.code ?? '', name: p.name, slug: p.slug, description: p.description ?? '',
         price, pixPrice, salePrice: p.salePrice ? Number(p.salePrice) : null,
+        saleStart: p.saleStart ? new Date(p.saleStart).toISOString() : null,
+        saleEnd: p.saleEnd ? new Date(p.saleEnd).toISOString() : null,
         installments, installmentPrice: +(price / installments).toFixed(2),
         images: Array.isArray(p.images) ? p.images : [],
         colorImages, videoUrl: p.videoUrl ?? null,
@@ -57,7 +66,11 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
 
 export async function listProducts(options: { featured?: boolean; categorySlug?: string; flag?: 'is_new' | 'is_bestseller' | 'is_outlet'; limit?: number; q?: string }) {
     const rows = (await ProductRepository.findActiveProducts(options))
-        .filter((r) => hasValidSalePrice(r.product));
+        .filter((r) => hasValidSalePrice(r.product))
+        // Outlet: além do marcador is_outlet (já filtrado no repositório), exige promo
+        // VÁLIDA na janela agora. Produto marcado Outlet sem promo ativa não entra na
+        // vitrine de Outlet — mas segue normalmente nas outras (preço cheio).
+        .filter((r) => options.flag !== 'is_outlet' || isPromoActive(r.product));
     if (rows.length === 0) return [];
 
     const ids = rows.map((r) => r.product.id);

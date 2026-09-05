@@ -11,11 +11,35 @@ export function fromCents(cents: number): string {
     return (cents / 100).toFixed(2);
 }
 
-export function resolveUnitPriceCents(product: { basePrice: string; salePrice: string | null }): number {
+// Janela da promoção: AGORA precisa estar dentro de [saleStart, saleEnd]. Cada
+// limite null é "aberto" — as duas null => promo sem janela (retrocompatível: vale
+// enquanto salePrice estiver setado). Fonte única, usada pela vitrine e pelo checkout.
+export function isSaleWindowActive(
+    saleStart: Date | string | null | undefined,
+    saleEnd: Date | string | null | undefined,
+    now: number = Date.now(),
+): boolean {
+    if (saleStart != null) {
+        const start = new Date(saleStart).getTime();
+        if (!Number.isNaN(start) && now < start) return false;
+    }
+    if (saleEnd != null) {
+        const end = new Date(saleEnd).getTime();
+        if (!Number.isNaN(end) && now > end) return false;
+    }
+    return true;
+}
+
+export function resolveUnitPriceCents(product: {
+    basePrice: string;
+    salePrice: string | null;
+    saleStart?: Date | string | null;
+    saleEnd?: Date | string | null;
+}): number {
     const baseCents = toCents(product.basePrice);
-    if (product.salePrice != null) {
+    if (product.salePrice != null && isSaleWindowActive(product.saleStart, product.saleEnd)) {
         const saleCents = toCents(product.salePrice);
-        // Só cobra o salePrice quando é válido (> 0) E menor que o preço base.
+        // Só cobra o salePrice quando é válido (> 0), menor que o base E dentro da janela.
         if (saleCents > 0 && saleCents < baseCents) return saleCents;
     }
     return baseCents;
