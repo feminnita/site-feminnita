@@ -17,24 +17,19 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/count/useAuth";
 import { useCart } from "../../hooks/cart/useCart";
 import { fetchCategories } from "../../services/categoriesService";
-import { fetchProducts } from "../../services/productsService";
 import { buildTree, cleanCategoryTree } from "../../utils/categories";
 import type { CategoryNode } from "../../types/categories/categories";
 import { CategoryDropdown, MobileCategoryAccordion } from "./CategoryNav";
 
-// Marcadores (flags) do produto — faixa própria abaixo da barra principal, separada
-// dos menus de categoria. Cada um só aparece se houver >=1 produto com aquela flag
-// (verificado ao vivo) — faixa que leva a página vazia é pior que faixa faltando.
-// Assim MAIS VENDIDOS e OUTLET nascem escondidos e aparecem sozinhos no minuto em
-// que a cliente marcar a primeira peça, sem deploy. LANÇAMENTOS tem produto, fica.
-const MARKER_TABS: {
-  flag: "is_new" | "is_bestseller" | "is_outlet";
-  href: string;
-  label: string;
-}[] = [
-  { flag: "is_new", href: "/lancamentos", label: "LANÇAMENTOS" },
-  { flag: "is_bestseller", href: "/mais-vendidos", label: "MAIS VENDIDOS" },
-  { flag: "is_outlet", href: "/outlet", label: "OUTLET" },
+// Marcadores (flags) do produto — vitrines por marcador, NÃO categorias. Ficam numa
+// faixa própria (desktop) e num grupo próprio com divisória (mobile), visualmente
+// separados de "Produtos". São fixos: LANÇAMENTOS · MAIS VENDIDOS · OUTLET sempre
+// aparecem — as páginas de listagem têm empty-state próprio quando ainda não há peça
+// marcada, então a faixa nunca leva a um "buraco" sem aviso.
+const MARKER_TABS: { href: string; label: string }[] = [
+  { href: "/lancamentos", label: "LANÇAMENTOS" },
+  { href: "/mais-vendidos", label: "MAIS VENDIDOS" },
+  { href: "/outlet", label: "OUTLET" },
 ];
 
 export function Header() {
@@ -44,37 +39,11 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [categoryTree, setCategoryTree] = useState<CategoryNode[]>([]);
-  // Começa só com LANÇAMENTOS (tem produto) para não piscar; o efeito confirma
-  // ao vivo e adiciona MAIS VENDIDOS / OUTLET se tiverem >=1 produto com a flag.
-  const [markerTabs, setMarkerTabs] = useState<{ href: string; label: string }[]>([
-    { href: "/lancamentos", label: "LANÇAMENTOS" },
-  ]);
 
   useEffect(() => {
     fetchCategories()
       .then((rows) => setCategoryTree(cleanCategoryTree(buildTree(rows))))
       .catch(() => setCategoryTree([]));
-  }, []);
-
-  useEffect(() => {
-    let alive = true;
-    Promise.all(
-      MARKER_TABS.map(async (t) => {
-        try {
-          const prods = await fetchProducts({ flag: t.flag, limit: 1 });
-          return prods.length > 0
-            ? { href: t.href, label: t.label }
-            : null;
-        } catch {
-          return null;
-        }
-      }),
-    ).then((res) => {
-      if (alive) setMarkerTabs(res.filter((x): x is { href: string; label: string } => x !== null));
-    });
-    return () => {
-      alive = false;
-    };
   }, []);
 
   const firstName = customer?.name.split(" ")[0];
@@ -262,20 +231,19 @@ export function Header() {
               onNavigate={() => setMenuOpen(false)}
             />
 
-            {markerTabs.length > 0 && (
-              <div className="mt-1 border-t pt-2">
-                {markerTabs.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMenuOpen(false)}
-                    className="block py-2 text-sm font-semibold uppercase tracking-wide text-[#8C2F39] hover:underline"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            )}
+            {/* Marcadores: grupo próprio com divisória, separados das categorias */}
+            <div className="mt-1 border-t pt-2">
+              {MARKER_TABS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="block py-2 text-sm font-semibold uppercase tracking-wide text-[#8C2F39] hover:underline"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
 
             <div className="mt-1 flex gap-1 border-t pt-3 sm:hidden">
               <Link
@@ -313,22 +281,20 @@ export function Header() {
 
       {/* Faixa dos MARCADORES — segunda barra própria, largura total, centralizada e
           destacada dos menus de categoria. Só no desktop (mobile usa o menu lateral).
-          Cada marcador só aparece com >=1 produto naquela flag (checagem ao vivo). */}
-      {markerTabs.length > 0 && (
-        <div className="hidden border-t border-gray-200 bg-[#8C2F39]/[0.06] lg:block">
-          <nav className="container mx-auto flex items-center justify-center gap-10 px-4 py-2.5 text-xs font-semibold uppercase tracking-widest">
-            {markerTabs.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-[#8C2F39] transition-colors hover:text-[#7a2832] hover:underline"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      )}
+          Vitrines por marcador (não categorias): fixas, sempre visíveis. */}
+      <div className="hidden border-t border-gray-200 bg-[#8C2F39]/[0.06] lg:block">
+        <nav className="container mx-auto flex items-center justify-center gap-10 px-4 py-2.5 text-xs font-semibold uppercase tracking-widest">
+          {MARKER_TABS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-[#8C2F39] transition-colors hover:text-[#7a2832] hover:underline"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
     </header>
   );
 }
