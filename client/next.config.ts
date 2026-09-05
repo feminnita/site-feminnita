@@ -3,8 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
-    deviceSizes: [390, 640, 828, 1080, 1200, 1920],
-    imageSizes: [64, 128, 256, 384],
+    // Enxuto para o mínimo que o layout usa: 390 mobile, 640/828 card, 1200
+    // galeria, 1920 hero. Cada largura × formato é uma transformação de imagem
+    // (no Vercel) — menos larguras = menos otimizações e menos bytes servidos.
+    deviceSizes: [390, 640, 828, 1200, 1920],
+    imageSizes: [64, 128, 256],
     qualities: [75, 90],
     minimumCacheTTL: 31536000,
     remotePatterns: [
