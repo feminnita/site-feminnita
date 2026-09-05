@@ -20,7 +20,7 @@ export function ProductBenefits() {
                     <p className="font-medium">Confira ao receber</p>
                     <p className="text-sm text-gray-600">
                         Divergência de quantidade, tamanho ou cor: avise em até 3 dias
-                        úteis, com foto da caixa e das peças.
+                        úteis, com foto da embalagem e das peças.
                     </p>
                 </div>
             </div>
