@@ -10,6 +10,17 @@ export function toEmbedUrl(url: string): string {
   return url;
 }
 
+// Distingue o tipo de vídeo do produto pela URL. O caminho padrão agora é um
+// arquivo MP4 (Cloudinary) que toca inline na galeria como se fosse foto —
+// "youtube" fica só de compatibilidade para produtos antigos que já usam link.
+export function videoKind(
+  url: string | null | undefined,
+): "youtube" | "file" | "none" {
+  if (!url) return "none";
+  if (/youtu\.?be|youtube\.com/i.test(url)) return "youtube";
+  return "file"; // .mp4/.webm/.mov ou Cloudinary /video/upload/ — trata como arquivo
+}
+
 // Compara nome de cor tolerante a CAIXA e ACENTO ("preto"=="Preto", "Lilás"=="Lilas").
 // A chave de colors e a de colorImages divergem em alguns produtos (ex. 31700:
 // colors=preto/MARINHO/Lilas, colorImages=Preto/Marinho/Lilas) — sem normalizar,

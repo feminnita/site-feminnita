@@ -1,9 +1,57 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import type { ProductGalleryProps } from "../../types/product/products";
-import { Play } from "lucide-react";
+import { videoKind } from "../../utils/product";
+import { Film, Play } from "lucide-react";
+
+// Vídeo do produto tocando inline como mais um item da galeria: autoplay, mudo,
+// em loop, sem controles e sem player do YouTube. Toca SÓ quando está visível na
+// tela (IntersectionObserver) e não pré-carrega nada até aparecer (preload=none).
+function InlineVideo({
+    src,
+    poster,
+    name,
+}: {
+    src: string;
+    poster?: string;
+    name: string;
+}) {
+    const ref = useRef<HTMLVideoElement | null>(null);
+
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const io = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    el.play().catch(() => {});
+                } else {
+                    el.pause();
+                }
+            },
+            { threshold: 0.25 },
+        );
+        io.observe(el);
+        return () => io.disconnect();
+    }, []);
+
+    return (
+        <video
+            ref={ref}
+            src={src}
+            poster={poster}
+            muted
+            loop
+            playsInline
+            autoPlay
+            preload="none"
+            aria-label={name}
+            className="absolute inset-0 h-full w-full object-cover"
+        />
+    );
+}
 
 export function ProductGallery({
     productName,
@@ -32,6 +80,10 @@ export function ProductGallery({
         const y = ((e.clientY - rect.top) / rect.height) * 100;
         setZoomOrigin(`${x}% ${y}%`);
     };
+
+    const kind = videoKind(videoUrl);
+    const isFileVideo = kind === "file";
+    const isYouTube = kind === "youtube";
 
     return (
         <div className="flex min-w-0 flex-col-reverse gap-3 md:flex-row">
@@ -64,31 +116,57 @@ export function ProductGallery({
                                 }`}
                             title="Vídeo do produto"
                         >
-                            {images[0] && (
-                                <Image
-                                    src={images[0]}
-                                    alt="vídeo"
-                                    fill
-                                    sizes="80px"
-                                    className="object-cover opacity-40"
-                                />
+                            {isFileVideo ? (
+                                // Miniatura = primeiro quadro do próprio MP4 (sem tocar aqui),
+                                // com selo discreto de vídeo. Sem botão de play.
+                                <>
+                                    <video
+                                        src={videoUrl}
+                                        muted
+                                        playsInline
+                                        preload="metadata"
+                                        className="absolute inset-0 h-full w-full object-cover"
+                                    />
+                                    <Film
+                                        size={14}
+                                        className="absolute bottom-1 right-1 text-white drop-shadow"
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    {images[0] && (
+                                        <Image
+                                            src={images[0]}
+                                            alt="vídeo"
+                                            fill
+                                            sizes="80px"
+                                            className="object-cover opacity-40"
+                                        />
+                                    )}
+                                    <Play size={20} className="relative text-white" fill="white" />
+                                </>
                             )}
-                            <Play size={20} className="relative text-white" fill="white" />
                         </button>
                     )}
                 </div>
             )}
 
             <div
-                className={`relative w-full max-w-sm self-center overflow-hidden rounded-lg bg-gray-100 md:max-w-none md:flex-1 md:self-auto ${showVideo && videoUrl
+                className={`relative w-full max-w-sm self-center overflow-hidden rounded-lg bg-gray-100 md:max-w-none md:flex-1 md:self-auto ${showVideo && isYouTube
                         ? "aspect-video"
                         : "aspect-[4/5] md:aspect-[2/3]"
                     }`}
                 onMouseMove={handleMouseMove}
-                onMouseEnter={() => canHover && setZooming(true)}
+                onMouseEnter={() => canHover && !showVideo && setZooming(true)}
                 onMouseLeave={() => setZooming(false)}
             >
-                {showVideo && videoUrl ? (
+                {showVideo && videoUrl && isFileVideo ? (
+                    <InlineVideo
+                        src={videoUrl}
+                        poster={images[0]}
+                        name={productName}
+                    />
+                ) : showVideo && videoUrl && isYouTube ? (
                     <iframe
                         src={embedUrl}
                         title={productName}
