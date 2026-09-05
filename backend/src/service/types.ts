@@ -1,5 +1,12 @@
 import type { ResolvedSizeChart } from './SizeChart.Service';
 
+export type Review = {
+    author: string;
+    date: string;
+    rating: number;
+    comment: string;
+};
+
 export type StoreProduct = {
     id: string;
     code: string;
@@ -25,5 +32,6 @@ export type StoreProduct = {
     active: boolean;
     stock: number;
     view_count: number;
+    reviews: Review[];
     sizeChart?: ResolvedSizeChart;
 };

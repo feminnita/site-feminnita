@@ -7,7 +7,8 @@ import {
     breadcrumbSchema,
     productSchema,
 } from "../../../components/common/JsonLd";
-import { SimilarProducts } from "../../../components/product/SimilarProducts";
+import { ProductReviews } from "../../../components/product/ProductReviews";
+import { RelatedSections } from "../../../components/product/RelatedSections";
 import { ColorSelector } from "../../../components/product/ColorSelector";
 import { PriceBlock } from "../../../components/product/PriceBlock";
 import { ProductActions } from "../../../components/product/ProductActions";
@@ -215,9 +216,15 @@ export default function ProductPage() {
                     productName={product.name}
                     description={product.description}
                 />
-            </div>
 
-            <SimilarProducts productId={product.id} categoryId={product.category_id} />
+                {/* Abaixo da descrição: (1) Avaliações, (2) Complete seu pedido,
+                    (3) Você também pode gostar. */}
+                <ProductReviews reviews={product.reviews} />
+                <RelatedSections
+                    productId={product.id}
+                    categoryId={product.category_id}
+                />
+            </div>
         </div>
     );
 }
