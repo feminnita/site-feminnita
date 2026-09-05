@@ -5,6 +5,7 @@ import { Check, Minus, Plus, X } from "lucide-react";
 import { useCart } from "@/src/hooks/cart/useCart";
 import { fetchProductStock } from "@/src/services/productsService";
 import { buildCartItem, normalizeColorKey } from "@/src/utils/product";
+import { recordCartColor, recordColorClick } from "@/src/lib/colorAffinity";
 import { sortSizes } from "@/src/utils/sizes";
 import type { SkuStock, StoreProduct } from "@/src/types/product/products";
 
@@ -146,6 +147,7 @@ export function QuickBuyPanel({
     const selectColor = (c: string) => {
         setColor(c);
         setSize(""); // tamanho pode não existir na nova cor — força reescolher.
+        recordColorClick(c); // sinal de afinidade de cor (sessão)
     };
 
     const handleAdd = () => {
@@ -158,6 +160,7 @@ export function QuickBuyPanel({
                 quantity: qty,
             }),
         );
+        recordCartColor(color); // sinal de afinidade de cor (sessão)
         const label = needColor ? `${qty}x ${size} · ${color}` : `${qty}x ${size}`;
         setAdded((a) => [...a, { id: Date.now(), label }]);
         // NÃO fecha: reseta a seleção e volta pronto pra próxima escolha.

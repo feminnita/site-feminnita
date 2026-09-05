@@ -1,8 +1,9 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ProductCard } from "./ProductCard";
+import { getSignals, pickCarouselVariant } from "../../lib/colorAffinity";
 import type { StoreProduct } from "../../types/product/products";
 
 type Props = {
@@ -23,6 +24,16 @@ export function ProductCarousel({ title, products }: Props) {
     const items = products
         .filter((p) => (p.images?.length ?? 0) > 0 && p.stock > 0)
         .slice(0, 6);
+
+    // Afinidade de cor por sessão: escolhe UMA foto de cor por produto, calculada
+    // uma vez no mount (getSignals lido uma vez). Estável enquanto o carrossel vive.
+    const variants = useMemo(() => {
+        const signals = getSignals();
+        const map = new Map<string, { image: string; colorLabel: string } | null>();
+        for (const p of products) map.set(p.id, pickCarouselVariant(p, signals));
+        return map;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [products]);
 
     const updateArrows = useCallback(() => {
         const el = scrollRef.current;
@@ -89,14 +100,22 @@ export function ProductCarousel({ title, products }: Props) {
                 ref={scrollRef}
                 className="-mx-2 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-                {items.map((product) => (
-                    <div
-                        key={product.id}
-                        className="shrink-0 basis-[66%] snap-start sm:basis-1/2 lg:basis-1/4"
-                    >
-                        <ProductCard product={product} showCode />
-                    </div>
-                ))}
+                {items.map((product) => {
+                    const variant = variants.get(product.id);
+                    return (
+                        <div
+                            key={product.id}
+                            className="shrink-0 basis-[66%] snap-start sm:basis-1/2 lg:basis-1/4"
+                        >
+                            <ProductCard
+                                product={product}
+                                showCode
+                                overrideImage={variant?.image}
+                                colorLabel={variant?.colorLabel}
+                            />
+                        </div>
+                    );
+                })}
             </div>
         </section>
     );

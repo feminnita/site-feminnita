@@ -13,12 +13,22 @@ interface ProductCardProps {
     // Mostra o CÓDIGO acima do nome (foto+código+nome+preço+compra rápida).
     // Off por padrão pra não mexer na vitrine existente; ligado nos carrosséis do produto.
     showCode?: boolean;
+    // Foto de OUTRA COR pra o card (afinidade de sessão, só nos carrosséis do produto).
+    // Quando presente, mostra ESSA foto sem o swap de hover confuso. Sem ela = vitrine intacta.
+    overrideImage?: string;
+    // Nome da cor exibida no card (linha discreta sob o nome). Só com overrideImage.
+    colorLabel?: string;
 }
 
 // Card de VITRINE com COMPRA RÁPIDA dentro do card (QuickBuyPanel).
 // Produto sem estoque NÃO aparece na vitrine (filtrado no backend), então o card
 // sempre mostra "Comprar" — a disponibilidade fina (cor×tamanho) é conferida ao abrir.
-export function ProductCard({ product, showCode = false }: ProductCardProps) {
+export function ProductCard({
+    product,
+    showCode = false,
+    overrideImage,
+    colorLabel,
+}: ProductCardProps) {
     const [isFavorite, setIsFavorite] = useState(false);
     const [open, setOpen] = useState(false);
 
@@ -27,8 +37,10 @@ export function ProductCard({ product, showCode = false }: ProductCardProps) {
 
     const href = `/produto/${product.slug ?? product.id}`;
 
-    const primary = product.images?.[0];
-    const secondary = product.images?.[1];
+    // Com overrideImage (carrossel do produto), o card fixa a foto da cor sugerida
+    // e NÃO faz swap no hover. Sem ele, mantém o comportamento da vitrine (capa + 2ª no hover).
+    const primary = overrideImage ?? product.images?.[0];
+    const secondary = overrideImage ? undefined : product.images?.[1];
 
     return (
         <div className="product-card group relative">
@@ -42,18 +54,21 @@ export function ProductCard({ product, showCode = false }: ProductCardProps) {
                                 alt={product.name}
                                 fill
                                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 50vw"
-                                className="object-contain transition-opacity duration-500 group-hover:opacity-0"
+                                className={`object-contain transition-opacity duration-500 ${secondary ? "group-hover:opacity-0" : ""}`}
                                 quality={90}
                             />
-                            {/* Segunda foto no hover (quando existir) */}
-                            <Image
-                                src={secondary ?? primary}
-                                alt={product.name}
-                                fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 50vw"
-                                className="object-contain opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                                quality={90}
-                            />
+                            {/* Segunda foto no hover — só quando há capa alternativa
+                                (vitrine). Com overrideImage a foto fica fixa, sem swap. */}
+                            {secondary && (
+                                <Image
+                                    src={secondary}
+                                    alt={product.name}
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 50vw"
+                                    className="object-contain opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                                    quality={90}
+                                />
+                            )}
                         </div>
                     ) : (
                         // Placeholder neutro com o NOME do produto — nunca quadrado quebrado.
@@ -102,6 +117,9 @@ export function ProductCard({ product, showCode = false }: ProductCardProps) {
                         {product.name}
                     </h3>
                 </Link>
+                {colorLabel && (
+                    <p className="text-xs text-gray-500">Cor: {colorLabel}</p>
+                )}
                 <div className="flex flex-wrap items-baseline gap-x-2">
                     <p className="text-base font-semibold text-gray-900">
                         R$ {effective.toFixed(2).replace(".", ",")}

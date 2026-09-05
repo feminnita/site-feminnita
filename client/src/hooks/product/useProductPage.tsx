@@ -15,6 +15,7 @@ import {
     trackViewItemAnalytics,
 } from "@/src/utils/analytics";
 import { buildCartItem, getDisplayImages } from "@/src/utils/product";
+import { recordCartColor, recordColorClick } from "@/src/lib/colorAffinity";
 import type { SkuStock, StoreProduct } from "@/src/types/product/products";
 
 export function useProductPage() {
@@ -71,6 +72,7 @@ export function useProductPage() {
     const selectColor = (color: string) => {
         setSelectedColor(color);
         setSelectedImage(0);
+        recordColorClick(color); // sinal de afinidade de cor (sessão)
     };
 
     const selectImage = (index: number) => {
@@ -147,6 +149,7 @@ export function useProductPage() {
         }
 
         cart.add(buildCartItem({ product, selectedSize, selectedColor, quantity }));
+        recordCartColor(selectedColor); // sinal de afinidade de cor (sessão)
         trackAddToCartAnalytics(product, quantity);
         toast.success(`${quantity}x adicionado ao carrinho!`);
     };
