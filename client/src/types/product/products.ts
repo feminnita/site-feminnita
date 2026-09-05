@@ -1,4 +1,3 @@
-import type { ColorSwatch } from "../colors/colors";
 import type { RefObject } from "react";
 
 export type ResolvedSizeChartRow = {
@@ -65,7 +64,6 @@ export type ColorSelectorProps = {
   colors: string[];
   selectedColor: string;
   onSelect: (color: string) => void;
-  swatches: ColorSwatch[];
   colorImages?: Record<string, string[]>;
 };
 
