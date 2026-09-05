@@ -85,6 +85,7 @@ export async function generateMetadata({
         openGraph: {
             title: titleAbsolute,
             description,
+            url: canonical,
             type: "website",
             locale: "pt_BR",
             siteName: SITE_NAME,
