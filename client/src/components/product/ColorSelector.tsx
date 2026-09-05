@@ -1,32 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ImageOff, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { ColorSelectorProps } from "@/src/types/product/products";
-import type { ColorSwatch } from "@/src/types/colors/colors";
 import { normalizeColorKey } from "@/src/utils/product";
 
 const VISIBLE_LIMIT = 8;
 
-// Cascata da miniatura (na ordem que a cliente pediu):
+// Cascata da miniatura — 2 NÍVEIS SÓ (a dona vetou o retalho de tecido na loja):
 // 1) colorImages[cor] → FOTO DA MODELO vestindo a estampa (clicar troca a foto grande)
-// 2) senão, swatch.imageUrl → TECIDO (fallback; clicar só marca e mantém as capas)
-// 3) senão → placeholder "sem foto" com o nome
-// Cada estampa "sobe de nível" conforme a Chris preenche a foto da modelo ao longo das semanas.
+// 2) senão → CHIP DE TEXTO só com o nome (estilo seletor de cor Zara/COS)
+// Cada estampa "sobe de nível" (vira foto) conforme a Chris preenche a foto da modelo.
 function resolveThumb(
     colorImages: Record<string, string[]> | undefined,
-    swatches: ColorSwatch[],
     color: string,
 ): string | null {
+    if (!colorImages) return null;
     const target = normalizeColorKey(color);
-    if (colorImages) {
-        const key = Object.keys(colorImages).find((k) => normalizeColorKey(k) === target);
-        const modelo = key ? colorImages[key]?.[0]?.trim() : undefined;
-        if (modelo) return modelo;
-    }
-    const match = swatches.find((s) => normalizeColorKey(s.name) === target);
-    const tecido = match?.imageUrl?.trim();
-    return tecido ? tecido : null;
+    const key = Object.keys(colorImages).find((k) => normalizeColorKey(k) === target);
+    const modelo = key ? colorImages[key]?.[0]?.trim() : undefined;
+    return modelo ? modelo : null;
 }
 
 type ThumbProps = {
@@ -36,9 +29,28 @@ type ThumbProps = {
     onSelect: (color: string) => void;
 };
 
-// Miniatura da estampa: foto (se houver) ou placeholder neutro — NUNCA quadrado
-// cinza quebrado. O NOME fica sempre embaixo (a compradora pede por nome no WhatsApp).
+// Estampa COM foto: miniatura 72px quadrada, object-cover, nome embaixo.
+// Estampa SEM foto: chip de texto (pílula com borda fina, nome centralizado) — NUNCA
+// quadrado cinza, placeholder ou texto "sem foto". A compradora pede por nome no WhatsApp.
 function EstampaThumb({ color, photo, isSelected, onSelect }: ThumbProps) {
+    if (!photo) {
+        return (
+            <button
+                type="button"
+                onClick={() => onSelect(color)}
+                aria-pressed={isSelected}
+                aria-label={`Estampa ${color}`}
+                title={color}
+                className={`flex min-h-[40px] min-w-[72px] max-w-[160px] items-center justify-center rounded-full border px-4 py-2 text-center text-[12px] leading-tight transition-all ${isSelected
+                        ? "border-[#8C2F39] bg-[#8C2F39]/5 font-semibold text-[#8C2F39] ring-1 ring-[#8C2F39]"
+                        : "border-gray-300 text-gray-700 hover:border-gray-500"
+                    }`}
+            >
+                {color}
+            </button>
+        );
+    }
+
     return (
         <button
             type="button"
@@ -54,19 +66,12 @@ function EstampaThumb({ color, photo, isSelected, onSelect }: ThumbProps) {
                         : "border-gray-200 group-hover:border-gray-400"
                     }`}
             >
-                {photo ? (
-                    <img
-                        src={photo}
-                        alt={color}
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                    />
-                ) : (
-                    <span className="flex h-full w-full flex-col items-center justify-center gap-0.5 bg-gradient-to-br from-gray-50 to-gray-100 px-1 text-gray-400">
-                        <ImageOff size={16} />
-                        <span className="text-[9px] leading-tight">sem foto</span>
-                    </span>
-                )}
+                <img
+                    src={photo}
+                    alt={color}
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                />
             </span>
             <span
                 className={`line-clamp-2 w-full text-[11px] leading-tight ${isSelected ? "font-semibold text-[#8C2F39]" : "text-gray-600"
@@ -82,7 +87,6 @@ export function ColorSelector({
     colors,
     selectedColor,
     onSelect,
-    swatches,
     colorImages,
 }: ColorSelectorProps) {
     const [expanded, setExpanded] = useState(false);
@@ -133,14 +137,14 @@ export function ColorSelector({
             {/* Grade de miniaturas. Ao expandir no desktop, rola por dentro (max-height)
                 para NUNCA empurrar preço/botão de comprar pra fora da tela. */}
             <div
-                className={`flex flex-wrap gap-3 ${expanded ? "max-h-[380px] overflow-y-auto pr-1" : ""
+                className={`flex flex-wrap items-start gap-3 ${expanded ? "max-h-[380px] overflow-y-auto pr-1" : ""
                     }`}
             >
                 {visibleColors.map((color) => (
                     <EstampaThumb
                         key={color}
                         color={color}
-                        photo={resolveThumb(colorImages, swatches, color)}
+                        photo={resolveThumb(colorImages, color)}
                         isSelected={selectedColor === color}
                         onSelect={select}
                     />
@@ -183,12 +187,12 @@ export function ColorSelector({
                             <X size={22} />
                         </button>
                     </div>
-                    <div className="flex flex-1 flex-wrap content-start gap-3 overflow-y-auto p-4">
+                    <div className="flex flex-1 flex-wrap content-start items-start gap-3 overflow-y-auto p-4">
                         {colors.map((color) => (
                             <EstampaThumb
                                 key={color}
                                 color={color}
-                                photo={resolveThumb(colorImages, swatches, color)}
+                                photo={resolveThumb(colorImages, color)}
                                 isSelected={selectedColor === color}
                                 onSelect={select}
                             />

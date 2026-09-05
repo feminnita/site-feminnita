@@ -25,7 +25,6 @@ export default function ProductPage() {
     const {
         product,
         loadingProduct,
-        swatches,
         selectedImage,
         showVideo,
         setShowVideo,
@@ -184,7 +183,6 @@ export default function ProductPage() {
                             colors={product.colors}
                             selectedColor={selectedColor}
                             onSelect={selectColor}
-                            swatches={swatches}
                             colorImages={product.colorImages}
                         />
 
