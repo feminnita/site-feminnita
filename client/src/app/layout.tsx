@@ -18,6 +18,12 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
+  // URL pública do site: resolve canonical e og:url para ABSOLUTOS. Vem da env
+  // NEXT_PUBLIC_SITE_URL — hoje aponta pra Vercel; na virada muda pra
+  // https://feminnita.com.br e todo canonical/og acompanha (1 valor só).
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://site-feminnita-alpha.vercel.app",
+  ),
   title: {
     default: "Feminnita | Pijamas e Moda Íntima no Atacado",
     template: "%s | Feminnita",
