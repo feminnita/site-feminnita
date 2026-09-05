@@ -22,14 +22,19 @@ import { buildTree, cleanCategoryTree } from "../../utils/categories";
 import type { CategoryNode } from "../../types/categories/categories";
 import { CategoryDropdown, MobileCategoryAccordion } from "./CategoryNav";
 
-// Abas de categoria no topo. Cada uma só aparece se a categoria tiver >=1 produto
-// (verificado ao vivo) — aba que leva a página vazia é pior que aba faltando.
-// Assim MAIS VENDIDOS e OUTLET nascem escondidas e aparecem sozinhas no minuto em
+// Marcadores (flags) do produto — faixa própria abaixo da barra principal, separada
+// dos menus de categoria. Cada um só aparece se houver >=1 produto com aquela flag
+// (verificado ao vivo) — faixa que leva a página vazia é pior que faixa faltando.
+// Assim MAIS VENDIDOS e OUTLET nascem escondidos e aparecem sozinhos no minuto em
 // que a cliente marcar a primeira peça, sem deploy. LANÇAMENTOS tem produto, fica.
-const CATEGORY_TABS = [
-  { slug: "lancamentos", label: "LANÇAMENTOS" },
-  { slug: "mais-vendidos", label: "MAIS VENDIDOS" },
-  { slug: "outlet", label: "OUTLET" },
+const MARKER_TABS: {
+  flag: "is_new" | "is_bestseller" | "is_outlet";
+  href: string;
+  label: string;
+}[] = [
+  { flag: "is_new", href: "/lancamentos", label: "LANÇAMENTOS" },
+  { flag: "is_bestseller", href: "/mais-vendidos", label: "MAIS VENDIDOS" },
+  { flag: "is_outlet", href: "/outlet", label: "OUTLET" },
 ];
 
 export function Header() {
@@ -40,9 +45,9 @@ export function Header() {
   const [search, setSearch] = useState("");
   const [categoryTree, setCategoryTree] = useState<CategoryNode[]>([]);
   // Começa só com LANÇAMENTOS (tem produto) para não piscar; o efeito confirma
-  // ao vivo e adiciona MAIS VENDIDOS / OUTLET se tiverem >=1 produto.
-  const [navTabs, setNavTabs] = useState<{ href: string; label: string }[]>([
-    { href: "/categoria/lancamentos", label: "LANÇAMENTOS" },
+  // ao vivo e adiciona MAIS VENDIDOS / OUTLET se tiverem >=1 produto com a flag.
+  const [markerTabs, setMarkerTabs] = useState<{ href: string; label: string }[]>([
+    { href: "/lancamentos", label: "LANÇAMENTOS" },
   ]);
 
   useEffect(() => {
@@ -54,18 +59,18 @@ export function Header() {
   useEffect(() => {
     let alive = true;
     Promise.all(
-      CATEGORY_TABS.map(async (t) => {
+      MARKER_TABS.map(async (t) => {
         try {
-          const prods = await fetchProducts({ category_slug: t.slug, limit: 1 });
+          const prods = await fetchProducts({ flag: t.flag, limit: 1 });
           return prods.length > 0
-            ? { href: `/categoria/${t.slug}`, label: t.label }
+            ? { href: t.href, label: t.label }
             : null;
         } catch {
           return null;
         }
       }),
     ).then((res) => {
-      if (alive) setNavTabs(res.filter((x): x is { href: string; label: string } => x !== null));
+      if (alive) setMarkerTabs(res.filter((x): x is { href: string; label: string } => x !== null));
     });
     return () => {
       alive = false;
@@ -132,12 +137,6 @@ export function Header() {
                   </div>
                 )}
               </div>
-
-              {navTabs.map((link) => (
-                <Link key={link.href} href={link.href} className="hover:underline">
-                  {link.label}
-                </Link>
-              ))}
             </nav>
           </div>
 
@@ -259,18 +258,20 @@ export function Header() {
               onNavigate={() => setMenuOpen(false)}
             />
 
-            <div className="mt-1 border-t pt-2">
-              {navTabs.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="block py-2 text-sm font-medium text-gray-700 hover:text-[#8C2F39]"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+            {markerTabs.length > 0 && (
+              <div className="mt-1 border-t pt-2">
+                {markerTabs.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="block py-2 text-sm font-semibold uppercase tracking-wide text-[#8C2F39] hover:underline"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            )}
 
             <div className="mt-1 flex gap-1 border-t pt-3 sm:hidden">
               <Link
@@ -305,6 +306,25 @@ export function Header() {
           </nav>
         )}
       </div>
+
+      {/* Faixa dos MARCADORES — segunda barra própria, largura total, centralizada e
+          destacada dos menus de categoria. Só no desktop (mobile usa o menu lateral).
+          Cada marcador só aparece com >=1 produto naquela flag (checagem ao vivo). */}
+      {markerTabs.length > 0 && (
+        <div className="hidden border-t border-gray-200 bg-[#8C2F39]/[0.06] lg:block">
+          <nav className="container mx-auto flex items-center justify-center gap-10 px-4 py-2.5 text-xs font-semibold uppercase tracking-widest">
+            {markerTabs.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-[#8C2F39] transition-colors hover:text-[#7a2832] hover:underline"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

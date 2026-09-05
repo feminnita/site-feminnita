@@ -4,12 +4,14 @@ import type { SkuStock, StoreProduct } from "../types/product/products";
 export async function fetchProducts(options?: {
     featured?: boolean;
     category_slug?: string;
+    flag?: "is_new" | "is_bestseller" | "is_outlet";
     limit?: number;
     q?: string;
 }): Promise<StoreProduct[]> {
     const params = new URLSearchParams();
     if (options?.featured) params.set("featured", "true");
     if (options?.category_slug) params.set("category", options.category_slug);
+    if (options?.flag) params.set("flag", options.flag);
     if (options?.limit) params.set("limit", String(options.limit));
     if (options?.q) params.set("q", options.q);
 

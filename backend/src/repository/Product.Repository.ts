@@ -2,9 +2,15 @@ import { and, desc, eq, ilike, inArray, or, sql, type SQL } from 'drizzle-orm';
 import { db } from '../config/db';
 import { products, categories, productsSkus, productsColors, productColorImages } from '../db/schema';
 
-export function findActiveProducts(options: { featured?: boolean; categorySlug?: string; limit?: number; q?: string }) {
+export function findActiveProducts(options: { featured?: boolean; categorySlug?: string; flag?: 'is_new' | 'is_bestseller' | 'is_outlet'; limit?: number; q?: string }) {
     const conditions: SQL<unknown>[] = [eq(products.active, true)];
     if (options.featured) conditions.push(eq(products.featured, true));
+    // Marcadores (flags) do produto: Lançamento / Mais Vendido / Outlet. Substituem as
+    // categorias homônimas (agora desativadas) como fonte das fileiras da home e das
+    // páginas /lancamentos, /mais-vendidos, /outlet.
+    if (options.flag === 'is_new') conditions.push(eq(products.isNew, true));
+    else if (options.flag === 'is_bestseller') conditions.push(eq(products.isBestseller, true));
+    else if (options.flag === 'is_outlet') conditions.push(eq(products.isOutlet, true));
     // Categoria via LIGAÇÃO M:N (product_categories): um produto pode estar em várias
     // categorias. O backfill copiou o category_id antigo pra ligação, então filtrar pela
     // ligação retorna tanto os antigos quanto os novos. (Antes: eq(products.categoryId).)

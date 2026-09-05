@@ -5,6 +5,9 @@ export async function list(req: Request, res: Response) {
     res.json(await ProductService.listProducts({
         featured: req.query.featured === 'true',
         categorySlug: typeof req.query.category === 'string' ? req.query.category : undefined,
+        flag: req.query.flag === 'is_new' || req.query.flag === 'is_bestseller' || req.query.flag === 'is_outlet'
+            ? req.query.flag
+            : undefined,
         limit: req.query.limit ? Number(req.query.limit) : undefined,
         q: typeof req.query.q === 'string' ? req.query.q : undefined,
     }));
