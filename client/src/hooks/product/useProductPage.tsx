@@ -78,6 +78,44 @@ export function useProductPage() {
         setSelectedImage(index);
     };
 
+    const colorMatches = (skuColor: string | null | undefined, color: string) =>
+        !color || !skuColor || skuColor.toLowerCase() === color.toLowerCase();
+
+    // Cores com AO MENOS uma variação disponível. Cor cujas variações TODAS zeraram
+    // não aparece. Sem SKUs carregados (loading/produto em recadastro) => mostra todas.
+    const availableColors = !product
+        ? []
+        : skus.length === 0
+            ? product.colors
+            : product.colors.filter((c) =>
+                  skus.some((s) => s.availableQty > 0 && colorMatches(s.color, c)),
+              );
+
+    // Tamanhos exibidos para a cor selecionada. Dois casos que a cliente lê diferente:
+    //  - SKU existe mas está SEM ESTOQUE (availableQty=0)  => SOME da lista.
+    //  - NÃO há SKU pra esse par cor×tamanho               => segue RISCADO (via SizeSelector).
+    // Mantém disponíveis (clicáveis) + os sem SKU (riscados); remove os zerados.
+    const visibleSizes = !product
+        ? []
+        : skus.length === 0
+            ? product.sizes
+            : product.sizes.filter((sz) => {
+                  const sku = skus.find(
+                      (s) => s.size === sz && colorMatches(s.color, selectedColor),
+                  );
+                  return !(sku && sku.availableQty <= 0);
+              });
+
+    // Se a cor selecionada ficou sem estoque (saiu de availableColors), pula pra
+    // primeira cor disponível — nunca deixa preso numa cor sem tamanho pra comprar.
+    useEffect(() => {
+        if (!product || skus.length === 0) return;
+        if (availableColors.length > 0 && !availableColors.includes(selectedColor)) {
+            setSelectedColor(availableColors[0]);
+            setSelectedImage(0);
+        }
+    }, [product, skus, availableColors, selectedColor]);
+
     const availableFor = (size: string, color: string): number | null => {
         if (skus.length === 0) return null;
 
@@ -115,18 +153,19 @@ export function useProductPage() {
 
     const displayImages = product ? getDisplayImages(product, selectedColor) : [];
 
-    // Esgotado (link direto/Google): sem estoque total OU, com os SKUs já carregados,
-    // nenhum com disponibilidade. A página segue visível (fotos/descrição), mas o CTA
-    // de comprar é trocado por um aviso — nunca um botão de compra quebrado.
+    // Esgotado (link direto/Google) vale SÓ quando o produto TEM variações e TODAS
+    // estão zeradas. Produto em recadastro (nenhuma variação => skus vazio) NÃO é
+    // esgotado. A página segue visível (fotos/descrição), mas o CTA de comprar é
+    // trocado por um aviso — nunca um botão de compra quebrado.
     const soldOut =
-        !!product &&
-        (product.stock <= 0 ||
-            (skus.length > 0 && skus.every((s) => s.availableQty <= 0)));
+        !!product && skus.length > 0 && skus.every((s) => s.availableQty <= 0);
 
     return {
         product,
         loadingProduct,
         soldOut,
+        availableColors,
+        visibleSizes,
         skus,
         swatches,
         selectedImage,

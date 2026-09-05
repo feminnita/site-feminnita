@@ -63,13 +63,16 @@ export async function listProducts(options: { featured?: boolean; categorySlug?:
         ProductRepository.findColorImagesByProductIds(ids),
     ]);
 
-    // Regra de vitrine (redefinida pela dona): produto sem estoque disponível NÃO
-    // aparece nas grades (home, categoria, busca, marcadores). Ele segue ATIVO no
-    // painel; é só a listagem da loja que exige stock > 0. Filtro de LEITURA — não
-    // altera o banco. O produto volta sozinho à vitrine quando entrar estoque.
+    // Regra de vitrine (refinada pela dona): o que some é a VARIAÇÃO, não o produto.
+    // Um produto só sai da grade quando TEM variações E TODAS estão zeradas (não
+    // sobra nada pra comprar). Produto SEM nenhuma variação cadastrada (em recadastro)
+    // NÃO é esgotado — permanece visível. Regra: manter se (nenhuma variante) OU
+    // (algum disponível > 0); esconder só se (tem variantes E todas zeradas).
+    // Filtro de LEITURA — não altera o banco; volta sozinho quando entrar estoque.
+    const productsWithVariants = new Set(variants.map((v) => v.productId));
     return rows
         .map((row) => mapProduct(row, variants, colorImageRows))
-        .filter((product) => product.stock > 0);
+        .filter((product) => !productsWithVariants.has(product.id) || product.stock > 0);
 }
 
 export async function getProduct(idOrSlug: string) {

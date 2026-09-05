@@ -26,6 +26,8 @@ export default function ProductPage() {
         product,
         loadingProduct,
         soldOut,
+        availableColors,
+        visibleSizes,
         selectedImage,
         showVideo,
         setShowVideo,
@@ -174,7 +176,7 @@ export default function ProductPage() {
                                     </div>
                                     <SizeSelector
                                         productId={product.id}
-                                        sizes={product.sizes}
+                                        sizes={visibleSizes}
                                         selectedSize={selectedSize}
                                         selectedColor={selectedColor}
                                         skus={skus}
@@ -199,7 +201,7 @@ export default function ProductPage() {
                             fica no fim da coluna pra não empurrar tamanho/comprar pra baixo.
                             Clicar troca a foto grande (getDisplayImages). */}
                         <ColorSelector
-                            colors={product.colors}
+                            colors={availableColors}
                             selectedColor={selectedColor}
                             onSelect={selectColor}
                             colorImages={product.colorImages}

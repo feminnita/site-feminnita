@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Minus, Plus, X } from "lucide-react";
 import { useCart } from "@/src/hooks/cart/useCart";
 import { fetchProductStock } from "@/src/services/productsService";
@@ -91,28 +91,54 @@ export function QuickBuyPanel({
         };
     }, [onClose]);
 
-    const orderedSizes = useMemo(() => sortSizes(product.sizes), [product.sizes]);
+    const colorMatches = (skuColor: string | null | undefined, c: string) =>
+        !c || !skuColor || skuColor.toLowerCase() === c.toLowerCase();
 
-    // MESMA regra do SizeSelector: procura o sku por size+color; indisponível = riscado.
+    // MESMA regra do SizeSelector: procura o sku por size+color; sem SKU pro par = riscado.
     const isSizeAvailable = (s: string): boolean => {
         if (skus.length === 0) return true;
-        const sku = skus.find((k) => {
-            const sizeMatch = k.size === s;
-            const colorMatch =
-                !color || !k.color || k.color.toLowerCase() === color.toLowerCase();
-            return sizeMatch && colorMatch;
-        });
+        const sku = skus.find((k) => k.size === s && colorMatches(k.color, color));
         return Boolean(sku && sku.availableQty > 0);
     };
 
-    const manyColors = product.colors.length >= MANY_COLORS;
+    // Cores com AO MENOS uma variação disponível (cor toda zerada some). Fallback: todas.
+    const availableColors =
+        skus.length === 0
+            ? product.colors
+            : product.colors.filter((c) =>
+                  skus.some((s) => s.availableQty > 0 && colorMatches(s.color, c)),
+              );
+
+    // Tamanhos da cor selecionada: SOME quem tem SKU zerado; mantém disponíveis
+    // (clicáveis) e os sem SKU pra essa cor (riscados via isSizeAvailable).
+    const visibleSizes =
+        skus.length === 0
+            ? product.sizes
+            : product.sizes.filter((sz) => {
+                  const sku = skus.find(
+                      (s) => s.size === sz && colorMatches(s.color, color),
+                  );
+                  return !(sku && sku.availableQty <= 0);
+              });
+    const orderedSizes = sortSizes(visibleSizes);
+
+    // Se a cor selecionada zerou por completo, pula pra primeira cor disponível.
+    useEffect(() => {
+        if (skus.length === 0) return;
+        if (availableColors.length > 0 && !availableColors.includes(color)) {
+            setColor(availableColors[0]);
+            setSize("");
+        }
+    }, [skus, availableColors, color]);
+
+    const manyColors = availableColors.length >= MANY_COLORS;
     const shownColors = manyColors
         ? query.trim()
-            ? product.colors.filter((c) =>
+            ? availableColors.filter((c) =>
                   normalizeColorKey(c).includes(normalizeColorKey(query)),
               )
-            : product.colors.slice(0, COLLAPSED_COLORS)
-        : product.colors;
+            : availableColors.slice(0, COLLAPSED_COLORS)
+        : availableColors;
 
     const needColor = product.colors.length > 0;
     const canAdd = Boolean(size) && (!needColor || Boolean(color));
@@ -184,7 +210,7 @@ export function QuickBuyPanel({
             ) : (
                 <>
                     {/* Estampas / cores */}
-                    {product.colors.length > 0 && (
+                    {availableColors.length > 0 && (
                         <div className="mb-4">
                             <label className="mb-2 block text-sm font-medium text-gray-800">
                                 Estampa:{" "}
@@ -197,7 +223,7 @@ export function QuickBuyPanel({
                                     inputMode="search"
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
-                                    placeholder={`Buscar entre ${product.colors.length} estampas…`}
+                                    placeholder={`Buscar entre ${availableColors.length} estampas…`}
                                     className="mb-3 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-[#8C2F39] focus:outline-none"
                                 />
                             )}
