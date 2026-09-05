@@ -75,7 +75,15 @@ export function getDisplayImages(
     const target = normalizeColorKey(selectedColor);
     const key = Object.keys(map).find((k) => normalizeColorKey(k) === target);
     const colorSpecific = key ? map[key] : undefined;
-    if (colorSpecific?.length) return colorSpecific;
+    if (colorSpecific?.length) {
+      // 2+ fotos da cor: a galeria vira a da cor. 1 foto só: mostra a foto da
+      // cor primeiro e MANTÉM as capas do produto (sem duplicar).
+      if (colorSpecific.length >= 2) return colorSpecific;
+      return [
+        colorSpecific[0],
+        ...product.images.filter((i) => i !== colorSpecific[0]),
+      ];
+    }
   }
   return product.images;
 }
