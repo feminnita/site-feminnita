@@ -18,6 +18,7 @@ import { useAuth } from "../../hooks/count/useAuth";
 import { useCart } from "../../hooks/cart/useCart";
 import { fetchCategories } from "../../services/categoriesService";
 import { buildTree, cleanCategoryTree } from "../../utils/categories";
+import { recordSearch } from "../../lib/colorAffinity";
 import type { CategoryNode } from "../../types/categories/categories";
 import { CategoryDropdown, MobileCategoryAccordion } from "./CategoryNav";
 
@@ -58,6 +59,8 @@ export function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const q = search.trim();
+    // Sinal de preferência de cor por sessão (usado nos carrosséis do produto).
+    if (q) recordSearch(q);
     setMenuOpen(false);
     router.push(q ? `/produtos?q=${encodeURIComponent(q)}` : "/produtos");
   };

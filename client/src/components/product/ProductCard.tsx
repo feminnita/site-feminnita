@@ -13,12 +13,23 @@ interface ProductCardProps {
     // Mostra o CÓDIGO acima do nome (foto+código+nome+preço+compra rápida).
     // Off por padrão pra não mexer na vitrine existente; ligado nos carrosséis do produto.
     showCode?: boolean;
+    // Foto de OUTRA COR pra este card (não a capa) — usada só nos carrosséis da página
+    // de produto pra mostrar o sugerido na cor que a cliente demonstrou interesse.
+    // SEM esta prop = vitrine intacta (nada muda).
+    overrideImage?: string;
+    // Nome da cor mostrada — aparece como linha discreta "Cor: {colorLabel}" no card.
+    colorLabel?: string;
 }
 
 // Card de VITRINE com COMPRA RÁPIDA dentro do card (QuickBuyPanel).
 // Produto sem estoque NÃO aparece na vitrine (filtrado no backend), então o card
 // sempre mostra "Comprar" — a disponibilidade fina (cor×tamanho) é conferida ao abrir.
-export function ProductCard({ product, showCode = false }: ProductCardProps) {
+export function ProductCard({
+    product,
+    showCode = false,
+    overrideImage,
+    colorLabel,
+}: ProductCardProps) {
     const [isFavorite, setIsFavorite] = useState(false);
     const [open, setOpen] = useState(false);
 
@@ -27,8 +38,10 @@ export function ProductCard({ product, showCode = false }: ProductCardProps) {
 
     const href = `/produto/${product.slug ?? product.id}`;
 
-    const primary = product.images?.[0];
-    const secondary = product.images?.[1];
+    // Com cor alternativa (carrossel do produto): a foto da cor é a principal E também
+    // a do hover — sem swap confuso. Sem override: vitrine normal (capa + 2ª no hover).
+    const primary = overrideImage ?? product.images?.[0];
+    const secondary = overrideImage ?? product.images?.[1];
 
     return (
         <div className="product-card group relative">
@@ -102,6 +115,11 @@ export function ProductCard({ product, showCode = false }: ProductCardProps) {
                         {product.name}
                     </h3>
                 </Link>
+                {colorLabel && (
+                    <p className="text-xs text-gray-500">
+                        Cor: <span className="text-gray-700">{colorLabel}</span>
+                    </p>
+                )}
                 <div className="flex flex-wrap items-baseline gap-x-2">
                     <p className="text-base font-semibold text-gray-900">
                         R$ {effective.toFixed(2).replace(".", ",")}
