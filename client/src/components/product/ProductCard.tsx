@@ -4,27 +4,22 @@ import { Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { QuickBuyPanel } from "./QuickBuyPanel";
 import { effectivePrice, hasActiveSale, pixFromPrice } from "@/src/utils/pricing";
+import type { StoreProduct } from "@/src/types/product/products";
 
 interface ProductCardProps {
-    product: {
-        id: string;
-        code: string;
-        name: string;
-        slug?: string;
-        price: number;
-        salePrice?: number | null;
-        images: string[];
-        colorImages?: Record<string, string[]>;
-        colors: string[];
-        sizes: string[];
-    };
+    product: StoreProduct;
 }
 
-// Card de VITRINE (minimalista): foto grande 3:4, nome e preço.
-// Cor, tamanho e quantidade são escolhidos na PÁGINA DO PRODUTO — não aqui.
+// Número do WhatsApp da loja (mesmo do rodapé em app/page.tsx e do WhatsAppButton).
+const WHATSAPP = "5522992810707";
+
+// Card de VITRINE com COMPRA RÁPIDA dentro do card (QuickBuyPanel).
+// Sem estoque/tamanho => "Avise-me" (WhatsApp), nunca botão de compra morto.
 export function ProductCard({ product }: ProductCardProps) {
     const [isFavorite, setIsFavorite] = useState(false);
+    const [open, setOpen] = useState(false);
 
     const effective = effectivePrice(product.price, product.salePrice);
     const onSale = hasActiveSale(product.price, product.salePrice);
@@ -34,13 +29,18 @@ export function ProductCard({ product }: ProductCardProps) {
     const primary = product.images?.[0];
     const secondary = product.images?.[1];
 
+    // Só há o que comprar se tem estoque total E tamanho cadastrado.
+    // A disponibilidade fina (sku por cor×tamanho) é conferida ao abrir o painel.
+    const hasStock = product.stock > 0 && product.sizes.length > 0;
+
+    const waHref = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
+        `Olá! Tenho interesse no produto ${product.name}. Quando volta ao estoque?`,
+    )}`;
+
     return (
         <div className="product-card group relative">
             <Link href={href} className="block">
                 {/* Foto 3:4 */}
-                {/* Fundo branco + respiro; object-contain nao corta nem amplia
-                    (catalogo tem proporcoes mistas). Volta a object-contain quando as
-                    fotos entrarem padronizadas em 1200x1600 (3:4). */}
                 <div className="relative aspect-[3/4] overflow-hidden bg-white p-2">
                     {primary ? (
                         <div className="relative h-full w-full">
@@ -63,10 +63,10 @@ export function ProductCard({ product }: ProductCardProps) {
                             />
                         </div>
                     ) : (
-                        // Placeholder neutro com a marca — discreto, sem ícone de imagem quebrada.
-                        <div className="flex h-full w-full items-center justify-center bg-[#F3EEE9]">
-                            <span className="text-lg font-light tracking-[0.2em] text-[#8C2F39]/40">
-                                Feminnita
+                        // Placeholder neutro com o NOME do produto — nunca quadrado quebrado.
+                        <div className="flex h-full w-full items-center justify-center bg-[#F3EEE9] p-4">
+                            <span className="line-clamp-4 text-center text-sm font-light tracking-wide text-[#8C2F39]/60">
+                                {product.name}
                             </span>
                         </div>
                     )}
@@ -77,11 +77,8 @@ export function ProductCard({ product }: ProductCardProps) {
                         </span>
                     )}
 
-                    {/* Ações no hover, sobre a foto */}
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex translate-y-2 items-center gap-2 p-3 opacity-0 transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
-                        <span className="flex-1 rounded-full bg-[#8C2F39] py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-[#FAF6F2] shadow-md transition-colors group-hover:bg-[#7a2832]">
-                            Comprar
-                        </span>
+                    {/* Favoritar no hover, sobre a foto */}
+                    <div className="pointer-events-none absolute right-3 top-3 opacity-0 transition-opacity duration-300 group-hover:pointer-events-auto group-hover:opacity-100">
                         <button
                             type="button"
                             aria-label="Favoritar"
@@ -120,7 +117,34 @@ export function ProductCard({ product }: ProductCardProps) {
                 <p className="text-xs text-gray-500">
                     R$ {pixFromPrice(effective).toFixed(2).replace(".", ",")} no PIX
                 </p>
+
+                {/* CTA persistente (mobile-first): grande, sempre visível ao toque. */}
+                {hasStock ? (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setOpen(true);
+                        }}
+                        className="mt-2 w-full rounded-full bg-[#8C2F39] py-3 text-sm font-semibold uppercase tracking-wide text-[#FAF6F2] transition-colors hover:bg-[#7a2832]"
+                    >
+                        Comprar
+                    </button>
+                ) : (
+                    <a
+                        href={waHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="mt-2 block w-full rounded-full border-2 border-[#25D366] py-3 text-center text-sm font-semibold uppercase tracking-wide text-[#128C4B] transition-colors hover:bg-[#25D366]/10"
+                    >
+                        Avise-me
+                    </a>
+                )}
             </div>
+
+            {open && <QuickBuyPanel product={product} onClose={() => setOpen(false)} />}
         </div>
     );
 }
