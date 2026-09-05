@@ -10,6 +10,39 @@ export function toEmbedUrl(url: string): string {
   return url;
 }
 
+// Normaliza a descrição (HTML de rich text OU texto puro com quebras de linha)
+// para leitura: parágrafos de verdade e listas com marcador real. Conteúdo é
+// escrito no painel (confiável) e já era injetado via dangerouslySetInnerHTML.
+// Se já vier com <li>, não mexe (só o CSS cuida). Em erro, devolve o original.
+export function formatDescriptionHtml(raw: string | null | undefined): string {
+  if (!raw) return "";
+  if (/<li\b/i.test(raw)) return raw; // já é lista real
+  try {
+    const text = raw
+      .replace(/<\/p>\s*<p>/gi, "\n\n")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/?p>/gi, "")
+      .replace(/&nbsp;/gi, " ")
+      .trim();
+    const isBullet = (l: string) => /^\s*[•\-*▪●·]\s+/.test(l);
+    const strip = (l: string) => l.replace(/^\s*[•\-*▪●·]\s+/, "").trim();
+    const out: string[] = [];
+    for (const block of text.split(/\n{2,}/).map((b) => b.trim()).filter(Boolean)) {
+      const lines = block.split(/\n/).map((l) => l.trim()).filter(Boolean);
+      const bullets = lines.filter(isBullet);
+      if (bullets.length >= 2 && bullets.length >= lines.length - 1) {
+        if (!isBullet(lines[0])) out.push(`<p>${lines[0]}</p>`); // cabeçalho do grupo
+        out.push(`<ul>${lines.filter(isBullet).map((l) => `<li>${strip(l)}</li>`).join("")}</ul>`);
+      } else {
+        out.push(`<p>${lines.join("<br>")}</p>`);
+      }
+    }
+    return out.join("") || raw;
+  } catch {
+    return raw;
+  }
+}
+
 // Distingue o tipo de vídeo do produto pela URL. O caminho padrão agora é um
 // arquivo MP4 (Cloudinary) que toca inline na galeria como se fosse foto —
 // "youtube" fica só de compatibilidade para produtos antigos que já usam link.

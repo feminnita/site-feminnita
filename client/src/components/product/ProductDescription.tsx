@@ -3,6 +3,8 @@
 import { useState, useLayoutEffect, useRef } from "react";
 import type { ProductDescriptionProps } from "../../types/product/products";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { formatDescriptionHtml } from "../../utils/product";
+import styles from "./ProductDescription.module.css";
 
 const COLLAPSED_HEIGHT = 176;
 
@@ -21,18 +23,22 @@ export function ProductDescription({
     }, [description]);
 
     return (
-        <div className="mt-16 max-w-4xl">
-            <h2 className="mb-6 text-2xl font-light">Descrição do Produto</h2>
-            <div className="prose max-w-none">
+        <div className="mt-16 max-w-3xl">
+            <h2 className="mb-5 text-xl font-medium text-gray-900">
+                Descrição do Produto
+            </h2>
+            <div>
                 {description ? (
                     <div
                         ref={contentRef}
-                        className="duration-600 overflow-hidden whitespace-pre-line text-lg font-medium leading-relaxed text-gray-800 transition-[max-height] ease-in-out"
+                        className={`${styles.richText} overflow-hidden transition-[max-height] duration-500 ease-in-out`}
                         style={{ maxHeight: expanded ? fullHeight : COLLAPSED_HEIGHT }}
-                        dangerouslySetInnerHTML={{ __html: description }}
+                        dangerouslySetInnerHTML={{
+                            __html: formatDescriptionHtml(description),
+                        }}
                     />
                 ) : (
-                    <p className="text-lg font-medium leading-relaxed text-gray-800">
+                    <p className={styles.richText}>
                         {productName} — conforto e estilo para o seu dia a dia. Adicione uma
                         descrição completa deste produto no painel administrativo.
                     </p>
