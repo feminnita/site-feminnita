@@ -102,7 +102,8 @@ export default function CategoryPage() {
                     </div>
                 ) : (
                     <div className="py-16 text-center text-gray-400">
-                        <p className="text-xl">Nenhum produto nesta categoria</p>
+                        <p className="text-xl">Nenhum produto disponível no momento</p>
+                        <p className="mt-2 text-sm">Volte em breve.</p>
                     </div>
                 )}
             </div>

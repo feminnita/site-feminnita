@@ -12,11 +12,9 @@ interface ProductCardProps {
     product: StoreProduct;
 }
 
-// Número do WhatsApp da loja (mesmo do rodapé em app/page.tsx e do WhatsAppButton).
-const WHATSAPP = "5522992810707";
-
 // Card de VITRINE com COMPRA RÁPIDA dentro do card (QuickBuyPanel).
-// Sem estoque/tamanho => "Avise-me" (WhatsApp), nunca botão de compra morto.
+// Produto sem estoque NÃO aparece na vitrine (filtrado no backend), então o card
+// sempre mostra "Comprar" — a disponibilidade fina (cor×tamanho) é conferida ao abrir.
 export function ProductCard({ product }: ProductCardProps) {
     const [isFavorite, setIsFavorite] = useState(false);
     const [open, setOpen] = useState(false);
@@ -28,14 +26,6 @@ export function ProductCard({ product }: ProductCardProps) {
 
     const primary = product.images?.[0];
     const secondary = product.images?.[1];
-
-    // Só há o que comprar se tem estoque total E tamanho cadastrado.
-    // A disponibilidade fina (sku por cor×tamanho) é conferida ao abrir o painel.
-    const hasStock = product.stock > 0 && product.sizes.length > 0;
-
-    const waHref = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
-        `Olá! Tenho interesse no produto ${product.name}. Quando volta ao estoque?`,
-    )}`;
 
     return (
         <div className="product-card group relative">
@@ -119,29 +109,17 @@ export function ProductCard({ product }: ProductCardProps) {
                 </p>
 
                 {/* CTA persistente (mobile-first): grande, sempre visível ao toque. */}
-                {hasStock ? (
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setOpen(true);
-                        }}
-                        className="mt-2 w-full rounded-full bg-[#8C2F39] py-3 text-sm font-semibold uppercase tracking-wide text-[#FAF6F2] transition-colors hover:bg-[#7a2832]"
-                    >
-                        Comprar
-                    </button>
-                ) : (
-                    <a
-                        href={waHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="mt-2 block w-full rounded-full border-2 border-[#25D366] py-3 text-center text-sm font-semibold uppercase tracking-wide text-[#128C4B] transition-colors hover:bg-[#25D366]/10"
-                    >
-                        Avise-me
-                    </a>
-                )}
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setOpen(true);
+                    }}
+                    className="mt-2 w-full rounded-full bg-[#8C2F39] py-3 text-sm font-semibold uppercase tracking-wide text-[#FAF6F2] transition-colors hover:bg-[#7a2832]"
+                >
+                    Comprar
+                </button>
             </div>
 
             {open && <QuickBuyPanel product={product} onClose={() => setOpen(false)} />}

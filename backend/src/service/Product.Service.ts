@@ -63,7 +63,13 @@ export async function listProducts(options: { featured?: boolean; categorySlug?:
         ProductRepository.findColorImagesByProductIds(ids),
     ]);
 
-    return rows.map((row) => mapProduct(row, variants, colorImageRows));
+    // Regra de vitrine (redefinida pela dona): produto sem estoque disponível NÃO
+    // aparece nas grades (home, categoria, busca, marcadores). Ele segue ATIVO no
+    // painel; é só a listagem da loja que exige stock > 0. Filtro de LEITURA — não
+    // altera o banco. O produto volta sozinho à vitrine quando entrar estoque.
+    return rows
+        .map((row) => mapProduct(row, variants, colorImageRows))
+        .filter((product) => product.stock > 0);
 }
 
 export async function getProduct(idOrSlug: string) {

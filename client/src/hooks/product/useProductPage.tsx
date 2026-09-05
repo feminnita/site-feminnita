@@ -115,9 +115,18 @@ export function useProductPage() {
 
     const displayImages = product ? getDisplayImages(product, selectedColor) : [];
 
+    // Esgotado (link direto/Google): sem estoque total OU, com os SKUs já carregados,
+    // nenhum com disponibilidade. A página segue visível (fotos/descrição), mas o CTA
+    // de comprar é trocado por um aviso — nunca um botão de compra quebrado.
+    const soldOut =
+        !!product &&
+        (product.stock <= 0 ||
+            (skus.length > 0 && skus.every((s) => s.availableQty <= 0)));
+
     return {
         product,
         loadingProduct,
+        soldOut,
         skus,
         swatches,
         selectedImage,
