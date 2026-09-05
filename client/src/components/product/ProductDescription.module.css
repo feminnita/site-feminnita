@@ -1,0 +1,49 @@
+/* Régua de leitura da descrição (referência: useange.com.br). Corpo 16px/1.6,
+   cinza escuro (não preto), largura máxima ~68ch, parágrafos com respiro e
+   listas com marcador de verdade. Estiliza o HTML injetado (rich text). */
+.richText {
+    max-width: 68ch;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #374151; /* cinza escuro, não preto puro */
+    font-weight: 400;
+}
+.richText p {
+    margin: 0 0 1em;
+}
+.richText p:last-child {
+    margin-bottom: 0;
+}
+.richText ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+    margin: 0 0 1em;
+}
+.richText ol {
+    list-style: decimal;
+    padding-left: 1.5rem;
+    margin: 0 0 1em;
+}
+.richText li {
+    margin: 0.35em 0;
+    padding-left: 0.15rem;
+}
+.richText strong,
+.richText b {
+    font-weight: 600;
+    color: #1f2937;
+}
+.richText a {
+    color: #8c2f39;
+    text-decoration: underline;
+}
+.richText h1,
+.richText h2,
+.richText h3,
+.richText h4 {
+    font-size: 1.0625rem; /* 17px — subtítulos internos, discretos */
+    font-weight: 600;
+    color: #1f2937;
+    margin: 1.25em 0 0.4em;
+    line-height: 1.4;
+}

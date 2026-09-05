@@ -93,7 +93,7 @@ export function SizeChartModal({ chart, onClose }: Props) {
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="mb-4 flex items-start justify-between gap-4">
-                    <h2 className="text-lg font-semibold text-gray-900">
+                    <h2 className="text-xl font-semibold text-gray-900">
                         {chart.name || "Tabela de medidas"}
                     </h2>
                     <button
@@ -119,7 +119,7 @@ export function SizeChartModal({ chart, onClose }: Props) {
                 )}
 
                 <div className="mt-6 overflow-x-auto">
-                    <table className="w-full border-collapse text-sm">
+                    <table className="w-full border-collapse text-[15px] leading-relaxed">
                         <thead>
                             <tr className="border-b-2 border-[#8C2F39] text-left">
                                 <th className="px-2 py-2 font-semibold text-gray-900">Tamanho</th>
@@ -138,10 +138,10 @@ export function SizeChartModal({ chart, onClose }: Props) {
                                 <tr key={`${row.label}-${ri}`} className="border-b border-gray-100">
                                     <td className="px-2 py-2 font-medium text-gray-900">{row.label}</td>
                                     {hasEquiv && (
-                                        <td className="px-2 py-2 text-gray-600">{row.equiv ?? ""}</td>
+                                        <td className="px-2 py-2 text-gray-700">{row.equiv ?? ""}</td>
                                     )}
                                     {chart.columns.map((_, ci) => (
-                                        <td key={ci} className="px-2 py-2 text-gray-600">
+                                        <td key={ci} className="px-2 py-2 text-gray-700">
                                             {row.values[ci] ?? ""}
                                         </td>
                                     ))}
