@@ -18,7 +18,7 @@ import { buildCartItem, getDisplayImages } from "@/src/utils/product";
 import { recordCartColor, recordColorClick } from "@/src/lib/colorAffinity";
 import type { SkuStock, StoreProduct } from "@/src/types/product/products";
 
-export function useProductPage() {
+export function useProductPage(idOverride?: string) {
     const params = useParams();
     const cart = useCart();
     const swatches = useColorSwatches();
@@ -36,14 +36,15 @@ export function useProductPage() {
     const mainCTARef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const idOrSlug = Array.isArray(params.id) ? params.id[0] : params.id;
+        const idOrSlug =
+            idOverride ?? (Array.isArray(params.id) ? params.id[0] : params.id);
         if (!idOrSlug) return;
         setLoadingProduct(true);
         fetchProduct(idOrSlug).then((p) => {
             setProduct(p);
             setLoadingProduct(false);
         });
-    }, [params.id]);
+    }, [idOverride, params.id]);
 
     useEffect(() => {
         if (!product) return;

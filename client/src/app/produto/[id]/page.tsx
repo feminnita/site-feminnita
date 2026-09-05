@@ -1,232 +1,109 @@
-"use client";
+import type { Metadata } from "next";
+import { fetchProduct } from "@/src/services/productsService";
+import ProductPageClient from "./ProductPageClient";
 
-import Link from "next/link";
-import { Header } from "../../../components/layout/Header";
-import {
-    JsonLd,
-    breadcrumbSchema,
-    productSchema,
-} from "../../../components/common/JsonLd";
-import { ProductReviews } from "../../../components/product/ProductReviews";
-import { RelatedSections } from "../../../components/product/RelatedSections";
-import { ColorSelector } from "../../../components/product/ColorSelector";
-import { PriceBlock } from "../../../components/product/PriceBlock";
-import { ProductActions } from "../../../components/product/ProductActions";
-import { ProductBenefits } from "../../../components/product/ProductBenefits";
-import { ProductDescription } from "../../../components/product/ProductDescription";
-import { ProductGallery } from "../../../components/product/ProductGallery";
-import { QuantitySelector } from "../../../components/product/QuantitySelector";
-import { SizeSelector } from "../../../components/product/SizeSelector";
-import { SizeChartTrigger } from "../../../components/product/SizeChartTrigger";
-import { StickyMobileCta } from "../../../components/product/StickMobileCta";
-import { useProductPage } from "../../../hooks/product/useProductPage";
-import { toEmbedUrl } from "../../../utils/product";
+const SITE_NAME = "Feminnita";
+const TITLE_SUFFIX = ` | ${SITE_NAME}`;
+const TITLE_MAX = 60;
+const DESC_MAX = 155;
 
-export default function ProductPage() {
-    const {
-        product,
-        loadingProduct,
-        soldOut,
-        availableColors,
-        visibleSizes,
-        selectedImage,
-        showVideo,
-        setShowVideo,
-        selectImage,
-        selectedColor,
-        selectColor,
-        selectedSize,
-        setSelectedSize,
-        quantity,
-        setQuantity,
-        isFavorite,
-        setIsFavorite,
-        stickyVisible,
-        mainCTARef,
-        displayImages,
-        handleAddToCart,
-        skus,
-    } = useProductPage();
+// Corta um texto num limite de caracteres SEM quebrar palavra: recua até o último
+// espaço e limpa pontuação solta na ponta. `ellipsis` só é aplicado quando de fato
+// houve corte (texto maior que o limite).
+function truncateAtWord(text: string, max: number, ellipsis: boolean): string {
+    const t = text.trim();
+    if (t.length <= max) return t;
+    const slice = t.slice(0, max);
+    const lastSpace = slice.lastIndexOf(" ");
+    const base = (lastSpace > 0 ? slice.slice(0, lastSpace) : slice).replace(
+        /[\s.,;:!?\-–—]+$/,
+        "",
+    );
+    return ellipsis ? `${base}…` : base;
+}
 
-    if (loadingProduct) {
-        return (
-            <div className="min-h-screen">
-                <Header />
-                <div className="flex items-center justify-center py-32">
-                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#8C2F39] border-t-transparent" />
-                </div>
-            </div>
-        );
-    }
+// Descrição é HTML longo (parágrafos, <h3>, <ul>, tabela de medidas, frete). Para o
+// fallback de SEO pegamos só o PRIMEIRO BLOCO DE TEXTO REAL: quebramos por tags de
+// bloco, tiramos as tags, normalizamos espaços e escolhemos o primeiro trecho com
+// conteúdo de verdade (>= 40 chars) — ignorando heading curto, item de lista e célula.
+function firstMeaningfulParagraph(html: string): string {
+    const blocks = html
+        .replace(
+            /<\s*(br|\/p|\/div|\/h[1-6]|\/li|\/tr|\/td|\/th|\/table|\/ul|\/ol)\s*\/?>/gi,
+            "\n",
+        )
+        .replace(/<[^>]*>/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .split("\n")
+        .map((b) => b.replace(/\s+/g, " ").trim())
+        .filter((b) => b.length > 0);
+
+    return blocks.find((b) => b.length >= 40) ?? blocks[0] ?? "";
+}
+
+// SEO por produto COM FALLBACK: se a dona deixar meta_title/meta_description em
+// branco no cadastro, usamos o nome e a descrição do produto. Assim nenhum produto
+// herda o título genérico do layout raiz — cada um tem SEO próprio.
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+    const { id } = await params;
+    const product = await fetchProduct(id);
 
     if (!product) {
-        return (
-            <div className="min-h-screen">
-                <Header />
-                <div className="container mx-auto px-4 py-16 text-center">
-                    <h1 className="mb-4 text-2xl">Produto não encontrado</h1>
-                    <Link href="/" className="text-blue-600 underline">
-                        Voltar para home
-                    </Link>
-                </div>
-            </div>
-        );
+        return { title: "Produto não encontrado" };
     }
 
-    // Categoria "Aguardando classificação" (bucket sem classificação) não deve
-    // aparecer para o cliente — some do breadcrumb (visível e JSON-LD).
-    const showCategoryCrumb =
-        !!product.category &&
-        product.category !== "Aguardando classificação" &&
-        product.category !== "bling-aguardando-classificacao";
+    // TÍTULO: meta_title preenchido é usado como está. Senão, nome do produto cortado
+    // em palavra inteira reservando o espaço do sufixo " | Feminnita" (~60 chars).
+    // `absolute` evita que o template do layout raiz duplique o sufixo.
+    const titleAbsolute = product.metaTitle
+        ? product.metaTitle
+        : `${truncateAtWord(product.name, TITLE_MAX - TITLE_SUFFIX.length, false)}${TITLE_SUFFIX}`;
 
-    return (
-        <div className="min-h-screen bg-white pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
-            <JsonLd data={productSchema(product)} />
-            <JsonLd
-                data={breadcrumbSchema([
-                    { name: "Home", url: "https://feminnita.com.br/" },
-                    ...(showCategoryCrumb
-                        ? [
-                              {
-                                  name: product.category,
-                                  url: `https://feminnita.com.br/categoria/${product.category}`,
-                              },
-                          ]
-                        : []),
-                    {
-                        name: product.name,
-                        url: `https://feminnita.com.br/produto/${product.id}`,
-                    },
-                ])}
-            />
-            <Header />
+    // DESCRIÇÃO: meta_description preenchida, senão o 1º parágrafo real da descrição,
+    // cortado em palavra inteira (~155). Só cai no texto de marca se não houver nada.
+    const descSource =
+        product.metaDescription ||
+        firstMeaningfulParagraph(product.description || "");
+    const description = descSource
+        ? truncateAtWord(descSource, DESC_MAX, true)
+        : `${product.name} — Feminnita: pijamas e moda íntima no atacado, direto da fábrica.`;
 
-            {!soldOut && (
-                <StickyMobileCta
-                    visible={stickyVisible}
-                    productName={product.name}
-                    price={product.price}
-                    onAddToCart={handleAddToCart}
-                    disabled={!selectedSize}
-                />
-            )}
+    // og:image / twitter:image = FOTO DE CAPA do produto (aparece ao compartilhar o
+    // link no WhatsApp). Sem foto de capa, OMITE — nunca cai pro logo da loja.
+    const image = product.images?.[0];
+    const canonical = `/produto/${product.slug || product.id}`;
 
-            <div className="container mx-auto px-4 py-8">
-                <div className="mb-6 text-sm text-gray-500">
-                    <Link href="/" className="hover:underline">
-                        Home
-                    </Link>
-                    {showCategoryCrumb && (
-                        <>
-                            {" / "}
-                            <Link
-                                href={`/categoria/${product.category}`}
-                                className="hover:underline"
-                            >
-                                {product.category}
-                            </Link>
-                        </>
-                    )}
-                    {" / "}
-                    <span>{product.name}</span>
-                </div>
+    return {
+        title: { absolute: titleAbsolute },
+        description,
+        alternates: { canonical },
+        openGraph: {
+            title: titleAbsolute,
+            description,
+            type: "website",
+            locale: "pt_BR",
+            siteName: SITE_NAME,
+            ...(image ? { images: [image] } : {}),
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: titleAbsolute,
+            description,
+            ...(image ? { images: [image] } : {}),
+        },
+    };
+}
 
-                <div className="grid gap-12 md:grid-cols-2">
-                    <ProductGallery
-                        productName={product.name}
-                        images={displayImages}
-                        videoUrl={product.videoUrl}
-                        selectedImage={selectedImage}
-                        onSelectImage={selectImage}
-                        showVideo={showVideo}
-                        onShowVideo={() => setShowVideo(true)}
-                        embedUrl={product.videoUrl ? toEmbedUrl(product.videoUrl) : ""}
-                    />
-
-                    <div className="space-y-6">
-                        <div>
-                            <p className="text-sm uppercase text-gray-500">{product.code}</p>
-                            <h1 className="mt-2 text-3xl font-light">{product.name}</h1>
-                        </div>
-
-                        <PriceBlock
-                            price={product.price}
-                            salePrice={product.salePrice}
-                            saleStart={product.saleStart}
-                            saleEnd={product.saleEnd}
-                            installments={product.installments}
-                            installmentPrice={product.installmentPrice}
-                        />
-
-                        {soldOut ? (
-                            <div
-                                ref={mainCTARef}
-                                className="rounded-lg border border-[#8C2F39]/20 bg-[#F3EEE9] px-4 py-6 text-center"
-                            >
-                                <p className="text-lg font-semibold uppercase tracking-wide text-[#8C2F39]">
-                                    Esgotado
-                                </p>
-                                <p className="mt-1 text-sm text-gray-600">
-                                    Produto esgotado no momento.
-                                </p>
-                            </div>
-                        ) : (
-                            <>
-                                <div>
-                                    <div className="mb-2 flex items-center justify-end">
-                                        <SizeChartTrigger chart={product.sizeChart} />
-                                    </div>
-                                    <SizeSelector
-                                        productId={product.id}
-                                        sizes={visibleSizes}
-                                        selectedSize={selectedSize}
-                                        selectedColor={selectedColor}
-                                        skus={skus}
-                                        onSelect={setSelectedSize}
-                                    />
-                                </div>
-
-                                <QuantitySelector quantity={quantity} onChange={setQuantity} />
-
-                                <ProductActions
-                                    ctaRef={mainCTARef}
-                                    productId={product.id}
-                                    isFavorite={isFavorite}
-                                    onToggleFavorite={() => setIsFavorite(!isFavorite)}
-                                    onAddToCart={handleAddToCart}
-                                    disabled={!selectedSize}
-                                />
-                            </>
-                        )}
-
-                        {/* Grade de estampas ABAIXO do botão de comprar: com até 41 cores,
-                            fica no fim da coluna pra não empurrar tamanho/comprar pra baixo.
-                            Clicar troca a foto grande (getDisplayImages). */}
-                        <ColorSelector
-                            colors={availableColors}
-                            selectedColor={selectedColor}
-                            onSelect={selectColor}
-                            colorImages={product.colorImages}
-                        />
-
-                        <ProductBenefits />
-                    </div>
-                </div>
-
-                <ProductDescription
-                    productName={product.name}
-                    description={product.description}
-                />
-
-                {/* Abaixo da descrição: (1) Avaliações, (2) Complete seu pedido,
-                    (3) Você também pode gostar. */}
-                <ProductReviews reviews={product.reviews} />
-                <RelatedSections
-                    productId={product.id}
-                    categoryId={product.category_id}
-                />
-            </div>
-        </div>
-    );
+export default async function ProductPage({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}) {
+    const { id } = await params;
+    return <ProductPageClient id={id} />;
 }
