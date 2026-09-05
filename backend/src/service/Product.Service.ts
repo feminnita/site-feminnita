@@ -49,6 +49,9 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
         featured: p.featured ?? false, isNew: p.isNew ?? false, isBestseller: p.isBestseller ?? false,
         isOutlet: p.isOutlet ?? false,
         active: p.active ?? true, stock, view_count: p.viewCount ?? 0,
+        // Avaliações: infra de reviews ainda não existe (fonte é decisão pendente da
+        // dona). Retornamos vazio por enquanto — o display no site some quando vazio.
+        reviews: [],
     };
 }
 

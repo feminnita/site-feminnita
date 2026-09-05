@@ -10,12 +10,15 @@ import type { StoreProduct } from "@/src/types/product/products";
 
 interface ProductCardProps {
     product: StoreProduct;
+    // Mostra o CÓDIGO acima do nome (foto+código+nome+preço+compra rápida).
+    // Off por padrão pra não mexer na vitrine existente; ligado nos carrosséis do produto.
+    showCode?: boolean;
 }
 
 // Card de VITRINE com COMPRA RÁPIDA dentro do card (QuickBuyPanel).
 // Produto sem estoque NÃO aparece na vitrine (filtrado no backend), então o card
 // sempre mostra "Comprar" — a disponibilidade fina (cor×tamanho) é conferida ao abrir.
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, showCode = false }: ProductCardProps) {
     const [isFavorite, setIsFavorite] = useState(false);
     const [open, setOpen] = useState(false);
 
@@ -89,6 +92,11 @@ export function ProductCard({ product }: ProductCardProps) {
 
             {/* Nome + preço */}
             <div className="mt-3 space-y-1">
+                {showCode && product.code && (
+                    <p className="text-xs uppercase tracking-wide text-gray-400">
+                        {product.code}
+                    </p>
+                )}
                 <Link href={href}>
                     <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-medium text-gray-900 transition-colors hover:text-[#8C2F39]">
                         {product.name}
