@@ -175,7 +175,10 @@ export default function ProductPageClient({ id }: { id: string }) {
                             <>
                                 <div>
                                     <div className="mb-2 flex items-center justify-end">
-                                        <SizeChartTrigger chart={product.sizeChart} />
+                                        <SizeChartTrigger
+                                            chart={product.sizeChart}
+                                            selectedSize={selectedSize}
+                                        />
                                     </div>
                                     <SizeSelector
                                         productId={product.id}

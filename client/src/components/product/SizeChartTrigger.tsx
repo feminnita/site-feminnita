@@ -7,7 +7,13 @@ import type { ResolvedSizeChart } from "@/src/types/product/products";
 
 // Link "Tabela de medidas" que abre o modal. Não renderiza nada quando o produto
 // não tem tabela resolvida (rows vazio).
-export function SizeChartTrigger({ chart }: { chart?: ResolvedSizeChart }) {
+export function SizeChartTrigger({
+    chart,
+    selectedSize,
+}: {
+    chart?: ResolvedSizeChart;
+    selectedSize?: string;
+}) {
     const [open, setOpen] = useState(false);
 
     if (!chart || !chart.rows || chart.rows.length === 0) return null;
@@ -22,7 +28,13 @@ export function SizeChartTrigger({ chart }: { chart?: ResolvedSizeChart }) {
                 <Ruler size={16} />
                 Tabela de medidas
             </button>
-            {open && <SizeChartModal chart={chart} onClose={() => setOpen(false)} />}
+            {open && (
+                <SizeChartModal
+                    chart={chart}
+                    selectedSize={selectedSize}
+                    onClose={() => setOpen(false)}
+                />
+            )}
         </>
     );
 }
