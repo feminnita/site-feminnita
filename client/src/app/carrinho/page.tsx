@@ -6,6 +6,7 @@ import { useCart } from "../../hooks/cart/useCart";
 import { fetchProductStock } from "../../services/productsService";
 import { isSelected } from "../../utils/cart";
 import { PIX_DISCOUNT_RATE } from "../../utils/pricing";
+import { MinOrderStatus } from "../../components/common/MinOrderBar";
 import type { CartItem } from "../../types/cart/cart";
 import type { SkuStock } from "../../types/product/products";
 import { AlertCircle, ShoppingBag, Trash2 } from "lucide-react";
@@ -234,6 +235,10 @@ export default function CartPage() {
                     <div className="lg:col-span-1">
                         <div className="sticky top-4 space-y-4 rounded-lg border bg-white p-6">
                             <h2 className="text-xl font-medium">Resumo do Pedido</h2>
+
+                            {/* Mesmo contador de pedido mínimo (R$ 199) da barra da vitrine,
+                                aqui sobre o valor SELECIONADO (o que vai pro checkout). */}
+                            <MinOrderStatus subtotal={selectedSubtotal} />
 
                             <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">

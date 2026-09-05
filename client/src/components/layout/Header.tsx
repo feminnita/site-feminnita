@@ -94,7 +94,11 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-white">
+    // Com itens no carrinho, a MinOrderBar fica sticky no topo (48px) no desktop;
+    // o header desce para md:top-12 e os dois se empilham sem se sobrepor.
+    <header
+      className={`sticky top-0 z-50 border-b bg-white ${cartCount > 0 ? "md:top-12" : ""}`}
+    >
       <div className="bg-gray-100 py-2 text-center text-sm">
         3X SEM JUROS nos cartões de crédito
       </div>
