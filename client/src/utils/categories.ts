@@ -44,8 +44,18 @@ export function buildTree(rows: CategoryRow[]): CategoryNode[] {
 // ---------------------------------------------------------------------------
 const HIDDEN_CATEGORY_NAMES = new Set(["aguardando classificação"]);
 
+// Ordem imposta das categorias RAIZ no menu (independe do orderIndex do Bling):
+// Feminino primeiro (concentra a maioria dos produtos), depois Masculino, Infantil
+// e Pet. Raízes fora desta lista vão para o fim, mantendo sua ordem relativa.
+const ROOT_ORDER = ["feminino", "masculino", "infantil", "pet"];
+
 function normalizeCategoryName(name: string): string {
     return name.trim().toLowerCase();
+}
+
+function rootPriority(name: string): number {
+    const idx = ROOT_ORDER.indexOf(normalizeCategoryName(name));
+    return idx === -1 ? ROOT_ORDER.length : idx;
 }
 
 export function cleanCategoryTree(tree: CategoryNode[]): CategoryNode[] {
@@ -78,6 +88,13 @@ export function cleanCategoryTree(tree: CategoryNode[]): CategoryNode[] {
             infantil.children.push(menina);
         }
     }
+
+    // 3. Impõe a ordem das raízes (Feminino · Masculino · Infantil · Pet).
+    //    Estável: empate mantém a ordem original (já ordenada por orderIndex).
+    roots = roots
+        .map((r, i) => ({ r, i }))
+        .sort((a, b) => rootPriority(a.r.name) - rootPriority(b.r.name) || a.i - b.i)
+        .map(({ r }) => r);
 
     return roots;
 }
