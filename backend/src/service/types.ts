@@ -16,6 +16,8 @@ export type StoreProduct = {
     price: number;
     pixPrice: number;
     salePrice: number | null;
+    saleStart: string | null;
+    saleEnd: string | null;
     installments: number;
     installmentPrice: number;
     images: string[];

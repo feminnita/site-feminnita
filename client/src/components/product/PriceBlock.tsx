@@ -4,11 +4,13 @@ import type { PriceBlockProps } from "../../types/product/products";
 export function PriceBlock({
     price,
     salePrice,
+    saleStart,
+    saleEnd,
     installments,
     installmentPrice,
 }: PriceBlockProps) {
-    const effective = effectivePrice(price, salePrice);
-    const onSale = hasActiveSale(price, salePrice);
+    const effective = effectivePrice(price, salePrice, saleStart, saleEnd);
+    const onSale = hasActiveSale(price, salePrice, saleStart, saleEnd);
     const installmentValue = onSale ? effective / installments : installmentPrice;
 
     return (

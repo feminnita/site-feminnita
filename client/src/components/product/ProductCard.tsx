@@ -32,8 +32,8 @@ export function ProductCard({
     const [isFavorite, setIsFavorite] = useState(false);
     const [open, setOpen] = useState(false);
 
-    const effective = effectivePrice(product.price, product.salePrice);
-    const onSale = hasActiveSale(product.price, product.salePrice);
+    const effective = effectivePrice(product.price, product.salePrice, product.saleStart, product.saleEnd);
+    const onSale = hasActiveSale(product.price, product.salePrice, product.saleStart, product.saleEnd);
 
     const href = `/produto/${product.slug ?? product.id}`;
 

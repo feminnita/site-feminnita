@@ -11,6 +11,11 @@ export const products = pgTable('products', {
   basePrice: numeric('base_price', { precision: 10, scale: 2 }).notNull(),
   pixPrice: numeric('pix_price', { precision: 10, scale: 2 }),
   salePrice: numeric('sale_price', { precision: 10, scale: 2 }),
+  // Janela da promoção (colunas já existentes no banco). Promo do produto só vale
+  // com AGORA dentro de [saleStart, saleEnd]; ambas null = promo sem janela (vale
+  // enquanto salePrice estiver setado — retrocompatível com promos antigas).
+  saleStart: timestamp('sale_start', { withTimezone: true }),
+  saleEnd: timestamp('sale_end', { withTimezone: true }),
   stock: integer('stock').default(0),
   active: boolean('active').default(true),
   featured: boolean('featured').default(false),

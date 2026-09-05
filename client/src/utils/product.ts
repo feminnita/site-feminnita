@@ -89,7 +89,12 @@ export function getDisplayImages(
 }
 
 export function buildCartItem(input: CartItemInput): CartItem {
-  const price = effectivePrice(input.product.price, input.product.salePrice);
+  const price = effectivePrice(
+    input.product.price,
+    input.product.salePrice,
+    input.product.saleStart,
+    input.product.saleEnd,
+  );
   return {
     ...input.product,
     price,

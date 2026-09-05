@@ -31,6 +31,8 @@ export type StoreProduct = {
   price: number;
   pixPrice: number;
   salePrice: number | null;
+  saleStart: string | null;
+  saleEnd: string | null;
   installments: number;
   installmentPrice: number;
   images: string[];
@@ -110,6 +112,8 @@ export type StickyMobileCtaProps = {
 export type PriceBlockProps = {
   price: number;
   salePrice: number | null;
+  saleStart?: string | null;
+  saleEnd?: string | null;
   installments: number;
   installmentPrice: number;
 };

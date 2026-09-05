@@ -153,6 +153,8 @@ export default function ProductPage() {
                         <PriceBlock
                             price={product.price}
                             salePrice={product.salePrice}
+                            saleStart={product.saleStart}
+                            saleEnd={product.saleEnd}
                             installments={product.installments}
                             installmentPrice={product.installmentPrice}
                         />
