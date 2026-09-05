@@ -63,7 +63,16 @@ export async function listProducts(options: { featured?: boolean; categorySlug?:
         ProductRepository.findColorImagesByProductIds(ids),
     ]);
 
-    return rows.map((row) => mapProduct(row, variants, colorImageRows));
+    // Regra de vitrine (refinada pela dona): o que some é a VARIAÇÃO, não o produto.
+    // Um produto só sai da grade quando TEM variações E TODAS estão zeradas (não
+    // sobra nada pra comprar). Produto SEM nenhuma variação cadastrada (em recadastro)
+    // NÃO é esgotado — permanece visível. Regra: manter se (nenhuma variante) OU
+    // (algum disponível > 0); esconder só se (tem variantes E todas zeradas).
+    // Filtro de LEITURA — não altera o banco; volta sozinho quando entrar estoque.
+    const productsWithVariants = new Set(variants.map((v) => v.productId));
+    return rows
+        .map((row) => mapProduct(row, variants, colorImageRows))
+        .filter((product) => !productsWithVariants.has(product.id) || product.stock > 0);
 }
 
 export async function getProduct(idOrSlug: string) {

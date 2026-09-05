@@ -25,6 +25,9 @@ export default function ProductPage() {
     const {
         product,
         loadingProduct,
+        soldOut,
+        availableColors,
+        visibleSizes,
         selectedImage,
         showVideo,
         setShowVideo,
@@ -98,13 +101,15 @@ export default function ProductPage() {
             />
             <Header />
 
-            <StickyMobileCta
-                visible={stickyVisible}
-                productName={product.name}
-                price={product.price}
-                onAddToCart={handleAddToCart}
-                disabled={!selectedSize}
-            />
+            {!soldOut && (
+                <StickyMobileCta
+                    visible={stickyVisible}
+                    productName={product.name}
+                    price={product.price}
+                    onAddToCart={handleAddToCart}
+                    disabled={!selectedSize}
+                />
+            )}
 
             <div className="container mx-auto px-4 py-8">
                 <div className="mb-6 text-sm text-gray-500">
@@ -151,36 +156,52 @@ export default function ProductPage() {
                             installmentPrice={product.installmentPrice}
                         />
 
-                        <div>
-                            <div className="mb-2 flex items-center justify-end">
-                                <SizeChartTrigger chart={product.sizeChart} />
+                        {soldOut ? (
+                            <div
+                                ref={mainCTARef}
+                                className="rounded-lg border border-[#8C2F39]/20 bg-[#F3EEE9] px-4 py-6 text-center"
+                            >
+                                <p className="text-lg font-semibold uppercase tracking-wide text-[#8C2F39]">
+                                    Esgotado
+                                </p>
+                                <p className="mt-1 text-sm text-gray-600">
+                                    Produto esgotado no momento.
+                                </p>
                             </div>
-                            <SizeSelector
-                                productId={product.id}
-                                sizes={product.sizes}
-                                selectedSize={selectedSize}
-                                selectedColor={selectedColor}
-                                skus={skus}
-                                onSelect={setSelectedSize}
-                            />
-                        </div>
+                        ) : (
+                            <>
+                                <div>
+                                    <div className="mb-2 flex items-center justify-end">
+                                        <SizeChartTrigger chart={product.sizeChart} />
+                                    </div>
+                                    <SizeSelector
+                                        productId={product.id}
+                                        sizes={visibleSizes}
+                                        selectedSize={selectedSize}
+                                        selectedColor={selectedColor}
+                                        skus={skus}
+                                        onSelect={setSelectedSize}
+                                    />
+                                </div>
 
-                        <QuantitySelector quantity={quantity} onChange={setQuantity} />
+                                <QuantitySelector quantity={quantity} onChange={setQuantity} />
 
-                        <ProductActions
-                            ctaRef={mainCTARef}
-                            productId={product.id}
-                            isFavorite={isFavorite}
-                            onToggleFavorite={() => setIsFavorite(!isFavorite)}
-                            onAddToCart={handleAddToCart}
-                            disabled={!selectedSize}
-                        />
+                                <ProductActions
+                                    ctaRef={mainCTARef}
+                                    productId={product.id}
+                                    isFavorite={isFavorite}
+                                    onToggleFavorite={() => setIsFavorite(!isFavorite)}
+                                    onAddToCart={handleAddToCart}
+                                    disabled={!selectedSize}
+                                />
+                            </>
+                        )}
 
                         {/* Grade de estampas ABAIXO do botão de comprar: com até 41 cores,
                             fica no fim da coluna pra não empurrar tamanho/comprar pra baixo.
                             Clicar troca a foto grande (getDisplayImages). */}
                         <ColorSelector
-                            colors={product.colors}
+                            colors={availableColors}
                             selectedColor={selectedColor}
                             onSelect={selectColor}
                             colorImages={product.colorImages}
