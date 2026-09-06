@@ -22,5 +22,9 @@ export async function quoteShipping(
         company: o.company ?? "",
         price: Number(o.price) || 0,
         deliveryDays: Number(o.deliveryDays) || 0,
+        pickup: o.pickup === true,
+        address: o.address ?? undefined,
+        hours: o.hours ?? undefined,
+        note: o.note ?? undefined,
     }));
 }

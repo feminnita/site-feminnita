@@ -4,6 +4,11 @@ export type ShippingOption = {
     company: string;
     price: number;
     deliveryDays: number;
+    // Retirada na fábrica: opção sem transportadora, custo R$ 0,00.
+    pickup?: boolean;
+    address?: string;
+    hours?: string;
+    note?: string;
 }
 
 export type ShippingAddress = {

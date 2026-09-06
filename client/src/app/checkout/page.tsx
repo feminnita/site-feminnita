@@ -369,6 +369,7 @@ export default function CheckoutPage() {
                         : undefined,
                 couponCode: appliedCoupon?.code,
                 shippingServiceId: selectedShipping.id,
+                pickup: selectedShipping.pickup === true,
                 shippingAddress: {
                     cep: form.cep,
                     street: form.street,
@@ -646,11 +647,27 @@ export default function CheckoutPage() {
                                                             {opt.company ? `${opt.company} — ` : ""}
                                                             {opt.name}
                                                         </p>
-                                                        <p className="text-xs text-gray-500">
-                                                            {opt.deliveryDays > 0
-                                                                ? `até ${opt.deliveryDays} dia${opt.deliveryDays > 1 ? "s" : ""} útil${opt.deliveryDays > 1 ? "eis" : ""}`
-                                                                : "prazo a confirmar"}
-                                                        </p>
+                                                        {opt.pickup ? (
+                                                            <div className="text-xs text-gray-600">
+                                                                {opt.address && <p>{opt.address}</p>}
+                                                                {opt.hours && (
+                                                                    <p className="text-gray-500">
+                                                                        {opt.hours}
+                                                                    </p>
+                                                                )}
+                                                                {opt.note && (
+                                                                    <p className="mt-0.5 text-[#8C2F39]">
+                                                                        {opt.note}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-xs text-gray-500">
+                                                                {opt.deliveryDays > 0
+                                                                    ? `até ${opt.deliveryDays} dia${opt.deliveryDays > 1 ? "s" : ""} útil${opt.deliveryDays > 1 ? "eis" : ""}`
+                                                                    : "prazo a confirmar"}
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <p className="text-sm font-semibold text-[#8C2F39]">
