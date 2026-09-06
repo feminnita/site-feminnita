@@ -107,8 +107,13 @@ export function ProductGallery({
     const isFileVideo = kind === "file";
     const isYouTube = kind === "youtube";
 
+    // md:self-start — a galeria é uma célula da grade de 2 colunas e, por padrão,
+    // ESTICA até a altura da coluna vizinha. Quando a descrição e as avaliações
+    // passaram para a coluna da direita, ela ficou bem mais alta (1325px) e a foto
+    // era esticada junto: 620x1325 exibindo um arquivo de 864x1156 — ampliada e
+    // borrada. Com self-start a foto mantém a proporção 2:3 declarada.
     return (
-        <div className="flex min-w-0 flex-col-reverse gap-3 md:flex-row">
+        <div className="flex min-w-0 flex-col-reverse gap-3 md:flex-row md:self-start">
             {/* Miniaturas: COLUNA À ESQUERDA no desktop (referência: useange), com
                 setas para percorrer quando não cabem todas — a barra de rolagem
                 fica escondida. No celular viram uma linha abaixo da foto grande. */}
