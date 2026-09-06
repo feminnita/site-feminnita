@@ -214,17 +214,19 @@ export default function ProductPageClient({ id }: { id: string }) {
                         />
 
                         <ProductBenefits />
+
+                        {/* Descrição e avaliações ficam NA COLUNA DA DIREITA, embaixo
+                            dos benefícios (referência: useange.com.br). Antes ocupavam
+                            a largura inteira da página abaixo da grade. */}
+                        <ProductDescription
+                            productName={product.name}
+                            description={product.description}
+                        />
+
+                        <ProductReviews reviews={product.reviews} />
                     </div>
                 </div>
 
-                <ProductDescription
-                    productName={product.name}
-                    description={product.description}
-                />
-
-                {/* Abaixo da descrição: (1) Avaliações, (2) Complete seu pedido,
-                    (3) Você também pode gostar. */}
-                <ProductReviews reviews={product.reviews} />
                 <RelatedSections
                     productId={product.id}
                     categoryId={product.category_id}

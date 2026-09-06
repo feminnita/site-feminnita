@@ -37,7 +37,7 @@ export function ProductReviews({ reviews }: Props) {
         reviews.reduce((sum, r) => sum + (r.rating ?? 0), 0) / reviews.length;
 
     return (
-        <section className="mt-16">
+        <section className="border-t border-gray-200 pt-6">
             <h2 className="mb-6 text-2xl font-light">Avaliações</h2>
 
             <div className="mb-8 flex items-center gap-4">

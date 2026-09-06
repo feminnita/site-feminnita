@@ -23,9 +23,9 @@ export function ProductDescription({
     }, [description]);
 
     return (
-        <div className="mt-16 max-w-3xl">
-            <h2 className="mb-5 text-xl font-medium text-gray-900">
-                Descrição do Produto
+        <div className="border-t border-gray-200 pt-6">
+            <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-900">
+                Descrição
             </h2>
             <div>
                 {description ? (

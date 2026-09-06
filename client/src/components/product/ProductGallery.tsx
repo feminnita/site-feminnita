@@ -86,14 +86,17 @@ export function ProductGallery({
     const isYouTube = kind === "youtube";
 
     return (
-        <div className="flex min-w-0 flex-col-reverse gap-3 md:flex-row">
+        <div className="flex min-w-0 flex-col-reverse gap-3">
+            {/* Miniaturas em LINHA abaixo da foto grande, dividindo a largura por
+                igual. Antes ficavam empilhadas numa coluna de 80px na lateral,
+                espremidas e cortadas quando o produto tinha muitas fotos. */}
             {(images.length > 1 || videoUrl) && (
-                <div className="flex gap-3 overflow-x-auto md:max-h-[600px] md:w-20 md:flex-col md:overflow-y-auto">
+                <div className="flex gap-2 overflow-x-auto sm:gap-3">
                     {images.map((image, index) => (
                         <button
                             key={index}
                             onClick={() => onSelectImage(index)}
-                            className={`relative aspect-[2/3] w-16 flex-shrink-0 overflow-hidden rounded-md border-2 bg-gray-100 md:w-full ${!showVideo && selectedImage === index
+                            className={`relative aspect-[2/3] min-w-[3.5rem] max-w-[7rem] flex-1 basis-0 overflow-hidden rounded-md border-2 bg-gray-100 ${!showVideo && selectedImage === index
                                     ? "border-[#8C2F39]"
                                     : "border-transparent hover:border-gray-300"
                                 }`}
@@ -102,7 +105,7 @@ export function ProductGallery({
                                 src={image}
                                 alt={`${productName} ${index + 1}`}
                                 fill
-                                sizes="80px"
+                                sizes="112px"
                                 className="object-cover"
                             />
                         </button>
@@ -110,7 +113,7 @@ export function ProductGallery({
                     {videoUrl && (
                         <button
                             onClick={onShowVideo}
-                            className={`relative flex aspect-[2/3] w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-md border-2 bg-black md:w-full ${showVideo
+                            className={`relative flex aspect-[2/3] min-w-[3.5rem] max-w-[7rem] flex-1 basis-0 items-center justify-center overflow-hidden rounded-md border-2 bg-black ${showVideo
                                     ? "border-[#8C2F39]"
                                     : "border-transparent hover:border-gray-300"
                                 }`}
@@ -139,7 +142,7 @@ export function ProductGallery({
                                             src={images[0]}
                                             alt="vídeo"
                                             fill
-                                            sizes="80px"
+                                            sizes="112px"
                                             className="object-cover opacity-40"
                                         />
                                     )}
