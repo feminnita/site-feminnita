@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import type { ProductGalleryProps } from "../../types/product/products";
 import { videoKind } from "../../utils/product";
-import { Film, Play } from "lucide-react";
+import { ChevronDown, ChevronUp, Film, Play } from "lucide-react";
 
 // Vídeo do produto tocando inline como mais um item da galeria: autoplay, mudo,
 // em loop, sem controles e sem player do YouTube. Toca SÓ quando está visível na
@@ -67,6 +67,28 @@ export function ProductGallery({
     const [zooming, setZooming] = useState(false);
     const [canHover, setCanHover] = useState(false);
 
+    // Coluna de miniaturas: as setas só aparecem quando não cabem todas.
+    const stripRef = useRef<HTMLDivElement | null>(null);
+    const [canScroll, setCanScroll] = useState(false);
+
+    useEffect(() => {
+        const el = stripRef.current;
+        if (!el) return;
+        const check = () => setCanScroll(el.scrollHeight > el.clientHeight + 4);
+        check();
+        const ro = new ResizeObserver(check);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [images.length, videoUrl]);
+
+    const scrollStrip = (dir: 1 | -1) => {
+        const el = stripRef.current;
+        if (!el) return;
+        const first = el.firstElementChild as HTMLElement | null;
+        const step = first ? first.offsetHeight + 12 : 140;
+        el.scrollBy({ top: dir * step, behavior: "smooth" });
+    };
+
     useEffect(() => {
         setCanHover(
             window.matchMedia("(hover: hover) and (pointer: fine)").matches,
@@ -86,17 +108,31 @@ export function ProductGallery({
     const isYouTube = kind === "youtube";
 
     return (
-        <div className="flex min-w-0 flex-col-reverse gap-3">
-            {/* Miniaturas em LINHA abaixo da foto grande, dividindo a largura por
-                igual. Antes ficavam empilhadas numa coluna de 80px na lateral,
-                espremidas e cortadas quando o produto tinha muitas fotos. */}
+        <div className="flex min-w-0 flex-col-reverse gap-3 md:flex-row">
+            {/* Miniaturas: COLUNA À ESQUERDA no desktop (referência: useange), com
+                setas para percorrer quando não cabem todas — a barra de rolagem
+                fica escondida. No celular viram uma linha abaixo da foto grande. */}
             {(images.length > 1 || videoUrl) && (
-                <div className="flex gap-2 overflow-x-auto sm:gap-3">
+                <div className="flex flex-col items-center gap-1 md:w-24">
+                    {canScroll && (
+                        <button
+                            type="button"
+                            onClick={() => scrollStrip(-1)}
+                            aria-label="Fotos anteriores"
+                            className="hidden text-gray-400 transition-colors hover:text-gray-700 md:block"
+                        >
+                            <ChevronUp size={20} />
+                        </button>
+                    )}
+                    <div
+                        ref={stripRef}
+                        className="flex w-full gap-2 overflow-x-auto sm:gap-3 md:max-h-[520px] md:flex-col md:overflow-y-auto md:[scrollbar-width:none] md:[&::-webkit-scrollbar]:hidden"
+                    >
                     {images.map((image, index) => (
                         <button
                             key={index}
                             onClick={() => onSelectImage(index)}
-                            className={`relative aspect-[2/3] min-w-[3.5rem] max-w-[7rem] flex-1 basis-0 overflow-hidden rounded-md border-2 bg-gray-100 ${!showVideo && selectedImage === index
+                            className={`relative aspect-[2/3] min-w-[3.5rem] max-w-[7rem] flex-1 basis-0 md:w-full md:max-w-none md:flex-none overflow-hidden rounded-md border-2 bg-gray-100 ${!showVideo && selectedImage === index
                                     ? "border-[#8C2F39]"
                                     : "border-transparent hover:border-gray-300"
                                 }`}
@@ -113,7 +149,7 @@ export function ProductGallery({
                     {videoUrl && (
                         <button
                             onClick={onShowVideo}
-                            className={`relative flex aspect-[2/3] min-w-[3.5rem] max-w-[7rem] flex-1 basis-0 items-center justify-center overflow-hidden rounded-md border-2 bg-black ${showVideo
+                            className={`relative flex aspect-[2/3] min-w-[3.5rem] max-w-[7rem] flex-1 basis-0 md:w-full md:max-w-none md:flex-none items-center justify-center overflow-hidden rounded-md border-2 bg-black ${showVideo
                                     ? "border-[#8C2F39]"
                                     : "border-transparent hover:border-gray-300"
                                 }`}
@@ -149,6 +185,17 @@ export function ProductGallery({
                                     <Play size={20} className="relative text-white" fill="white" />
                                 </>
                             )}
+                        </button>
+                    )}
+                    </div>
+                    {canScroll && (
+                        <button
+                            type="button"
+                            onClick={() => scrollStrip(1)}
+                            aria-label="Próximas fotos"
+                            className="hidden text-gray-400 transition-colors hover:text-gray-700 md:block"
+                        >
+                            <ChevronDown size={20} />
                         </button>
                     )}
                 </div>
