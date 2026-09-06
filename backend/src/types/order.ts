@@ -18,5 +18,7 @@ export type CreateOrderInput = {
     remoteIp?: string;
     couponCode?: string;
     shippingAddress: Record<string, unknown>;
-    shippingServiceId: number;
+    shippingServiceId?: number;
+    // Retirada na fábrica: quando true, ignora transportadora/etiqueta e zera o frete.
+    pickup?: boolean;
 };

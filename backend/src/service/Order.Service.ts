@@ -77,25 +77,35 @@ export async function createOrder(input: CreateOrderInput) {
     const pixDiscountCents = OrderDomain.calculatePixDiscountCents(subtotalCents, input.paymentMethod);
     const discountCents = pixDiscountCents + couponDiscountCents;
 
-    const toCep = String((input.shippingAddress as { cep?: string })?.cep ?? '');
-    if (!toCep) throw new Error('SHIPPING_CEP_REQUIRED');
+    // Retirada na fábrica: sem transportadora, sem CEP obrigatório, custo R$ 0,00 e
+    // sem shipping_service_id (o painel não gera etiqueta para esses pedidos).
+    let shippingCostCents = 0;
+    let chosenShippingServiceId: number | null = null;
+    let shippingMethodName = 'Retirada na fábrica';
 
-    const quotable = input.items.map((item) => {
-        const product = productById.get(item.productId)!;
-        return {
-            weightKg: product.weightKg,
-            pkgHeightCm: product.pkgHeightCm,
-            pkgWidthCm: product.pkgWidthCm,
-            pkgLengthCm: product.pkgLengthCm,
-            quantity: item.quantity,
-        };
-    });
+    if (!input.pickup) {
+        const toCep = String((input.shippingAddress as { cep?: string })?.cep ?? '');
+        if (!toCep) throw new Error('SHIPPING_CEP_REQUIRED');
 
-    const shippingOptions = await MelhorEnvio.quoteShipping(toCep, quotable);
-    const chosenShipping = shippingOptions.find((option) => option.id === input.shippingServiceId);
-    if (!chosenShipping) throw new Error('SHIPPING_OPTION_UNAVAILABLE');
+        const quotable = input.items.map((item) => {
+            const product = productById.get(item.productId)!;
+            return {
+                weightKg: product.weightKg,
+                pkgHeightCm: product.pkgHeightCm,
+                pkgWidthCm: product.pkgWidthCm,
+                pkgLengthCm: product.pkgLengthCm,
+                quantity: item.quantity,
+            };
+        });
 
-    const shippingCostCents = OrderDomain.toCents(chosenShipping.price);
+        const shippingOptions = await MelhorEnvio.quoteShipping(toCep, quotable);
+        const chosenShipping = shippingOptions.find((option) => option.id === input.shippingServiceId);
+        if (!chosenShipping) throw new Error('SHIPPING_OPTION_UNAVAILABLE');
+
+        shippingCostCents = OrderDomain.toCents(chosenShipping.price);
+        chosenShippingServiceId = chosenShipping.id;
+        shippingMethodName = chosenShipping.name;
+    }
 
     const totalCents = OrderDomain.calculateTotalCents(subtotalCents, discountCents, shippingCostCents);
 
@@ -133,8 +143,8 @@ export async function createOrder(input: CreateOrderInput) {
             shippingCost: OrderDomain.fromCents(shippingCostCents),
             total: OrderDomain.fromCents(totalCents),
             shippingAddress,
-            shippingServiceId: chosenShipping.id,
-            shippingMethod: chosenShipping.name,
+            shippingServiceId: chosenShippingServiceId,
+            shippingMethod: shippingMethodName,
             resaleTermVersion: orderResaleTermVersion,
         },
         resolvedItems.map((item) => ({

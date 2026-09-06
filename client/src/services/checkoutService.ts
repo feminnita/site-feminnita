@@ -11,6 +11,7 @@ export async function createOrder(input: {
     card?: CardInput;
     couponCode?: string;
     shippingServiceId: number;
+    pickup?: boolean;
     shippingAddress: ShippingAddress;
 }): Promise<OrderPaymentResult> {
 
@@ -25,6 +26,7 @@ export async function createOrder(input: {
         installments: input.installments,
         couponCode: input.couponCode || undefined,
         shippingServiceId: input.shippingServiceId,
+        pickup: input.pickup || undefined,
         shippingAddress: input.shippingAddress,
         creditCard: input.paymentMethod === "card" && input.card ? {
             holderName: input.card.name,

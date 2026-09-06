@@ -63,6 +63,27 @@ export async function quote(req: Request, res: Response) {
             );
         }
 
+        // Retirada na fábrica: quando ligada nas Configurações de Frete, entra como
+        // uma opção a mais (custo R$ 0,00, sem transportadora) junto das cotações.
+        // Adicionada DEPOIS da regra de frete grátis para não interferir no cálculo.
+        const pickup = config.pickup;
+        if (pickup?.enabled) {
+            options = [
+                ...options,
+                {
+                    id: 0,
+                    name: 'Retirar na fábrica',
+                    company: 'Retirada',
+                    price: '0.00',
+                    deliveryDays: 0,
+                    pickup: true,
+                    address: pickup.address ?? '',
+                    hours: pickup.hours ?? '',
+                    note: pickup.note ?? '',
+                } as never,
+            ];
+        }
+
         res.json(options);
     } catch (error) {
         console.error('Erro na cotação de frete: ', error);
