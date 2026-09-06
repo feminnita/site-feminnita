@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { QuickBuyPanel } from "./QuickBuyPanel";
 import { effectivePrice, hasActiveSale, pixFromPrice } from "@/src/utils/pricing";
+import { normalizeColorKey } from "@/src/utils/product";
+import { sortSizes } from "@/src/utils/sizes";
 import type { StoreProduct } from "@/src/types/product/products";
 
 interface ProductCardProps {
@@ -20,6 +22,18 @@ interface ProductCardProps {
     colorLabel?: string;
 }
 
+// Foto da COR (colorImages[cor][0]) tolerante a caixa/acento. undefined quando não há.
+function colorThumb(
+    product: Pick<StoreProduct, "colorImages">,
+    color: string,
+): string | undefined {
+    const map = product.colorImages;
+    if (!map || !color) return undefined;
+    const target = normalizeColorKey(color);
+    const key = Object.keys(map).find((k) => normalizeColorKey(k) === target);
+    return key ? map[key]?.[0] : undefined;
+}
+
 // Card de VITRINE com COMPRA RÁPIDA dentro do card (QuickBuyPanel).
 // Produto sem estoque NÃO aparece na vitrine (filtrado no backend), então o card
 // sempre mostra "Comprar" — a disponibilidade fina (cor×tamanho) é conferida ao abrir.
@@ -31,25 +45,37 @@ export function ProductCard({
 }: ProductCardProps) {
     const [isFavorite, setIsFavorite] = useState(false);
     const [open, setOpen] = useState(false);
+    // Cor selecionada NO CARD: troca a foto do card pela foto daquela cor (B2).
+    // Só na vitrine (sem overrideImage — o carrossel do produto fixa a própria foto).
+    const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
     const effective = effectivePrice(product.price, product.salePrice, product.saleStart, product.saleEnd);
     const onSale = hasActiveSale(product.price, product.salePrice, product.saleStart, product.saleEnd);
 
     const href = `/produto/${product.slug ?? product.id}`;
 
-    // Com overrideImage (carrossel do produto), o card fixa a foto da cor sugerida
-    // e NÃO faz swap no hover. Sem ele, mantém o comportamento da vitrine (capa + 2ª no hover).
-    const primary = overrideImage ?? product.images?.[0];
-    const secondary = overrideImage ? undefined : product.images?.[1];
+    // Vitrine mostra bolinhas de cor + tamanhos; o carrossel do produto (overrideImage) não.
+    const showVariants = !overrideImage;
+    const colors = showVariants ? product.colors ?? [] : [];
+    const sizes = showVariants ? sortSizes(product.sizes ?? []) : [];
+    const MAX_SWATCHES = 6;
+
+    // Foto do card: cor escolhida (se tiver foto) → senão capa. Com overrideImage, fixa.
+    const colorImg = selectedColor ? colorThumb(product, selectedColor) : undefined;
+    const baseImage = overrideImage ?? product.images?.[0];
+    const primary = colorImg ?? baseImage;
+    // Swap de hover só na vitrine SEM cor escolhida (com cor, a foto da cor permanece).
+    const secondary = showVariants && !selectedColor ? product.images?.[1] : undefined;
 
     return (
         <div className="product-card group relative">
             <Link href={href} className="block">
-                {/* Foto 3:4 */}
+                {/* Foto 3:4 — NUNCA some ao abrir a compra rápida (painel abre ao lado/abaixo) */}
                 <div className="relative aspect-[3/4] overflow-hidden bg-white p-2">
                     {primary ? (
                         <div className="relative h-full w-full">
                             <Image
+                                key={primary}
                                 src={primary}
                                 alt={product.name}
                                 fill
@@ -58,7 +84,7 @@ export function ProductCard({
                                 quality={90}
                             />
                             {/* Segunda foto no hover — só quando há capa alternativa
-                                (vitrine). Com overrideImage a foto fica fixa, sem swap. */}
+                                (vitrine). Com overrideImage/cor escolhida a foto fica fixa. */}
                             {secondary && (
                                 <Image
                                     src={secondary}
@@ -105,7 +131,7 @@ export function ProductCard({
                 </div>
             </Link>
 
-            {/* Nome + preço */}
+            {/* Nome + variações + preço */}
             <div className="mt-3 space-y-1">
                 {showCode && product.code && (
                     <p className="text-xs uppercase tracking-wide text-gray-400">
@@ -120,7 +146,63 @@ export function ProductCard({
                 {colorLabel && (
                     <p className="text-xs text-gray-500">Cor: {colorLabel}</p>
                 )}
-                <div className="flex flex-wrap items-baseline gap-x-2">
+
+                {/* Cores como BOLINHAS (foto da cor quando existir) — clicar troca a foto (B2). */}
+                {colors.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                        {colors.slice(0, MAX_SWATCHES).map((c) => {
+                            const thumb = colorThumb(product, c);
+                            const active =
+                                normalizeColorKey(selectedColor ?? "") === normalizeColorKey(c);
+                            return (
+                                <button
+                                    key={c}
+                                    type="button"
+                                    title={c}
+                                    aria-label={`Cor ${c}`}
+                                    aria-pressed={active}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setSelectedColor((prev) => (prev === c ? null : c));
+                                    }}
+                                    className={`relative h-6 w-6 shrink-0 overflow-hidden rounded-full border transition ${
+                                        active
+                                            ? "border-[#8C2F39] ring-2 ring-[#8C2F39]/40"
+                                            : "border-gray-300 hover:border-[#8C2F39]"
+                                    }`}
+                                >
+                                    {thumb ? (
+                                        <Image
+                                            src={thumb}
+                                            alt={c}
+                                            fill
+                                            sizes="24px"
+                                            className="object-cover"
+                                        />
+                                    ) : (
+                                        // Sem foto e sem HEX: swatch neutro (nome fica no title/tooltip).
+                                        <span className="block h-full w-full bg-gradient-to-br from-gray-200 to-gray-400" />
+                                    )}
+                                </button>
+                            );
+                        })}
+                        {colors.length > MAX_SWATCHES && (
+                            <span className="text-xs text-gray-400">
+                                +{colors.length - MAX_SWATCHES}
+                            </span>
+                        )}
+                    </div>
+                )}
+
+                {/* Tamanhos como ETIQUETAS de texto: "M · G · GG". */}
+                {sizes.length > 0 && (
+                    <p className="text-xs tracking-wide text-gray-500">
+                        {sizes.join(" · ")}
+                    </p>
+                )}
+
+                <div className="flex flex-wrap items-baseline gap-x-2 pt-0.5">
                     <p className="text-base font-semibold text-gray-900">
                         R$ {effective.toFixed(2).replace(".", ",")}
                     </p>
@@ -148,7 +230,13 @@ export function ProductCard({
                 </button>
             </div>
 
-            {open && <QuickBuyPanel product={product} onClose={() => setOpen(false)} />}
+            {open && (
+                <QuickBuyPanel
+                    product={product}
+                    initialColor={selectedColor ?? undefined}
+                    onClose={() => setOpen(false)}
+                />
+            )}
         </div>
     );
 }
