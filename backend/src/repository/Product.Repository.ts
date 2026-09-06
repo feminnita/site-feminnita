@@ -69,7 +69,23 @@ export function findColorImagesByProductIds(productIds: string[]) {
         .select({ productId: productColorImages.productId, color: productsColors.name, images: productColorImages.images })
         .from(productColorImages)
         .leftJoin(productsColors, eq(productColorImages.colorId, productsColors.id))
-        .where(inArray(productColorImages.productId, productIds));
+        .where(
+            and(
+                inArray(productColorImages.productId, productIds),
+                // SÓ galeria de cor que ainda TEM variação no produto. Sobram linhas
+                // de cores que não existem mais na grade (grafia trocada, cor
+                // removida): a loja lia essas órfãs e, como a regra da galeria dá
+                // preferência à cor com 2+ fotos, a página do produto mostrava foto
+                // velha enquanto a vitrine mostrava a capa nova. Caso real: 31700,
+                // com "Marinho" (5 fotos de 25/08, órfã) ganhando de "MARINHO"
+                // (1 foto de hoje, a que tem variação).
+                sql`exists (
+                    select 1 from products_skus s
+                    where s.product_id = ${productColorImages.productId}
+                      and s.color_id = ${productColorImages.colorId}
+                )`,
+            ),
+        );
 }
 
 export function findSkuStockByProductId(productId: string) {
