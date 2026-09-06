@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Check, Minus, Plus, X } from "lucide-react";
 import { useCart } from "@/src/hooks/cart/useCart";
 import { fetchProductStock } from "@/src/services/productsService";
-import { buildCartItem, normalizeColorKey } from "@/src/utils/product";
+import { buildCartItem, formatColorName, normalizeColorKey } from "@/src/utils/product";
 import { recordCartColor, recordColorClick } from "@/src/lib/colorAffinity";
 import { sortSizes } from "@/src/utils/sizes";
 import type { SkuStock, StoreProduct } from "@/src/types/product/products";
@@ -177,7 +177,7 @@ export function QuickBuyPanel({
             }),
         );
         recordCartColor(color); // sinal de afinidade de cor (sessão)
-        const label = needColor ? `${qty}x ${size} · ${color}` : `${qty}x ${size}`;
+        const label = needColor ? `${qty}x ${size} · ${formatColorName(color)}` : `${qty}x ${size}`;
         setAdded((a) => [...a, { id: Date.now(), label }]);
         // NÃO fecha: reseta a seleção e volta pronto pra próxima escolha.
         setSize("");
@@ -237,7 +237,7 @@ export function QuickBuyPanel({
                         <div className="mb-4">
                             <label className="mb-2 block text-sm font-medium text-gray-800">
                                 Estampa:{" "}
-                                <span className="font-normal text-gray-600">{color}</span>
+                                <span className="font-normal text-gray-600">{formatColorName(color)}</span>
                             </label>
 
                             {manyColors && (
@@ -259,7 +259,7 @@ export function QuickBuyPanel({
                                         onClick={() => selectColor(c)}
                                         className={chip(c, color === c, true)}
                                     >
-                                        {c}
+                                        {formatColorName(c)}
                                     </button>
                                 ))}
                                 {manyColors && !query.trim() && (

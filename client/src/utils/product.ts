@@ -66,6 +66,24 @@ export function normalizeColorKey(s: string): string {
     .replace(/[̀-ͯ]/g, "");
 }
 
+// Formata o nome da cor SÓ PARA EXIBIÇÃO (title-case por palavra): primeira letra
+// de cada palavra em maiúscula, resto minúscula. NÃO inventa acento nem corrige
+// ortografia — só muda a caixa ("AZUL"→"Azul", "Lilas"→"Lilas", "AZUL CLARO"→
+// "Azul Claro", "VerdeEscuro"→"Verdeescuro"). Espaço e hífen são limites de
+// palavra e são preservados ("Azul-claro"→"Azul-Claro"). O valor CRU do banco
+// continua sendo usado em seleção/carrinho/lookup — este helper é só texto na tela.
+export function formatColorName(name: string | null | undefined): string {
+  if (!name) return "";
+  return name
+    .split(/([\s-]+)/)
+    .map((token) =>
+      token === "" || /^[\s-]+$/.test(token)
+        ? token
+        : token.charAt(0).toUpperCase() + token.slice(1).toLowerCase(),
+    )
+    .join("");
+}
+
 export function getDisplayImages(
   product: Pick<StoreProduct, "images" | "colorImages">,
   selectedColor: string,

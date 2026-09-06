@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import type { ColorSelectorProps } from "@/src/types/product/products";
-import { normalizeColorKey } from "@/src/utils/product";
+import { formatColorName, normalizeColorKey } from "@/src/utils/product";
 
 const VISIBLE_LIMIT = 8;
 
@@ -33,20 +33,22 @@ type ThumbProps = {
 // Estampa SEM foto: chip de texto (pílula com borda fina, nome centralizado) — NUNCA
 // quadrado cinza, placeholder ou texto "sem foto". A compradora pede por nome no WhatsApp.
 function EstampaThumb({ color, photo, isSelected, onSelect }: ThumbProps) {
+    // Só o TEXTO na tela usa o nome formatado; a seleção continua com o nome cru.
+    const label = formatColorName(color);
     if (!photo) {
         return (
             <button
                 type="button"
                 onClick={() => onSelect(color)}
                 aria-pressed={isSelected}
-                aria-label={`Estampa ${color}`}
-                title={color}
+                aria-label={`Estampa ${label}`}
+                title={label}
                 className={`flex min-h-[40px] min-w-[72px] max-w-[160px] items-center justify-center rounded-full border px-4 py-2 text-center text-[12px] leading-tight transition-all ${isSelected
                         ? "border-[#8C2F39] bg-[#8C2F39]/5 font-semibold text-[#8C2F39] ring-1 ring-[#8C2F39]"
                         : "border-gray-300 text-gray-700 hover:border-gray-500"
                     }`}
             >
-                {color}
+                {label}
             </button>
         );
     }
@@ -56,8 +58,8 @@ function EstampaThumb({ color, photo, isSelected, onSelect }: ThumbProps) {
             type="button"
             onClick={() => onSelect(color)}
             aria-pressed={isSelected}
-            aria-label={`Estampa ${color}`}
-            title={color}
+            aria-label={`Estampa ${label}`}
+            title={label}
             className="group flex w-[72px] flex-col items-center gap-1 text-center"
         >
             <span
@@ -68,7 +70,7 @@ function EstampaThumb({ color, photo, isSelected, onSelect }: ThumbProps) {
             >
                 <img
                     src={photo}
-                    alt={color}
+                    alt={label}
                     loading="lazy"
                     className="h-full w-full object-cover"
                 />
@@ -77,7 +79,7 @@ function EstampaThumb({ color, photo, isSelected, onSelect }: ThumbProps) {
                 className={`line-clamp-2 w-full text-[11px] leading-tight ${isSelected ? "font-semibold text-[#8C2F39]" : "text-gray-600"
                     }`}
             >
-                {color}
+                {label}
             </span>
         </button>
     );
@@ -131,7 +133,7 @@ export function ColorSelector({
         <div>
             <label className="mb-3 block text-sm font-medium">
                 Estampa:{" "}
-                <span className="font-normal text-gray-600">{selectedColor}</span>
+                <span className="font-normal text-gray-600">{formatColorName(selectedColor)}</span>
             </label>
 
             {/* Grade de miniaturas. Ao expandir no desktop, rola por dentro (max-height)

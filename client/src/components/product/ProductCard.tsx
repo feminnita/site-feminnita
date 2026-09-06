@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { QuickBuyPanel } from "./QuickBuyPanel";
 import { effectivePrice, hasActiveSale, pixFromPrice } from "@/src/utils/pricing";
-import { normalizeColorKey } from "@/src/utils/product";
+import { formatColorName, normalizeColorKey } from "@/src/utils/product";
 import { sortSizes } from "@/src/utils/sizes";
 import type { StoreProduct } from "@/src/types/product/products";
 
@@ -144,7 +144,7 @@ export function ProductCard({
                     </h3>
                 </Link>
                 {colorLabel && (
-                    <p className="text-xs text-gray-500">Cor: {colorLabel}</p>
+                    <p className="text-xs text-gray-500">Cor: {formatColorName(colorLabel)}</p>
                 )}
 
                 {/* Cores como BOLINHAS (foto da cor quando existir) — clicar troca a foto (B2). */}
@@ -152,14 +152,15 @@ export function ProductCard({
                     <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                         {colors.slice(0, MAX_SWATCHES).map((c) => {
                             const thumb = colorThumb(product, c);
+                            const label = formatColorName(c);
                             const active =
                                 normalizeColorKey(selectedColor ?? "") === normalizeColorKey(c);
                             return (
                                 <button
                                     key={c}
                                     type="button"
-                                    title={c}
-                                    aria-label={`Cor ${c}`}
+                                    title={label}
+                                    aria-label={`Cor ${label}`}
                                     aria-pressed={active}
                                     onClick={(e) => {
                                         e.preventDefault();
@@ -175,7 +176,7 @@ export function ProductCard({
                                     {thumb ? (
                                         <Image
                                             src={thumb}
-                                            alt={c}
+                                            alt={label}
                                             fill
                                             sizes="24px"
                                             className="object-cover"
