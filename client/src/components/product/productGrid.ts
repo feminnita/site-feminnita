@@ -1,4 +1,10 @@
-export const PRODUCT_GRID = "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4";
+// Grades de vitrine com COLUNAS DE LARGURA FIXA (auto-fill) + alinhamento à esquerda.
+// auto-fill (e não auto-fit) mantém as trilhas vazias: com poucos itens o card NÃO
+// estica pra ocupar a linha inteira — fica no tamanho normal, encostado à esquerda.
+// Quando a grade enche, o comportamento é o mesmo de antes (várias colunas).
+export const PRODUCT_GRID =
+    "grid justify-start gap-4 md:gap-6 grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))]";
 
-// Home: 5 por linha no desktop (as 3 seções de produto da home). /produtos continua em PRODUCT_GRID (4).
-export const HOME_SECTION_GRID = "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-5";
+// Home: cards um pouco mais estreitos (cabe ~5 por linha no desktop largo).
+export const HOME_SECTION_GRID =
+    "grid justify-start gap-4 md:gap-6 grid-cols-[repeat(auto-fill,minmax(160px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(190px,1fr))] lg:grid-cols-[repeat(auto-fill,minmax(190px,1fr))]";

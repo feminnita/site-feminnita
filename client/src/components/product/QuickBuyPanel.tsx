@@ -21,17 +21,22 @@ type Added = { id: number; label: string };
 export function QuickBuyPanel({
     product,
     onClose,
+    initialColor,
 }: {
     product: StoreProduct;
     onClose: () => void;
+    // Cor já escolhida na bolinha do card — abre o painel com ela pré-selecionada.
+    initialColor?: string;
 }) {
     const cart = useCart();
     const panelRef = useRef<HTMLDivElement>(null);
 
     const [isMobile, setIsMobile] = useState(false);
+    // Desktop: popover ancorado ao lado do card. Abre à esquerda se faltar espaço à direita.
+    const [side, setSide] = useState<"right" | "left">("right");
     const [skus, setSkus] = useState<SkuStock[]>([]);
     const [loading, setLoading] = useState(true);
-    const [color, setColor] = useState(product.colors[0] ?? "");
+    const [color, setColor] = useState(initialColor ?? product.colors[0] ?? "");
     const [size, setSize] = useState("");
     const [qty, setQty] = useState(1);
     const [query, setQuery] = useState("");
@@ -44,6 +49,17 @@ export function QuickBuyPanel({
         mq.addEventListener("change", update);
         return () => mq.removeEventListener("change", update);
     }, []);
+
+    // Desktop: decide o lado do popover conforme o espaço ao redor do card (evita cortar na borda).
+    useEffect(() => {
+        if (isMobile) return;
+        const card = panelRef.current?.parentElement; // .product-card
+        if (!card) return;
+        const rect = card.getBoundingClientRect();
+        const PANEL_W = 380;
+        const spaceRight = window.innerWidth - rect.right;
+        setSide(spaceRight >= PANEL_W + 24 ? "right" : "left");
+    }, [isMobile]);
 
     // Disponibilidade por SKU (cor×tamanho×qtd) não vem na grade — busca sob demanda ao abrir.
     useEffect(() => {
@@ -182,8 +198,12 @@ export function QuickBuyPanel({
             ref={panelRef}
             className={
                 isMobile
-                    ? "fixed inset-x-0 bottom-0 z-[60] max-h-[88vh] overflow-y-auto rounded-t-2xl bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl"
-                    : "absolute inset-x-0 top-0 z-40 max-h-[520px] overflow-y-auto rounded-lg border border-gray-200 bg-white p-4 shadow-xl"
+                    ? // Celular: bottom sheet LARGURA INTEIRA subindo de baixo.
+                      "fixed inset-x-0 bottom-0 z-[60] max-h-[88vh] overflow-y-auto rounded-t-2xl bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl"
+                    : // Desktop: POPOVER com largura própria, ancorado ao LADO do card (a foto continua visível).
+                      `absolute top-0 z-40 max-h-[80vh] w-[380px] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-gray-200 bg-white p-4 shadow-2xl ${
+                          side === "right" ? "left-full ml-3" : "right-full mr-3"
+                      }`
             }
             onClick={(e) => {
                 // Dentro do painel: nunca deixa o clique subir pro Link do card.
