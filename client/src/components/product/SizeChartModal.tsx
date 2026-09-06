@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import type { ResolvedSizeChart } from "@/src/types/product/products";
+import { sortSizes } from "@/src/utils/sizes";
 
 type Props = {
     chart: ResolvedSizeChart;
@@ -38,9 +39,19 @@ export function SizeChartModal({ chart, selectedSize, onClose }: Props) {
         return () => document.removeEventListener("keydown", onKey);
     }, [onClose]);
 
-    const sizes = chart.rows.map((r) => r.label); // colunas
+    // As linhas vêm do banco na ordem em que foram semeadas, que nem sempre é a
+    // ordem de tamanho — a tabela feminina aparecia como "G · M · GG". Ordena
+    // pela mesma régua usada no seletor de tamanho da página.
+    const ordered = (() => {
+        const ordem = sortSizes(chart.rows.map((r) => r.label));
+        return [...chart.rows].sort(
+            (a, b) => ordem.indexOf(a.label) - ordem.indexOf(b.label),
+        );
+    })();
+
+    const sizes = ordered.map((r) => r.label); // colunas
     const measures = chart.columns; // linhas
-    const hasEquiv = chart.rows.some((r) => r.equiv && r.equiv.trim() !== "");
+    const hasEquiv = ordered.some((r) => r.equiv && r.equiv.trim() !== "");
     const hasImage = !!chart.howToMeasureImage;
     const selIdx = selectedSize
         ? sizes.findIndex((s) => norm(s) === norm(selectedSize))
@@ -133,7 +144,7 @@ export function SizeChartModal({ chart, selectedSize, onClose }: Props) {
                                             <td className="px-3 py-2 font-medium text-gray-700">
                                                 Equivalente
                                             </td>
-                                            {chart.rows.map((r, i) => (
+                                            {ordered.map((r, i) => (
                                                 <td
                                                     key={i}
                                                     className={`whitespace-nowrap px-3 py-2 text-center text-gray-700 ${colClass(i)}`}
@@ -151,7 +162,7 @@ export function SizeChartModal({ chart, selectedSize, onClose }: Props) {
                                             <td className="whitespace-nowrap px-3 py-2 font-medium text-gray-900">
                                                 {measure}
                                             </td>
-                                            {chart.rows.map((r, ri) => (
+                                            {ordered.map((r, ri) => (
                                                 <td
                                                     key={ri}
                                                     className={`whitespace-nowrap px-3 py-2 text-center text-gray-700 ${colClass(ri)}`}
