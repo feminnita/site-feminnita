@@ -1,7 +1,7 @@
 import { Header } from "../components/layout/Header";
 import { HeroCarousel } from "../components/home/HeroCarousel";
 import { Vitrine } from "../components/home/Vitrine";
-// import { InstagramFeed } from "../components/InstagramFeed";
+import { InstagramFeed } from "../components/home/InstagramFeed";
 // import { Newsletter } from "../components/Newsletter";
 import { ProductCard } from "../components/product/ProductCard";
 import { HOME_SECTION_GRID } from "../components/product/productGrid";
@@ -214,8 +214,8 @@ export default async function Home() {
       {/*VIDEO*/}
       {videoSection && <Vitrine videoSection={videoSection} />}
 
-      {/* Instagram Feed */}
-      {/* <InstagramFeed /> */}
+      {/* Instagram — some sozinho enquanto não houver foto cadastrada */}
+      <InstagramFeed />
 
       {/* Footer agora é global (renderizado no ClientBody) — não duplicar aqui */}
     </div>
