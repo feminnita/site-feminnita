@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 import { fetchProduct } from "@/src/services/productsService";
+import {
+    JsonLd,
+    breadcrumbSchema,
+    productSchema,
+} from "@/src/components/common/JsonLd";
 import ProductPageClient from "./ProductPageClient";
 
 const SITE_NAME = "Feminnita";
@@ -106,5 +111,44 @@ export default async function ProductPage({
     params: Promise<{ id: string }>;
 }) {
     const { id } = await params;
-    return <ProductPageClient id={id} />;
+
+    // Os dados estruturados sao montados AQUI, no servidor, e nao dentro do
+    // componente de cliente. La eles so existiam depois que a pagina carregava no
+    // navegador — entao nao apareciam no HTML entregue, e o Google nao recebia
+    // preco nem disponibilidade nenhuma. Conferido na loja no ar: a pagina do
+    // 31700 vinha com ZERO blocos de dados estruturados.
+    const product = await fetchProduct(id);
+
+    const showCategoryCrumb =
+        !!product?.category &&
+        product.category !== "Aguardando classificação" &&
+        product.category !== "bling-aguardando-classificacao";
+
+    return (
+        <>
+            {product && (
+                <>
+                    <JsonLd data={productSchema(product)} />
+                    <JsonLd
+                        data={breadcrumbSchema([
+                            { name: "Home", url: "https://feminnita.com.br/" },
+                            ...(showCategoryCrumb
+                                ? [
+                                      {
+                                          name: product.category as string,
+                                          url: `https://feminnita.com.br/categoria/${product.category}`,
+                                      },
+                                  ]
+                                : []),
+                            {
+                                name: product.name,
+                                url: `https://feminnita.com.br/produto/${id}`,
+                            },
+                        ])}
+                    />
+                </>
+            )}
+            <ProductPageClient id={id} />
+        </>
+    );
 }

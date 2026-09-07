@@ -56,9 +56,13 @@ export function findActiveProductByIdOrSlug(idOrSlug: string) {
         .limit(1);
 }
 
+// `minStock` e a margem de seguranca por variacao. O estoque do Bling alimenta
+// site, Shopee, Mercado Livre e Amazon ao mesmo tempo: entre uma sincronizacao e
+// outra, uma venda em outro canal derruba o saldo e a loja continuaria oferecendo
+// — e cancelamento custa mais caro que venda perdida.
 export function findSkuVariantsByProductIds(productIds: string[]) {
     return db
-        .select({ productId: productsSkus.productId, size: productsSkus.size, color: productsColors.name, stockQty: productsSkus.stockQty, reservedQty: productsSkus.reservedQty })
+        .select({ productId: productsSkus.productId, size: productsSkus.size, color: productsColors.name, stockQty: productsSkus.stockQty, reservedQty: productsSkus.reservedQty, minStock: productsSkus.minStock })
         .from(productsSkus)
         .leftJoin(productsColors, eq(productsSkus.colorId, productsColors.id))
         .where(inArray(productsSkus.productId, productIds));
@@ -95,6 +99,7 @@ export function findSkuStockByProductId(productId: string) {
             color: productsColors.name,
             stockQty: productsSkus.stockQty,
             reservedQty: productsSkus.reservedQty,
+            minStock: productsSkus.minStock,
         })
         .from(productsSkus)
         .leftJoin(productsColors, eq(productsSkus.colorId, productsColors.id))

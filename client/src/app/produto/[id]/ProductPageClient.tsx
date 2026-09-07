@@ -82,24 +82,9 @@ export default function ProductPageClient({ id }: { id: string }) {
 
     return (
         <div className="min-h-screen bg-white pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
-            <JsonLd data={productSchema(product)} />
-            <JsonLd
-                data={breadcrumbSchema([
-                    { name: "Home", url: "https://feminnita.com.br/" },
-                    ...(showCategoryCrumb
-                        ? [
-                              {
-                                  name: product.category,
-                                  url: `https://feminnita.com.br/categoria/${product.category}`,
-                              },
-                          ]
-                        : []),
-                    {
-                        name: product.name,
-                        url: `https://feminnita.com.br/produto/${product.id}`,
-                    },
-                ])}
-            />
+            {/* Os dados estruturados saem daqui: agora sao montados em page.tsx,
+                no servidor, para chegarem no HTML que o Google le. Aqui eles so
+                existiam depois da pagina carregar no navegador. */}
             <Header />
 
             {!soldOut && (

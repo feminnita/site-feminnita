@@ -11,6 +11,9 @@ export const productsSkus = pgTable('products_skus', {
     blingId: bigint('bling_id', { mode: 'number' }),
     stockQty: integer('stock_qty').notNull().default(0),
     reservedQty: integer('reserved_qty').notNull().default(0),
+    // Margem de seguranca por variacao, definida no painel. A coluna ja existia
+    // no banco (o painel a grava); a loja e que a ignorava e vendia ate zerar.
+    minStock: integer('min_stock').notNull().default(0),
     price: numeric('price', { precision: 10, scale: 2 }),
     salePrice: numeric('sale_price', { precision: 10, scale: 2 }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),

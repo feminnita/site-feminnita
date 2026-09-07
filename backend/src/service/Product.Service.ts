@@ -34,7 +34,14 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
 
     // Estoque do produto = soma do disponível das variações (fonte de verdade).
     // products.stock é campo denormalizado que não é recalculado no cadastro — não usar.
-    const stock = pvs.reduce((sum, v) => sum + Math.max(0, (v.stockQty ?? 0) - (v.reservedQty ?? 0)), 0);
+    // Disponivel = saldo - reservado - MARGEM. A margem (minStock, definida por
+    // variacao no painel) existe porque o mesmo estoque do Bling atende site,
+    // Shopee, Mercado Livre e Amazon: entre duas sincronizacoes uma venda em
+    // outro canal derruba o saldo, e a loja venderia o que ja nao existe.
+    const stock = pvs.reduce(
+        (sum, v) => sum + Math.max(0, (v.stockQty ?? 0) - (v.reservedQty ?? 0) - (v.minStock ?? 0)),
+        0,
+    );
 
     const colorImages: Record<string, string[]> = {};
     for (const imageRow of colorImageRows.filter((c) => c.productId === p.id)) {
@@ -128,7 +135,12 @@ export async function getProductStock(idOrSlug: string) {
     const skus = await ProductRepository.findSkuStockByProductId(row.product.id);
 
     return skus.map((sku) => {
-        const availableQty = Math.max(0, (sku.stockQty ?? 0) - (sku.reservedQty ?? 0));
+        // Mesma margem do calculo do produto: o que a loja mostra como
+        // disponivel ja desconta o minimo guardado para os outros canais.
+        const availableQty = Math.max(
+            0,
+            (sku.stockQty ?? 0) - (sku.reservedQty ?? 0) - (sku.minStock ?? 0),
+        );
         const stockStatus =
             availableQty === 0 ? 'out_of_stock'
                 : availableQty <= 3 ? 'low_stock'
