@@ -54,3 +54,71 @@
     color: var(--color-foreground);
   }
 }
+
+/* Tipografia dos artigos do blog. O conteudo vem do blog antigo ja em HTML
+   (h2, p, ul, strong), entao a leitura depende de estilo aplicado por fora —
+   sem isso o texto sai todo colado, no tamanho padrao e sem hierarquia. */
+.artigo-conteudo {
+    color: #374151;
+    line-height: 1.8;
+}
+.artigo-conteudo h2 {
+    margin: 2.5rem 0 1rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #111827;
+}
+.artigo-conteudo h3 {
+    margin: 2rem 0 0.75rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #111827;
+}
+.artigo-conteudo p {
+    margin-bottom: 1.25rem;
+}
+.artigo-conteudo ul,
+.artigo-conteudo ol {
+    margin: 0 0 1.5rem 1.25rem;
+    list-style: revert;
+}
+.artigo-conteudo li {
+    margin-bottom: 0.5rem;
+}
+.artigo-conteudo strong {
+    color: #111827;
+    font-weight: 600;
+}
+.artigo-conteudo a {
+    color: #8c2f39;
+    text-decoration: underline;
+}
+.artigo-conteudo img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 1rem;
+    margin: 1.5rem 0;
+}
+/* Tabela larga rola dentro do proprio bloco: sem isto ela empurra a pagina
+   inteira de lado no celular. */
+.artigo-conteudo table {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+}
+.artigo-conteudo th,
+.artigo-conteudo td {
+    border: 1px solid #e5e7eb;
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+}
+.artigo-conteudo blockquote {
+    border-left: 3px solid #8c2f39;
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    color: #4b5563;
+    font-style: italic;
+}

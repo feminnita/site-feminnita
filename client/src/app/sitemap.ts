@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { fetchProducts } from "../services/productsService";
 import { fetchCategories } from "../services/categoriesService";
+import { listarArtigos } from "../services/blogService";
 
 const SITE = "https://feminnita.com.br";
 
@@ -15,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const fixas: MetadataRoute.Sitemap = [
         { url: `${SITE}/`, changeFrequency: "daily", priority: 1 },
         { url: `${SITE}/produtos`, changeFrequency: "daily", priority: 0.9 },
+        { url: `${SITE}/blog`, changeFrequency: "weekly", priority: 0.7 },
         { url: `${SITE}/lancamentos`, changeFrequency: "daily", priority: 0.8 },
         { url: `${SITE}/mais-vendidos`, changeFrequency: "daily", priority: 0.8 },
         { url: `${SITE}/outlet`, changeFrequency: "daily", priority: 0.8 },
@@ -27,10 +29,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Se a API falhar, entrega ao menos as paginas fixas em vez de derrubar o
     // sitemap inteiro — um sitemap incompleto vale mais que nenhum.
-    const [produtos, categorias] = await Promise.all([
+    const [produtos, categorias, artigos] = await Promise.all([
         fetchProducts({ limit: 1000 }).catch(() => []),
         fetchCategories().catch(() => []),
+        listarArtigos().catch(() => []),
     ]);
+
+    const doBlog: MetadataRoute.Sitemap = artigos.map((a) => ({
+        url: `${SITE}/blog/${a.slug}`,
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+    }));
 
     const deCategoria: MetadataRoute.Sitemap = (categorias as { slug?: string }[])
         .filter((c) => c.slug)
@@ -52,5 +61,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.8,
         }));
 
-    return [...fixas, ...deCategoria, ...deProduto];
+    return [...fixas, ...deCategoria, ...doBlog, ...deProduto];
 }

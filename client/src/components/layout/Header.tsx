@@ -31,6 +31,7 @@ const MARKER_TABS: { href: string; label: string }[] = [
   { href: "/lancamentos", label: "LANÇAMENTOS" },
   { href: "/mais-vendidos", label: "MAIS VENDIDOS" },
   { href: "/outlet", label: "OUTLET" },
+  { href: "/blog", label: "BLOG" },
 ];
 
 export function Header() {
