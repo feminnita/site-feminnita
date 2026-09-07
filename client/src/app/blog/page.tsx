@@ -7,7 +7,7 @@ import { listarArtigos } from "../../services/blogService";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-    title: "Blog | Feminnita",
+    title: "Blog",
     description:
         "Conteúdo para quem revende pijamas: como precificar, como fotografar, como vender no WhatsApp e no Instagram.",
     alternates: { canonical: "https://feminnita.com.br/blog" },

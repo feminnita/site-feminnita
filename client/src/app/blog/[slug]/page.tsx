@@ -16,11 +16,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
     const { slug } = await params;
     const artigo = await buscarArtigo(slug);
-    if (!artigo) return { title: "Artigo não encontrado | Feminnita" };
+    if (!artigo) return { title: "Artigo não encontrado" };
 
     const descricao = (artigo.excerpt || "").slice(0, 155);
     return {
-        title: `${artigo.title} | Feminnita`,
+        title: artigo.title,
         description: descricao,
         alternates: { canonical: `${SITE}/blog/${artigo.slug}` },
         openGraph: {
