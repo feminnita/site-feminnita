@@ -7,6 +7,7 @@ export type PostResumo = {
     excerpt: string | null;
     coverUrl: string | null;
     kind: string;
+    category: string | null;
     authorName: string | null;
     publishedAt: string | null;
 };

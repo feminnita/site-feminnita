@@ -1,4 +1,5 @@
 import * as EmailClient from '../resend/Clients';
+import { emailLayout } from './layout';
 import type { OrderEmailData } from './types';
 
 function formatBRL(value: string): string {
@@ -118,33 +119,53 @@ export async function sendAbandonedCart(data: {
     cartUrl: string;
 }) {
     try {
+        const pecas = data.items.reduce((t, i) => t + (i.quantity || 0), 0);
+
         const linhas = data.items
             .slice(0, 8)
             .map(
-                (i) =>
-                    `<li>${escapeHtml(i.name)} — ${escapeHtml(i.size)}${
-                        i.color ? ` · ${escapeHtml(i.color)}` : ''
-                    } · ${i.quantity} ${i.quantity === 1 ? 'peça' : 'peças'}</li>`,
+                (i) => `<tr>
+                    <td style="padding:11px 0;border-bottom:1px solid #f4f4f5;font-size:14px;color:#3f3f46">
+                      <strong style="color:#18181b">${escapeHtml(i.name)}</strong><br>
+                      <span style="font-size:13px;color:#71717a">${escapeHtml(i.size)}${i.color ? ' · ' + escapeHtml(i.color) : ''}</span>
+                    </td>
+                    <td style="padding:11px 0;border-bottom:1px solid #f4f4f5;font-size:14px;color:#71717a;text-align:right;white-space:nowrap">
+                      ${i.quantity}x
+                    </td>
+                  </tr>`,
             )
             .join('');
-        const aMais = data.items.length > 8 ? `<li>e mais ${data.items.length - 8} item(ns)</li>` : '';
+
+        const aMais =
+            data.items.length > 8
+                ? `<tr><td colspan="2" style="padding:11px 0;font-size:13px;color:#71717a">e mais ${data.items.length - 8} item(ns)…</td></tr>`
+                : '';
+
+        const corpo = `
+      <p style="margin:0 0 6px">Oi, ${escapeHtml(data.customerName)}! 💛</p>
+      <p style="margin:0 0 20px">
+        Você escolheu ${pecas === 1 ? 'uma peça' : `${pecas} peças`} e parou no meio do caminho.
+        Guardamos tudo para você — está aqui, do jeitinho que ficou:
+      </p>
+
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:4px">
+        ${linhas}${aMais}
+      </table>
+
+      <p style="margin:22px 0 0;font-size:14px;color:#71717a">
+        🚚 Enviamos para todo o Brasil · pedido mínimo de R$ 199
+      </p>`;
 
         await EmailClient.sendEmail({
             to: data.customerEmail,
-            subject: 'Você deixou peças no carrinho',
-            html: `
-        <h2>Oi, ${escapeHtml(data.customerName)}!</h2>
-        <p>Seu carrinho na <strong>Feminnita</strong> ainda está guardado:</p>
-        <ul>${linhas}${aMais}</ul>
-        <p>
-          <a href="${data.cartUrl}" style="display:inline-block;background:#8C2F39;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:600">
-            Voltar para o carrinho
-          </a>
-        </p>
-        <p>Lembrando que o pedido mínimo é de R$ 199 e o envio é para todo o Brasil.</p>
-        <p>Se precisar de ajuda para fechar, chama a gente no WhatsApp: (22) 99281-0707.</p>
-        <p>— Equipe Feminnita</p>
-      `,
+            subject: '🛍️ Suas peças ainda estão no carrinho',
+            html: emailLayout({
+                preheader: `${pecas === 1 ? 'Uma peça guardada' : `${pecas} peças guardadas`} esperando você finalizar.`,
+                titulo: 'Seu carrinho está te esperando',
+                corpo,
+                botao: { texto: 'Voltar para o carrinho', url: data.cartUrl },
+                rodapeExtra: 'Já finalizou? Pode ignorar este e-mail. 😊',
+            }),
         });
     } catch (error) {
         console.error(`E-mail de carrinho abandonado falhou (${data.customerEmail}):`, error);

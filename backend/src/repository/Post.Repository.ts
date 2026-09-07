@@ -15,6 +15,7 @@ const naListagem = {
     excerpt: true,
     coverUrl: true,
     kind: true,
+    category: true,
     access: true,
     authorName: true,
     publishedAt: true,

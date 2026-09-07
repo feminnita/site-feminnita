@@ -169,6 +169,13 @@
       "when": 1788816071082,
       "tag": "0023_dark_killraven",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1788817845850,
+      "tag": "0024_talented_lady_bullseye",
+      "breakpoints": true
     }
   ]
 }

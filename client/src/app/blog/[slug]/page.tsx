@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Header } from "../../../components/layout/Header";
 import { JsonLd } from "../../../components/common/JsonLd";
 import { buscarArtigo } from "../../../services/blogService";
+import { corDaCategoria } from "../../../components/blog/categorias";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,7 @@ export default async function ArtigoPage({
     if (!artigo) notFound();
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-[#FAF6F2]">
             <Header />
 
             {/* Dados estruturados no servidor, para o Google receber junto com o
@@ -66,7 +67,7 @@ export default async function ArtigoPage({
             />
 
             <article className="container mx-auto px-4 py-12">
-                <div className="mx-auto max-w-3xl">
+                <div className="mx-auto max-w-3xl rounded-2xl bg-white p-7 shadow-[0_2px_16px_rgba(140,47,57,0.08)] md:p-12">
                     <Link
                         href="/blog"
                         className="mb-8 inline-block text-sm text-gray-500 transition-colors hover:text-[#8C2F39]"
@@ -74,7 +75,19 @@ export default async function ArtigoPage({
                         ← Voltar para o blog
                     </Link>
 
-                    <h1 className="mb-3 text-3xl font-light leading-tight md:text-4xl">
+                    {artigo.category && (
+                        <span
+                            className="mb-4 inline-block rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                            style={{
+                                backgroundColor: `${corDaCategoria(artigo.category)}1a`,
+                                color: corDaCategoria(artigo.category),
+                            }}
+                        >
+                            {artigo.category}
+                        </span>
+                    )}
+
+                    <h1 className="mb-3 font-serif text-3xl leading-tight text-[#1A1A1A] md:text-4xl">
                         {artigo.title}
                     </h1>
                     <p className="mb-8 text-sm text-gray-400">

@@ -29,6 +29,10 @@ export const posts = pgTable(
 
         access: text('access').notNull().default('publico'),
         kind: text('kind').notNull().default('artigo'),
+        // Categoria editorial (Treinamento, Tecidos & Produtos, Bem-Estar & Sono,
+        // Datas Especiais). Cada uma tem cor propria na tela — era isso que dava
+        // ao blog antigo cara de revista em vez de lista de links.
+        category: text('category'),
         status: text('status').notNull().default('rascunho'),
 
         // Video fica no YouTube nao listado: nao custa hospedagem e aguenta
