@@ -48,12 +48,21 @@ export async function enviarLembretesDeCarrinho(): Promise<number> {
     return enviados;
 }
 
+// Uma primeira rodada logo depois que o servidor sobe, e so entao de hora em
+// hora. Sem isso o job so rodaria 60 minutos apos cada reinicio — e como a loja
+// e publicada varias vezes por dia, ele poderia nunca chegar a rodar. Os 2
+// minutos de espera sao para o servidor terminar de subir antes.
+const ESPERA_DA_PRIMEIRA_RODADA_MS = 2 * 60 * 1000;
+
 export function startAbandonedCartJob() {
-    setInterval(async () => {
+    const rodar = async () => {
         try {
             await enviarLembretesDeCarrinho();
         } catch (error) {
             console.error('Erro no job de carrinho abandonado:', error);
         }
-    }, RODAR_A_CADA_MS);
+    };
+
+    setTimeout(rodar, ESPERA_DA_PRIMEIRA_RODADA_MS);
+    setInterval(rodar, RODAR_A_CADA_MS);
 }
