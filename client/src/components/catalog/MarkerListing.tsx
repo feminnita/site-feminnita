@@ -4,12 +4,25 @@ import { Header } from "../layout/Header";
 import { ProductCard } from "../product/ProductCard";
 import { PRODUCT_GRID } from "../product/productGrid";
 import { fetchProducts } from "../../services/productsService";
+import { getCategoryBanner } from "../../services/bannersService";
+import { CategoryBanner } from "../category/CategoryBanner";
+import type { CategoryBanner as CategoryBannerType } from "../../types/banners/banners";
 import type { StoreProduct } from "../../types/product/products";
 import { useEffect, useState } from "react";
 
 // Página de listagem por MARCADOR (flag). Mesma casca da listagem de categoria,
 // mas a fonte é a flag do produto (is_new / is_bestseller / is_outlet) em vez da
 // ligação de categoria — as categorias homônimas foram desativadas.
+// Estas paginas nao sao categoria, mas ganham banner pelo MESMO cadastro das
+// categorias — o painel ja tem ali o campo de imagem desktop E mobile, com
+// titulo e chamada. Criar um cadastro separado so para elas seria mais um lugar
+// para a Chris procurar, e mais um para esquecer de atualizar.
+const BANNER_DA_PAGINA: Record<string, string> = {
+  is_outlet: "outlet",
+  is_new: "lancamentos",
+  is_bestseller: "mais-vendidos",
+};
+
 export function MarkerListing({
   flag,
   title,
@@ -18,7 +31,18 @@ export function MarkerListing({
   title: string;
 }) {
   const [products, setProducts] = useState<StoreProduct[]>([]);
+  const [banner, setBanner] = useState<CategoryBannerType | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let vivo = true;
+    getCategoryBanner(BANNER_DA_PAGINA[flag])
+      .then((b) => vivo && setBanner(b))
+      .catch(() => undefined);
+    return () => {
+      vivo = false;
+    };
+  }, [flag]);
 
   useEffect(() => {
     let alive = true;
@@ -52,6 +76,8 @@ export function MarkerListing({
   return (
     <div className="min-h-screen bg-white">
       <Header />
+
+      {banner && <CategoryBanner banner={banner} />}
 
       <div className="container mx-auto px-4 py-8">
         <h1 className="mb-2 text-4xl font-light">{title}</h1>
