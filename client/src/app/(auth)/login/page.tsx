@@ -62,12 +62,21 @@ function LoginContent() {
         </div>
 
         <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-          {error && (
+          {error === "CONTA_SEM_SENHA" ? (
+            // Cliente que veio da Tray: a conta existe, a senha antiga não veio
+            // junto (senha não se copia entre sistemas). Aqui ele cria a dele.
+            <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              Sua conta já está aqui, mas ainda não tem senha nesta loja nova.{" "}
+              <Link href="/esqueci-senha" className="font-semibold underline">
+                Criar minha senha
+              </Link>
+            </div>
+          ) : error ? (
             <div className="mb-5 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
               <AlertCircle size={16} />
               {error}
             </div>
-          )}
+          ) : null}
 
           <a
             href={GOOGLE_LOGIN_URL}

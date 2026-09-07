@@ -42,7 +42,15 @@ export async function registerCustomer(input: {
     }
 
     const existing = await AuthRepository.findCustomerByEmail(input.email);
-    if (existing) throw new Error('EMAIL_ALREADY_IN_USE');
+    if (existing) {
+        // Cliente vindo da Tray: a conta já está aqui, mas nunca teve senha nem
+        // Google nesta loja. Dizer "e-mail já em uso" seria um beco sem saída —
+        // ele precisa é criar a senha. O front trata esse código com um link.
+        if (!existing.passwordHash && !existing.googleId) {
+            throw new AppError('CONTA_SEM_SENHA', 409);
+        }
+        throw new AppError('Esse e-mail já tem conta na loja.', 409);
+    }
 
     const passwordHash = await hashPassword(input.password);
     const customer = await AuthRepository.insertCustomer({
@@ -64,7 +72,9 @@ export async function registerCustomer(input: {
 export async function loginCustomer(input: { email: string; password: string; userAgent?: string }) {
     const customer = await AuthRepository.findCustomerByEmail(input.email);
     if (customer && !customer.passwordHash) {
-        throw new AppError('Essa conta usa o login com Google', 409);
+        if (customer.googleId) throw new AppError('Essa conta usa o login com Google', 409);
+        // Sem senha e sem Google = conta migrada da Tray.
+        throw new AppError('CONTA_SEM_SENHA', 409);
     }
 
     const hashToCheck = customer?.passwordHash ?? (await getDummyHash());

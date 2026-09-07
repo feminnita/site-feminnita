@@ -77,12 +77,22 @@ export default function CadastroPage() {
                 </div>
 
                 <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-                    {error && (
+                    {error === "CONTA_SEM_SENHA" ? (
+                        // Cliente da Tray tentando se cadastrar de novo: a conta
+                        // dele já veio junto, com o histórico. Só falta a senha.
+                        <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                            Você já tem conta na Feminnita — trouxemos seu cadastro. Só falta
+                            criar a senha desta loja nova.{" "}
+                            <Link href="/esqueci-senha" className="font-semibold underline">
+                                Criar minha senha
+                            </Link>
+                        </div>
+                    ) : error ? (
                         <div className="mb-5 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                             <AlertCircle size={16} />
                             {error}
                         </div>
-                    )}
+                    ) : null}
 
                     <a
                         href={GOOGLE_LOGIN_URL}
