@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { routes } from './routes/routes';
 import { startExpireOrderJob } from './jobs/expireOrder.Job';
+import { startAbandonedCartJob } from './jobs/abandonedCart.Job';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -62,4 +63,5 @@ app.listen(PORT, () => {
     // Libera a reserva de estoque de pedidos não pagos após o TTL. Sem isso,
     // todo PIX abandonado prende estoque pra sempre (reserved_qty nunca volta).
     startExpireOrderJob();
+    startAbandonedCartJob();
 });

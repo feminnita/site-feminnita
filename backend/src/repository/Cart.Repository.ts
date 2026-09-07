@@ -14,7 +14,9 @@ export async function upsert(customerId: string, items: CartItem[]) {
         .values({ customerId, items, updatedAt: new Date() })
         .onConflictDoUpdate({
             target: carts.customerId,
-            set: { items, updatedAt: new Date() },
+            // Mexeu no carrinho = carrinho novo: zera a marca do lembrete, senao
+            // quem abandonou uma vez nunca mais receberia aviso.
+            set: { items, updatedAt: new Date(), abandonedEmailAt: null },
         })
         .returning();
     return cart;

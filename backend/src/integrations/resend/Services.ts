@@ -106,3 +106,47 @@ export async function sendPasswordReset(data: { customerName: string; customerEm
         console.error(`E-mail de reset falhou (${data.customerEmail}):`, error);
     }
 }
+
+// Lembrete de carrinho abandonado. Tom de recado, nao de cobranca: a pessoa nao
+// deve nada, so parou no meio. Por isso nao ha contagem regressiva nem desconto
+// de ultima hora — desconto para quem ja ia comprar so tira margem, e ensina a
+// cliente a esperar o proximo e-mail em vez de fechar o pedido.
+export async function sendAbandonedCart(data: {
+    customerName: string;
+    customerEmail: string;
+    items: { name: string; size: string; color?: string; quantity: number }[];
+    cartUrl: string;
+}) {
+    try {
+        const linhas = data.items
+            .slice(0, 8)
+            .map(
+                (i) =>
+                    `<li>${escapeHtml(i.name)} — ${escapeHtml(i.size)}${
+                        i.color ? ` · ${escapeHtml(i.color)}` : ''
+                    } · ${i.quantity} ${i.quantity === 1 ? 'peça' : 'peças'}</li>`,
+            )
+            .join('');
+        const aMais = data.items.length > 8 ? `<li>e mais ${data.items.length - 8} item(ns)</li>` : '';
+
+        await EmailClient.sendEmail({
+            to: data.customerEmail,
+            subject: 'Você deixou peças no carrinho',
+            html: `
+        <h2>Oi, ${escapeHtml(data.customerName)}!</h2>
+        <p>Seu carrinho na <strong>Feminnita</strong> ainda está guardado:</p>
+        <ul>${linhas}${aMais}</ul>
+        <p>
+          <a href="${data.cartUrl}" style="display:inline-block;background:#8C2F39;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:600">
+            Voltar para o carrinho
+          </a>
+        </p>
+        <p>Lembrando que o pedido mínimo é de R$ 199 e o envio é para todo o Brasil.</p>
+        <p>Se precisar de ajuda para fechar, chama a gente no WhatsApp: (22) 99281-0707.</p>
+        <p>— Equipe Feminnita</p>
+      `,
+        });
+    } catch (error) {
+        console.error(`E-mail de carrinho abandonado falhou (${data.customerEmail}):`, error);
+    }
+}

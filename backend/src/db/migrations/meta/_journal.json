@@ -162,6 +162,13 @@
       "when": 1788803452910,
       "tag": "0022_short_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1788816071082,
+      "tag": "0023_dark_killraven",
+      "breakpoints": true
     }
   ]
 }
