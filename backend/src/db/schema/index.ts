@@ -16,6 +16,9 @@ export * from './users/carts';
 export * from './users/newsletter';
 
 //
+export * from './content/posts';
+
+//
 export * from './settings/settings';
 
 //

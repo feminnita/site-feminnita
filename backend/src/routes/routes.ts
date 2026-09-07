@@ -13,6 +13,7 @@ import { storeHeroSlideRoutes } from './HeroSlide.Routes';
 import { storeAccountRoutes } from './Account.Routes';
 import { storeResaleTermRoutes } from './ResaleTerm.Routes';
 import { storeNewsletterRoutes } from './Newsletter.Routes';
+import { storeBlogRoutes, storeTrainingRoutes, storeStoryRoutes } from './Post.Routes';
 
 export const routes = Router();
 
@@ -29,6 +30,9 @@ routes.use('/api/store/shipping', storeShippingRoutes);
 routes.use('/api/store/hero-slides', storeHeroSlideRoutes);
 routes.use('/api/store/resale-term', storeResaleTermRoutes);
 routes.use('/api/store/newsletter', storeNewsletterRoutes);
+routes.use('/api/store/blog', storeBlogRoutes);
+routes.use('/api/store/treinamento', storeTrainingRoutes);
+routes.use('/api/store/historias', storeStoryRoutes);
 
 routes.use('/api/webhooks/asaas', asaaswebhookRoutes);
 
