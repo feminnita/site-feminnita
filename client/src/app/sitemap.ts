@@ -40,10 +40,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.7,
         }));
 
-    const deProduto: MetadataRoute.Sitemap = (produtos as { slug?: string; code?: string }[])
-        .filter((p) => p.slug && p.code)
+    // A URL do produto e SO o slug — e a mesma que os cards da loja usam
+    // (ProductCard: /produto/{slug}). Juntar o codigo aqui gerava 404 no sitemap
+    // inteiro: um sitemap cheio de link quebrado e pior que nao ter sitemap,
+    // porque ensina o Google que o site tem paginas mortas.
+    const deProduto: MetadataRoute.Sitemap = (produtos as { slug?: string }[])
+        .filter((p) => p.slug)
         .map((p) => ({
-            url: `${SITE}/produto/${p.slug}-${p.code}`,
+            url: `${SITE}/produto/${p.slug}`,
             changeFrequency: "weekly" as const,
             priority: 0.8,
         }));
