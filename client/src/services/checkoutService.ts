@@ -1,4 +1,5 @@
 import { apiPost } from "./api";
+import { origemDaVisita } from "../lib/origemDaVisita";
 import { parseCardExpiry } from "../utils/checkout";
 import type { CartItem } from "../types/cart/cart";
 import { ApiOrderResponse, type CardInput, type OrderPaymentResult, type ShippingAddress } from "../types/checkout/checkout";
@@ -28,6 +29,9 @@ export async function createOrder(input: {
         shippingServiceId: input.shippingServiceId,
         pickup: input.pickup || undefined,
         shippingAddress: input.shippingAddress,
+        // De onde veio a visita que virou este pedido — e o que permite dizer
+        // depois qual campanha e qual arte geraram venda de verdade.
+        origem: origemDaVisita(),
         creditCard: input.paymentMethod === "card" && input.card ? {
             holderName: input.card.name,
             number: input.card.number.replace(/\s/g, ""),

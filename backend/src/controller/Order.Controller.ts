@@ -9,6 +9,7 @@ export async function createOrder(req: Request, res: Response) {
             items: req.body.items,
             paymentMethod: req.body.paymentMethod,
             installments: req.body.installments,
+            origem: req.body.origem,
             creditCard: req.body.creditCard,
             couponCode: req.body.couponCode,
             pickup: req.body.pickup === true,

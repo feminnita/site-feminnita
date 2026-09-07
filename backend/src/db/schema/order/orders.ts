@@ -36,6 +36,23 @@ export const orders = pgTable('orders', {
     shippingMethod: text('shipping_method'),
     // Versão vigente do Termo de Revenda aceita no momento do pedido. Coluna já aplicada no banco.
     resaleTermVersion: integer('resale_term_version'),
+
+    // De onde veio a visita que virou este pedido. Anúncio traz isso na URL
+    // (utm_source, utm_campaign, utm_content) e a loja jogava fora — então não
+    // havia como saber qual campanha, e principalmente QUAL ARTE, gerou venda.
+    //
+    // Guardar aqui mede a venda de verdade, não a conversão que a plataforma diz
+    // ter feito. E não depende de token de API que vence.
+    // `utmContent` costuma identificar o criativo; `utmTerm`, a palavra-chave.
+    utmSource: text('utm_source'),
+    utmMedium: text('utm_medium'),
+    utmCampaign: text('utm_campaign'),
+    utmContent: text('utm_content'),
+    utmTerm: text('utm_term'),
+    // Página de entrada e de onde a pessoa veio quando não há utm (busca
+    // orgânica, link no Instagram, indicação).
+    landingPage: text('landing_page'),
+    referrer: text('referrer'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({

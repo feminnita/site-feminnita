@@ -146,6 +146,9 @@ export async function createOrder(input: CreateOrderInput) {
             shippingServiceId: chosenShippingServiceId,
             shippingMethod: shippingMethodName,
             resaleTermVersion: orderResaleTermVersion,
+            // Origem da visita: chega do navegador, entao e limitada em tamanho
+            // antes de gravar — campo de URL e coisa que qualquer um edita.
+            ...limitarOrigem(input.origem),
         },
         resolvedItems.map((item) => ({
             productId: item.productId,
@@ -254,4 +257,23 @@ export async function getMyOrder(orderId: string, customerId: string) {
 
     const items = await OrderRepository.findItemsByOrderID(orderId);
     return { ...order, items };
+}
+
+// A origem vem da URL, ou seja, do lado de fora: corta em 200 caracteres e
+// descarta o que nao for texto. Nao muda o resultado de um anuncio de verdade e
+// evita gravar lixo colado na barra de endereco.
+function limitarOrigem(o: unknown) {
+    const origem = (o ?? {}) as Record<string, unknown>;
+    const texto = (v: unknown) =>
+        typeof v === 'string' && v.trim() ? v.trim().slice(0, 200) : null;
+
+    return {
+        utmSource: texto(origem.utmSource),
+        utmMedium: texto(origem.utmMedium),
+        utmCampaign: texto(origem.utmCampaign),
+        utmContent: texto(origem.utmContent),
+        utmTerm: texto(origem.utmTerm),
+        landingPage: texto(origem.landingPage),
+        referrer: texto(origem.referrer),
+    };
 }

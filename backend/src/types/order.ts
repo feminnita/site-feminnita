@@ -16,6 +16,17 @@ export type CreateOrderInput = {
         ccv: string;
     };
     remoteIp?: string;
+    // De onde veio a visita (utm do anuncio, pagina de entrada, referencia).
+    // Vem do navegador, entao e tratada como texto solto e limitada no service.
+    origem?: {
+        utmSource?: string;
+        utmMedium?: string;
+        utmCampaign?: string;
+        utmContent?: string;
+        utmTerm?: string;
+        landingPage?: string;
+        referrer?: string;
+    };
     couponCode?: string;
     shippingAddress: Record<string, unknown>;
     shippingServiceId?: number;
