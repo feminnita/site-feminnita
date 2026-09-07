@@ -12,6 +12,7 @@ import { asaaswebhookRoutes } from '../integrations/asass/WebhookRoutes';
 import { storeHeroSlideRoutes } from './HeroSlide.Routes';
 import { storeAccountRoutes } from './Account.Routes';
 import { storeResaleTermRoutes } from './ResaleTerm.Routes';
+import { storeNewsletterRoutes } from './Newsletter.Routes';
 
 export const routes = Router();
 
@@ -27,6 +28,7 @@ routes.use('/api/store/settings', storeSiteSettingsRoutes);
 routes.use('/api/store/shipping', storeShippingRoutes);
 routes.use('/api/store/hero-slides', storeHeroSlideRoutes);
 routes.use('/api/store/resale-term', storeResaleTermRoutes);
+routes.use('/api/store/newsletter', storeNewsletterRoutes);
 
 routes.use('/api/webhooks/asaas', asaaswebhookRoutes);
 

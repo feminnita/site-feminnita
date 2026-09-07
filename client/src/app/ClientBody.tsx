@@ -2,6 +2,7 @@
 
 import { Toaster } from "sonner";
 import { WhatsAppButton } from "../components/common/WhatsAppButton";
+import { NewsletterPopup } from "../components/common/NewsletterPopup";
 import { MinOrderBar, MinOrderBottomSpacer } from "../components/common/MinOrderBar";
 import { Footer } from "../components/layout/Footer";
 import { AuthProvider } from "../hooks/count/useAuth";
@@ -25,6 +26,7 @@ export default function ClientBody({
                         <Footer />
                         <MinOrderBottomSpacer />
                         <WhatsAppButton />
+                        <NewsletterPopup />
                         <Toaster position="top-center" richColors closeButton duration={3000} />
                     </div>
                 </CartProvider>

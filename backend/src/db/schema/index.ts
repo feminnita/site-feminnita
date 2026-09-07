@@ -13,6 +13,7 @@ export * from './order/orders';
 export * from './order/items';
 export * from './order/coupons';
 export * from './users/carts';
+export * from './users/newsletter';
 
 //
 export * from './settings/settings';
