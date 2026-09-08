@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "../../components/layout/Header";
-import { listarArtigos } from "../../services/blogService";
-import { corDaCategoria } from "../../components/blog/categorias";
+import { listarArtigos, type PostResumo } from "../../services/blogService";
+import { BlogNav } from "../../components/blog/BlogNav";
+import { Destaque, Linha, Aberto, Selo, dataCurta } from "../../components/blog/Cartoes";
+import { COR_DA_CATEGORIA, corDaCategoria } from "../../components/blog/categorias";
 
 // Renderiza a cada visita: artigo novo aparece na hora, sem publicar de novo.
 export const dynamic = "force-dynamic";
@@ -14,146 +16,186 @@ export const metadata: Metadata = {
     alternates: { canonical: "https://feminnita.com.br/blog" },
 };
 
-const data = (v: string | null) =>
-    v ? new Date(v).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "";
+export default async function BlogPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ categoria?: string }>;
+}) {
+    const { categoria } = await searchParams;
+    const todos = await listarArtigos();
 
-export default async function BlogPage() {
-    const artigos = await listarArtigos();
-    const [destaque, ...restantes] = artigos;
+    const artigos = categoria ? todos.filter((a) => a.category === categoria) : todos;
 
     return (
         <div className="min-h-screen bg-[#FAF6F2]">
             <Header />
+            <BlogNav ativa={categoria} />
 
-            {/* Abertura editorial, com a serifada do blog antigo. É ela que tira a
-                cara de lista de links e dá cara de revista. */}
-            <section className="border-b border-[#8C2F39]/10 bg-white">
-                <div className="container mx-auto px-4 py-16 text-center">
-                    <p className="mb-3 text-xs uppercase tracking-[0.3em] text-[#D4A956]">
-                        Blog da Feminnita
-                    </p>
-                    <h1 className="mx-auto mb-4 max-w-2xl font-serif text-4xl leading-tight text-[#1A1A1A] md:text-5xl">
-                        Quem revende não precisa aprender sozinha
-                    </h1>
-                    <p className="mx-auto max-w-xl leading-relaxed text-gray-600">
-                        Precificação, fotos, Instagram, WhatsApp e tecido. O que funciona, o que
-                        não funciona, e por quê.
-                    </p>
-                </div>
-            </section>
-
-            <div className="container mx-auto px-4 py-14">
-                {artigos.length === 0 ? (
-                    <p className="py-16 text-center text-gray-400">Nenhum artigo publicado ainda.</p>
-                ) : (
-                    <>
-                        {/* Um artigo em destaque, largo. Sem capa nenhum artigo se
-                            sobressai — o destaque cria a hierarquia que faltava. */}
-                        {destaque && (
-                            <Link
-                                href={`/blog/${destaque.slug}`}
-                                className="group mx-auto mb-14 block max-w-5xl overflow-hidden rounded-2xl bg-white shadow-[0_2px_16px_rgba(140,47,57,0.08)] transition-shadow hover:shadow-[0_6px_28px_rgba(140,47,57,0.16)]"
-                            >
-                                <div className="grid md:grid-cols-2">
-                                    <div
-                                        className="min-h-[220px] bg-cover bg-center"
-                                        style={{
-                                            backgroundColor: `${corDaCategoria(destaque.category)}14`,
-                                            backgroundImage: destaque.coverUrl
-                                                ? `url(${destaque.coverUrl})`
-                                                : undefined,
-                                        }}
-                                    >
-                                        {!destaque.coverUrl && (
-                                            <div className="flex h-full items-center justify-center p-10">
-                                                <span
-                                                    className="font-serif text-6xl leading-none opacity-25"
-                                                    style={{ color: corDaCategoria(destaque.category) }}
-                                                >
-                                                    {destaque.title.charAt(0)}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="flex flex-col justify-center p-8 md:p-10">
-                                        <Selo categoria={destaque.category} />
-                                        <h2 className="mb-3 font-serif text-2xl leading-snug text-[#1A1A1A] transition-colors group-hover:text-[#8C2F39] md:text-3xl">
-                                            {destaque.title}
-                                        </h2>
-                                        {destaque.excerpt && (
-                                            <p className="mb-5 line-clamp-3 leading-relaxed text-gray-600">
-                                                {destaque.excerpt}
-                                            </p>
-                                        )}
-                                        <span className="text-xs uppercase tracking-wider text-gray-400">
-                                            {data(destaque.publishedAt)} · leitura de 5 min
-                                        </span>
-                                    </div>
-                                </div>
-                            </Link>
-                        )}
-
-                        <div className="mx-auto grid max-w-6xl gap-7 sm:grid-cols-2 lg:grid-cols-3">
-                            {restantes.map((a) => (
-                                <Link
-                                    key={a.id}
-                                    href={`/blog/${a.slug}`}
-                                    className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-[0_2px_16px_rgba(140,47,57,0.08)] transition-all hover:-translate-y-1 hover:shadow-[0_6px_28px_rgba(140,47,57,0.16)]"
-                                >
-                                    {/* Sem capa, uma faixa na cor da categoria com a
-                                        inicial do título: dá identidade ao card em vez
-                                        de deixar um bloco branco. */}
-                                    <div
-                                        className="flex h-36 items-center justify-center bg-cover bg-center"
-                                        style={{
-                                            backgroundColor: `${corDaCategoria(a.category)}14`,
-                                            backgroundImage: a.coverUrl ? `url(${a.coverUrl})` : undefined,
-                                        }}
-                                    >
-                                        {!a.coverUrl && (
-                                            <span
-                                                className="font-serif text-5xl leading-none opacity-25"
-                                                style={{ color: corDaCategoria(a.category) }}
-                                            >
-                                                {a.title.charAt(0)}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <div className="flex flex-1 flex-col p-6">
-                                        <Selo categoria={a.category} />
-                                        <h2 className="mb-2 font-serif text-xl leading-snug text-[#1A1A1A] transition-colors group-hover:text-[#8C2F39]">
-                                            {a.title}
-                                        </h2>
-                                        {a.excerpt && (
-                                            <p className="mb-4 line-clamp-3 text-sm leading-relaxed text-gray-600">
-                                                {a.excerpt}
-                                            </p>
-                                        )}
-                                        <span className="mt-auto text-xs uppercase tracking-wider text-gray-400">
-                                            {data(a.publishedAt)}
-                                        </span>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </>
-                )}
-            </div>
+            {categoria ? (
+                <Categoria nome={categoria} artigos={artigos} />
+            ) : (
+                <Capa artigos={todos} />
+            )}
         </div>
     );
 }
 
-function Selo({ categoria }: { categoria: string | null }) {
-    if (!categoria) return null;
-    const cor = corDaCategoria(categoria);
+// A capa do blog: abertura, depois uma seção por assunto. Cada seção tem um
+// artigo aberto e o resto em lista — é a variação de ritmo que faz parecer
+// site, e não vitrine com cartões todos do mesmo tamanho.
+function Capa({ artigos }: { artigos: PostResumo[] }) {
+    if (!artigos.length) {
+        return <p className="py-24 text-center text-gray-400">Nenhum artigo publicado ainda.</p>;
+    }
+
+    const [destaque, ...resto] = artigos;
+
+    // Mantém a ordem das categorias fixa, para a página não trocar de layout a
+    // cada artigo novo publicado.
+    const secoes = Object.keys(COR_DA_CATEGORIA)
+        .map((nome) => ({ nome, itens: resto.filter((a) => a.category === nome) }))
+        .filter((s) => s.itens.length);
+
+    const semCategoria = resto.filter((a) => !a.category || !(a.category in COR_DA_CATEGORIA));
+
     return (
-        <span
-            className="mb-3 inline-block self-start rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
-            style={{ backgroundColor: `${cor}1a`, color: cor }}
-        >
-            {categoria}
-        </span>
+        <>
+            <section className="container mx-auto px-4 pb-12 pt-10">
+                <p className="mb-8 max-w-2xl font-serif text-2xl leading-snug text-[#8C2F39] md:text-3xl">
+                    Quem revende não precisa aprender sozinha.
+                </p>
+                <Destaque post={destaque} />
+            </section>
+
+            <div className="border-t border-[#8C2F39]/10">
+                <div className="container mx-auto grid gap-12 px-4 py-12 lg:grid-cols-[1fr_300px]">
+                    <div className="space-y-14">
+                        {secoes.map((s) => (
+                            <Secao key={s.nome} nome={s.nome} itens={s.itens} />
+                        ))}
+                        {semCategoria.length > 0 && (
+                            <Secao nome="Outros textos" itens={semCategoria} />
+                        )}
+                    </div>
+
+                    <Lateral artigos={artigos} />
+                </div>
+            </div>
+        </>
+    );
+}
+
+function Secao({ nome, itens }: { nome: string; itens: PostResumo[] }) {
+    const cor = corDaCategoria(nome);
+    const [primeiro, ...outros] = itens;
+
+    return (
+        <section>
+            <div className="mb-6 flex items-baseline justify-between gap-4 border-b-2 pb-2" style={{ borderColor: cor }}>
+                <h2 className="font-serif text-2xl text-[#1A1A1A]">{nome}</h2>
+                {itens.length > 2 && (
+                    <Link
+                        href={`/blog?categoria=${encodeURIComponent(nome)}`}
+                        className="shrink-0 text-xs uppercase tracking-wider hover:underline"
+                        style={{ color: cor }}
+                    >
+                        Ver todos ({itens.length})
+                    </Link>
+                )}
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-[1fr_1fr]">
+                <Aberto post={primeiro} />
+                {outros.length > 0 && (
+                    <div className="flex flex-col">
+                        {outros.slice(0, 4).map((a) => (
+                            <Linha key={a.id} post={a} />
+                        ))}
+                    </div>
+                )}
+            </div>
+        </section>
+    );
+}
+
+function Lateral({ artigos }: { artigos: PostResumo[] }) {
+    const porCategoria = Object.keys(COR_DA_CATEGORIA)
+        .map((nome) => ({ nome, n: artigos.filter((a) => a.category === nome).length }))
+        .filter((c) => c.n);
+
+    return (
+        <aside className="space-y-8 lg:sticky lg:top-20 lg:self-start">
+            <div className="rounded-sm border border-[#8C2F39]/12 bg-white p-5">
+                <h3 className="mb-4 font-serif text-lg text-[#1A1A1A]">Assuntos</h3>
+                <ul className="space-y-2">
+                    {porCategoria.map((c) => (
+                        <li key={c.nome}>
+                            <Link
+                                href={`/blog?categoria=${encodeURIComponent(c.nome)}`}
+                                className="flex items-center justify-between gap-2 text-sm text-gray-600 transition-colors hover:text-[#8C2F39]"
+                            >
+                                <span className="flex items-center gap-2">
+                                    <span
+                                        className="h-2 w-2 rounded-full"
+                                        style={{ backgroundColor: corDaCategoria(c.nome) }}
+                                    />
+                                    {c.nome}
+                                </span>
+                                <span className="text-xs text-gray-400">{c.n}</span>
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            <div className="rounded-sm bg-[#8C2F39] p-5 text-white">
+                <h3 className="mb-2 font-serif text-lg">Revende Feminnita?</h3>
+                <p className="mb-4 text-sm leading-relaxed text-white/85">
+                    Pijamas no atacado a partir de R$ 199, direto de Nova Friburgo.
+                </p>
+                <Link
+                    href="/produtos"
+                    className="inline-block rounded-sm bg-white px-4 py-2 text-sm font-semibold text-[#8C2F39] transition-opacity hover:opacity-90"
+                >
+                    Ver o catálogo
+                </Link>
+            </div>
+        </aside>
+    );
+}
+
+// Uma categoria sozinha: lista corrida, sem seções. Quem clicou já sabe o que
+// quer ler.
+function Categoria({ nome, artigos }: { nome: string; artigos: PostResumo[] }) {
+    const cor = corDaCategoria(nome);
+
+    return (
+        <div className="container mx-auto grid gap-12 px-4 py-12 lg:grid-cols-[1fr_300px]">
+            <div>
+                <div className="mb-8 border-b-2 pb-3" style={{ borderColor: cor }}>
+                    <Selo categoria={nome} />
+                    <h1 className="mt-3 font-serif text-3xl text-[#1A1A1A]">{nome}</h1>
+                    <p className="mt-1 text-sm text-gray-500">
+                        {artigos.length} {artigos.length === 1 ? "artigo" : "artigos"}
+                    </p>
+                </div>
+
+                {artigos.length === 0 ? (
+                    <p className="py-12 text-center text-gray-400">Nada publicado nesse assunto ainda.</p>
+                ) : (
+                    <div>
+                        {artigos.map((a) => (
+                            <Linha key={a.id} post={a} />
+                        ))}
+                    </div>
+                )}
+
+                <p className="mt-8 text-xs uppercase tracking-wider text-gray-400">
+                    Atualizado em {dataCurta(artigos[0]?.publishedAt ?? null)}
+                </p>
+            </div>
+
+            <Lateral artigos={artigos} />
+        </div>
     );
 }
