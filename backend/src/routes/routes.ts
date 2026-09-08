@@ -36,6 +36,15 @@ routes.use('/api/store/historias', storeStoryRoutes);
 
 routes.use('/api/webhooks/asaas', asaaswebhookRoutes);
 
+// Diz QUAL commit esta rodando. Sem isso, depois de um deploy nao da para
+// saber se o servidor ja subiu com o codigo novo ou ainda esta com o antigo —
+// so restava adivinhar pelo horario.
+const iniciadoEm = new Date().toISOString();
+
 routes.get('/health', (_req, res) => {
-    res.json({ status: 'ok' });
+    res.json({
+        status: 'ok',
+        version: (process.env.RENDER_GIT_COMMIT || 'local').slice(0, 7),
+        startedAt: iniciadoEm,
+    });
 });
