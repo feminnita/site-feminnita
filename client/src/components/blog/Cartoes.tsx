@@ -5,95 +5,89 @@ import { corDaCategoria } from "./categorias";
 export const dataCurta = (v: string | null) =>
     v ? new Date(v).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "";
 
-// Sem capa, uma faixa na cor da categoria com a inicial. Dá identidade sem foto.
-function Faixa({ post, className }: { post: PostResumo; className?: string }) {
+// Cartão editorial, igual ao do blog antigo: a FOTO sangra no cartão inteiro e
+// o texto fica POR CIMA dela, sobre um degradê escuro. A foto cresce um pouco
+// no hover.
+//
+// A versão que eu tinha feito antes era caixa branca com o texto embaixo — que
+// é exatamente como a loja mostra produto. Daí a sensação de "página de
+// produto". A diferença está aqui.
+export function CartaoEditorial({ post }: { post: PostResumo }) {
     const cor = corDaCategoria(post.category);
-    return (
-        <div
-            className={`flex items-center justify-center bg-cover bg-center ${className ?? ""}`}
-            style={{
-                backgroundColor: `${cor}14`,
-                backgroundImage: post.coverUrl ? `url(${post.coverUrl})` : undefined,
-            }}
-        >
-            {!post.coverUrl && (
-                <span className="font-serif leading-none opacity-25" style={{ color: cor, fontSize: "2.5em" }}>
-                    {post.title.charAt(0)}
-                </span>
-            )}
-        </div>
-    );
-}
 
-export function Selo({ categoria }: { categoria: string | null }) {
-    if (!categoria) return null;
-    const cor = corDaCategoria(categoria);
-    return (
-        <span
-            className="inline-block rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider"
-            style={{ backgroundColor: `${cor}1a`, color: cor }}
-        >
-            {categoria}
-        </span>
-    );
-}
-
-// Abertura: um artigo ocupando a largura toda, com o título em corpo grande.
-// É o que um site editorial faz e uma vitrine de produto não faz.
-export function Destaque({ post }: { post: PostResumo }) {
-    return (
-        <Link href={`/blog/${post.slug}`} className="group grid gap-8 md:grid-cols-[1.1fr_1fr] md:items-center">
-            <Faixa post={post} className="aspect-[16/10] rounded-sm text-[64px]" />
-            <div>
-                <Selo categoria={post.category} />
-                <h2 className="mb-3 mt-4 font-serif text-3xl leading-[1.15] text-[#1A1A1A] transition-colors group-hover:text-[#8C2F39] md:text-[2.6rem]">
-                    {post.title}
-                </h2>
-                {post.excerpt && (
-                    <p className="mb-4 max-w-xl text-[15px] leading-relaxed text-gray-600">{post.excerpt}</p>
-                )}
-                <span className="text-xs uppercase tracking-wider text-gray-400">
-                    {dataCurta(post.publishedAt)} · leitura de 5 min
-                </span>
-            </div>
-        </Link>
-    );
-}
-
-// Linha horizontal: miniatura à esquerda, texto à direita. Lê-se como lista de
-// notícia — o oposto do cartão quadrado de produto.
-export function Linha({ post }: { post: PostResumo }) {
     return (
         <Link
             href={`/blog/${post.slug}`}
-            className="group flex gap-4 border-b border-[#8C2F39]/8 py-5 last:border-0"
+            className="group relative block overflow-hidden bg-[#111]"
+            style={{ aspectRatio: "16 / 10" }}
         >
-            <Faixa post={post} className="h-20 w-24 shrink-0 rounded-sm text-[28px] sm:h-24 sm:w-32" />
-            <div className="min-w-0">
-                <Selo categoria={post.category} />
-                <h3 className="mt-2 font-serif text-lg leading-snug text-[#1A1A1A] transition-colors group-hover:text-[#8C2F39]">
+            {post.coverUrl ? (
+                <img
+                    src={post.coverUrl}
+                    alt={post.title}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
+                />
+            ) : (
+                // Sem capa, um fundo na cor da categoria em vez de retângulo
+                // preto: continua legível e parece escolha, não falta.
+                <div
+                    className="h-full w-full"
+                    style={{ background: `linear-gradient(140deg, ${cor} 0%, #1A1A1A 85%)` }}
+                />
+            )}
+
+            {/* Degradê que garante leitura do texto sobre qualquer foto. */}
+            <div
+                className="absolute inset-0"
+                style={{
+                    background:
+                        "linear-gradient(to top, rgba(5,2,3,0.93) 0%, rgba(5,2,3,0.72) 32%, rgba(5,2,3,0.18) 68%, rgba(5,2,3,0) 100%)",
+                }}
+            />
+
+            <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
+                {post.category && (
+                    <span
+                        className="mb-3 inline-block rounded-sm px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white"
+                        style={{ background: cor }}
+                    >
+                        {post.category}
+                    </span>
+                )}
+
+                <h3 className="mb-2 font-serif text-2xl leading-tight text-white sm:text-[1.7rem]">
                     {post.title}
                 </h3>
+
                 {post.excerpt && (
-                    <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-gray-500">{post.excerpt}</p>
+                    <p className="mb-3 line-clamp-2 max-w-2xl text-sm leading-relaxed text-white/75">
+                        {post.excerpt}
+                    </p>
                 )}
+
+                <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-white/55">
+                    <span>{dataCurta(post.publishedAt)}</span>
+                    <span>·</span>
+                    <span>{post.authorName || "Feminnita"}</span>
+                    <span>·</span>
+                    <span>5 min</span>
+                </div>
             </div>
         </Link>
     );
 }
 
-// Bloco de abertura de cada seção, um pouco maior que as linhas que o seguem.
-export function Aberto({ post }: { post: PostResumo }) {
+// Linhas de gramatura fina com a contagem no meio, como no original. Serve de
+// respiro entre o filtro e o mosaico.
+export function SeparadorComContagem({ total }: { total: number }) {
     return (
-        <Link href={`/blog/${post.slug}`} className="group block">
-            <Faixa post={post} className="mb-4 aspect-[16/9] rounded-sm text-[44px]" />
-            <Selo categoria={post.category} />
-            <h3 className="mb-2 mt-3 font-serif text-2xl leading-snug text-[#1A1A1A] transition-colors group-hover:text-[#8C2F39]">
-                {post.title}
-            </h3>
-            {post.excerpt && (
-                <p className="line-clamp-3 text-sm leading-relaxed text-gray-600">{post.excerpt}</p>
-            )}
-        </Link>
+        <div className="container mx-auto flex items-center px-4 py-8">
+            <span className="h-px flex-1" style={{ background: "rgba(212,169,86,0.25)" }} />
+            <span className="px-4 text-xs font-bold uppercase tracking-[0.08em] text-gray-400">
+                {total} {total === 1 ? "artigo" : "artigos"}
+            </span>
+            <span className="h-px flex-1" style={{ background: "rgba(212,169,86,0.25)" }} />
+        </div>
     );
 }
