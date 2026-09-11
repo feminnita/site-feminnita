@@ -170,16 +170,47 @@ export async function POST(req: NextRequest) {
       items,
       paymentMethod,
       selectedShipping,
-      subtotal,
       shippingCost,
-      discount,
-      total,
       installments,
       affiliate_code,
     } = body;
+    // NOTA DE SEGURANÇA: subtotal/discount/total/preços do cliente são IGNORADOS de propósito.
+    // Tudo que é dinheiro é recalculado no servidor abaixo, a partir do banco.
 
     const supabase = await createClient();
     const orderNumber = generateOrderNumber();
+
+    // ── SEGURANÇA: recalcula TODO valor monetário no servidor (nunca confiar no cliente) ──
+    const rawIds = (items || []).map((i: any) => i.id).filter(Boolean);
+    if (!rawIds.length) {
+      return NextResponse.json({ error: "Carrinho vazio ou inválido" }, { status: 400 });
+    }
+    const { data: dbProducts } = await supabase
+      .from("products")
+      .select("id, base_price, pix_price, sale_price")
+      .in("id", rawIds);
+    const priceById = new Map((dbProducts || []).map((p: any) => [p.id, p]));
+
+    let computedSubtotal = 0;
+    const secureItems = (items || []).map((item: any) => {
+      const p = priceById.get(item.id);
+      if (!p) throw new Error(`Produto inválido no carrinho: ${item.id}`);
+      const qty = Math.max(1, parseInt(item.quantity) || 1);
+      const cardPrice = Number(p.sale_price ?? p.base_price);
+      const unit = paymentMethod === "pix" ? Number(p.pix_price ?? cardPrice) : cardPrice;
+      computedSubtotal += unit * qty;
+      // sobrescreve price/pixPrice com o valor do banco (email e afins mostram o autoritativo)
+      return { ...item, quantity: qty, price: unit, pixPrice: unit, __unitPrice: unit };
+    });
+    computedSubtotal = +computedSubtotal.toFixed(2);
+
+    // Frete: clamp ≥ 0 (revalidar contra /api/shipping/calculate = melhoria futura). Desconto: 10% no Pix (mesma regra do front), no SERVIDOR.
+    const safeShipping = Math.max(0, Number(shippingCost) || 0);
+    const computedDiscount = paymentMethod === "pix" ? +(computedSubtotal * 0.1).toFixed(2) : 0;
+    const computedTotal = +(computedSubtotal + safeShipping - computedDiscount).toFixed(2);
+    if (computedTotal <= 0) {
+      return NextResponse.json({ error: "Total inválido" }, { status: 400 });
+    }
 
     // 1. Save order
     const { data: orderData, error: orderError } = await supabase
@@ -194,10 +225,10 @@ export async function POST(req: NextRequest) {
         payment_method: paymentMethod === "card" ? "credit_card" : paymentMethod,
         payment_status: "pending",
         installments: paymentMethod === "card" ? parseInt(installments) || 1 : null,
-        subtotal,
-        shipping_cost: shippingCost,
-        discount,
-        total,
+        subtotal: computedSubtotal,
+        shipping_cost: safeShipping,
+        discount: computedDiscount,
+        total: computedTotal,
         shipping_method: selectedShipping?.name || null,
         affiliate_code: affiliate_code || null,
         shipping_address: {
@@ -216,7 +247,7 @@ export async function POST(req: NextRequest) {
     if (orderError) throw orderError;
 
     // 2. Save order items
-    const orderItems = items.map((item: any) => ({
+    const orderItems = secureItems.map((item: any) => ({
       order_id: orderData.id,
       product_id: item.id || null,
       product_name: item.name,
@@ -224,8 +255,8 @@ export async function POST(req: NextRequest) {
       color: item.selectedColor || null,
       size: item.selectedSize || null,
       quantity: item.quantity,
-      unit_price: item.pixPrice ?? item.price,
-      total_price: (item.pixPrice ?? item.price) * item.quantity,
+      unit_price: item.__unitPrice,
+      total_price: +(item.__unitPrice * item.quantity).toFixed(2),
     }));
 
     await supabase.from("order_items").insert(orderItems);
@@ -241,10 +272,10 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (aff) {
-          const commission = total * (aff.commission_pct / 100);
+          const commission = computedTotal * (aff.commission_pct / 100);
           await supabase.from("affiliates").update({
             total_orders:    (aff.total_orders    ?? 0) + 1,
-            total_revenue:   (aff.total_revenue   ?? 0) + total,
+            total_revenue:   (aff.total_revenue   ?? 0) + computedTotal,
             total_commission:(aff.total_commission?? 0) + commission,
           }).eq("id", aff.id);
         }
@@ -259,7 +290,7 @@ export async function POST(req: NextRequest) {
         from: process.env.RESEND_FROM_EMAIL || "pedidos@feminnita.com.br",
         to: customer.email,
         subject: `Pedido #${orderNumber} recebido — Feminnita 🎉`,
-        html: confirmationEmailHtml(orderNumber, customer.name, items, total, paymentMethod),
+        html: confirmationEmailHtml(orderNumber, customer.name, secureItems, computedTotal, paymentMethod),
       });
     } catch (emailErr) {
       console.error("Confirmation email error (non-fatal):", emailErr);
@@ -270,7 +301,7 @@ export async function POST(req: NextRequest) {
       orderId: orderData.id,
       orderNumber,
       paymentMethod,
-      total,
+      total: computedTotal,
       status: "pending",
     };
 
@@ -290,7 +321,7 @@ export async function POST(req: NextRequest) {
 
         const chargeBase: Record<string, any> = {
           customer: asaasCustomerId,
-          value: total,
+          value: computedTotal,
           description: `Pedido ${orderNumber} — Feminnita`,
           externalReference: orderData.id,
           postalService: false,
@@ -342,7 +373,7 @@ export async function POST(req: NextRequest) {
             billingType: "CREDIT_CARD",
             dueDate: dueDateStr(0),
             installmentCount: numInstallments > 1 ? numInstallments : undefined,
-            installmentValue: numInstallments > 1 ? +(total / numInstallments).toFixed(2) : undefined,
+            installmentValue: numInstallments > 1 ? +(computedTotal / numInstallments).toFixed(2) : undefined,
             creditCard: {
               holderName: card?.holderName || customer.name,
               number: card?.number?.replace(/\s/g, ""),

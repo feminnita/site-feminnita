@@ -18,7 +18,7 @@ export interface Database {
           code: string | null; category_id: string | null; base_price: number;
           pix_price: number | null; sale_price: number | null; stock: number;
           active: boolean; featured: boolean; is_new: boolean; is_bestseller: boolean;
-          images: Json; created_at: string; updated_at: string;
+          images: Json; color_images: Json; created_at: string; updated_at: string;
         };
         Insert: Omit<Database["public"]["Tables"]["products"]["Row"], "id" | "created_at" | "updated_at">;
         Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>;

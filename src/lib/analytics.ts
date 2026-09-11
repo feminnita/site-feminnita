@@ -24,8 +24,11 @@ function gtag(...args: any[]) {
   if (typeof window !== "undefined" && window.gtag) window.gtag(...args);
 }
 
-function fbq(event: string, data?: object) {
-  if (typeof window !== "undefined" && window.fbq) window.fbq("track", event, data);
+function fbq(event: string, data?: object, eventID?: string) {
+  if (typeof window !== "undefined" && window.fbq) {
+    if (eventID) window.fbq("track", event, data, { eventID });
+    else window.fbq("track", event, data);
+  }
 }
 
 function ttq(event: string, data?: object) {
@@ -99,7 +102,8 @@ export function trackPurchase(
   items: Item[],
   value: number,
   shipping: number,
-  discount: number
+  discount: number,
+  opts?: { metaEventId?: string; metaPaid?: boolean }
 ) {
   gtag("event", "purchase", {
     transaction_id: orderId,
@@ -109,13 +113,22 @@ export function trackPurchase(
     discount,
     items: items.map(toGA4Item),
   });
-  fbq("Purchase", {
-    content_ids: items.map((i) => i.id),
-    content_type: "product",
-    value,
-    currency: "BRL",
-    num_items: items.length,
-  });
+  // Meta: dispara "Purchase" no navegador SÓ quando o pedido JÁ está pago (cartão aprovado na hora).
+  // Pix/boleto NÃO disparam aqui (só quando pagam) — o CAPI do webhook do Asaas emite o Purchase real.
+  // eventID = id do pedido (orders.id) = mesmo do CAPI => o Meta deduplica os dois lados.
+  if (opts?.metaPaid) {
+    fbq(
+      "Purchase",
+      {
+        content_ids: items.map((i) => i.id),
+        content_type: "product",
+        value,
+        currency: "BRL",
+        num_items: items.length,
+      },
+      opts.metaEventId
+    );
+  }
   ttq("PlaceAnOrder", { content_ids: items.map((i) => i.id), value, currency: "BRL" });
 
   // Google Ads conversion

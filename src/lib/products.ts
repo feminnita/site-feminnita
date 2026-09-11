@@ -14,6 +14,7 @@ export type StoreProduct = {
   installments: number;
   installmentPrice: number;
   images: string[];
+  colorImages: Record<string, string[]>;
   videoUrl: string | null;
   colors: string[];
   sizes: string[];
@@ -25,6 +26,7 @@ export type StoreProduct = {
   active: boolean;
   stock: number;
   view_count: number;
+  variants: { color: string | null; size: string; stock: number; price: number | null; salePrice: number | null }[];
 };
 
 function mapProduct(p: any, variants: any[]): StoreProduct {
@@ -47,6 +49,7 @@ function mapProduct(p: any, variants: any[]): StoreProduct {
     installments,
     installmentPrice: +(price / installments).toFixed(2),
     images:          Array.isArray(p.images) ? p.images : [],
+    colorImages:     (p.color_images && typeof p.color_images === "object" && !Array.isArray(p.color_images)) ? p.color_images : {},
     videoUrl:        p.video_url ?? null,
     colors:          colors.length ? colors : ["rose"],
     sizes:           sizes.length  ? sizes  : ["P", "M", "G"],
@@ -58,6 +61,41 @@ function mapProduct(p: any, variants: any[]): StoreProduct {
     active:          p.active ?? true,
     stock:           p.stock ?? 0,
     view_count:      p.view_count ?? 0,
+    variants:        pvs.map((v: any) => ({
+      color:    v.color ?? null,
+      size:     v.size ?? "",
+      stock:    v.stock_qty ?? 0,
+      price:    v.price ?? null,
+      salePrice: v.sale_price ?? null,
+    })),
+  };
+}
+
+// Preço efetivo de uma variação (cor+tamanho). Usa o preço da variação;
+// se a variação não tem preço próprio, cai no preço do produto (comportamento atual).
+export function variantPrice(product: StoreProduct, color: string, size: string) {
+  const v = product.variants.find((x) => x.color === color && x.size === size);
+  const vPrice = v?.price ?? null;
+  const vSale  = v?.salePrice ?? null;
+  if (vPrice === null && vSale === null) {
+    return {
+      price: product.price,
+      salePrice: product.salePrice,
+      pixPrice: product.pixPrice,
+      installments: product.installments,
+      installmentPrice: product.installmentPrice,
+    };
+  }
+  const base = vPrice ?? product.price;          // preço cheio (riscado)
+  const sale = vSale;                            // promoção da variação (ou null)
+  const selling = sale ?? base;                  // preço efetivo de venda
+  const installments = selling >= 50 ? 6 : 1;
+  return {
+    price: base,
+    salePrice: sale,
+    pixPrice: +(selling * 0.9).toFixed(2),       // preço PIX exibido
+    installments,
+    installmentPrice: +(selling / installments).toFixed(2),
   };
 }
 
@@ -88,7 +126,7 @@ export async function fetchProducts(options?: {
   const ids = products.map((p) => p.id);
   const { data: variants } = await supabase
     .from("product_skus")
-    .select("product_id, color, size, stock_qty")
+    .select("product_id, color, size, stock_qty, price, sale_price")
     .in("product_id", ids);
 
   return products.map((p) => mapProduct(p, variants ?? []));
@@ -112,7 +150,7 @@ export async function fetchProduct(idOrSlug: string): Promise<StoreProduct | nul
 
   const { data: variants } = await supabase
     .from("product_skus")
-    .select("product_id, color, size, stock_qty")
+    .select("product_id, color, size, stock_qty, price, sale_price")
     .eq("product_id", p.id);
 
   return mapProduct(p, variants ?? []);

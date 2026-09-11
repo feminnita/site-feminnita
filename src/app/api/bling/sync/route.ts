@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/require-admin";
 import { blingGet } from "@/lib/bling";
 
 function slugify(text: string): string {
@@ -51,6 +52,8 @@ async function fetchProductStock(id: number): Promise<number> {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   let supabase: ReturnType<typeof createAdminClient>;
   try {
     supabase = createAdminClient();
@@ -240,6 +243,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const supabase = createAdminClient();
     const { data } = await supabase

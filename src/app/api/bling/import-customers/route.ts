@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/require-admin";
 import { blingGet } from "@/lib/bling";
 
 // Lista paginada de contatos do Bling (dados básicos)
@@ -39,6 +40,8 @@ function isCliente(detail: any): boolean {
 }
 
 export async function POST(_req: NextRequest) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   let supabase: ReturnType<typeof createAdminClient>;
   try {
     supabase = createAdminClient();
@@ -141,6 +144,8 @@ export async function POST(_req: NextRequest) {
 }
 
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const supabase = createAdminClient();
     const { count } = await supabase

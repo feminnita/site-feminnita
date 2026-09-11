@@ -12,7 +12,7 @@ import { StockIndicator } from "@/components/StockIndicator";
 import { PersonalizedRecommendations } from "@/components/PersonalizedRecommendations";
 import { SimilarProducts } from "@/components/SimilarProducts";
 import { ShoppingCart, Heart, Minus, Plus, Truck, RefreshCw, Shield, Check, Play, Ruler } from "lucide-react";
-import { fetchProduct, fetchProducts, type StoreProduct } from "@/lib/products";
+import { fetchProduct, fetchProducts, variantPrice, type StoreProduct } from "@/lib/products";
 import { resolveColor } from "@/lib/variants";
 import { SizeGuideModal } from "@/components/SizeGuideModal";
 
@@ -108,6 +108,12 @@ export default function ProductPage() {
     }
   }, [product]);
 
+  // Ao trocar de cor, volta a galeria pro início (a cor pode ter menos fotos)
+  useEffect(() => {
+    setSelectedImage(0);
+    setShowVideo(false);
+  }, [selectedColor]);
+
   if (loadingProduct) {
     return (
       <div className="min-h-screen">
@@ -133,6 +139,15 @@ export default function ProductPage() {
     );
   }
 
+  // Galeria mostra as fotos da cor selecionada; se a cor não tiver fotos, usa a galeria geral
+  const galleryImages =
+    selectedColor && product.colorImages?.[selectedColor]?.length
+      ? product.colorImages[selectedColor]
+      : product.images;
+
+  // Preço da variação escolhida (cor+tamanho); cai no preço do produto se a variação não tiver preço próprio
+  const vp = variantPrice(product, selectedColor, selectedSize);
+
   const handleAddToCart = () => {
     if (!selectedSize) {
       showToast("Selecione um tamanho");
@@ -144,6 +159,9 @@ export default function ProductPage() {
       selectedSize,
       selectedColor,
       quantity,
+      pixPrice: vp.pixPrice,
+      price: vp.price,
+      salePrice: vp.salePrice,
     };
 
     const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -167,7 +185,7 @@ export default function ProductPage() {
     if (typeof window !== "undefined" && (window as any).gtag) {
       (window as any).gtag('event', 'add_to_cart', {
         currency: 'BRL',
-        value: product.pixPrice * quantity,
+        value: vp.pixPrice * quantity,
         items: [{
           item_id: product.id,
           item_name: product.name,
@@ -182,7 +200,7 @@ export default function ProductPage() {
       (window as any).fbq('track', 'AddToCart', {
         content_ids: [product.id],
         content_type: 'product',
-        value: product.pixPrice * quantity,
+        value: vp.pixPrice * quantity,
         currency: 'BRL'
       });
     }
@@ -222,7 +240,7 @@ export default function ProductPage() {
           <div className="flex-1 min-w-0">
             <p className="text-xs text-gray-500 truncate">{product?.name}</p>
             <p className="font-bold text-[#8C2F39]">
-              R$ {product?.pixPrice.toFixed(2).replace(".", ",")}
+              R$ {vp.pixPrice.toFixed(2).replace(".", ",")}
             </p>
           </div>
           <button
@@ -248,34 +266,34 @@ export default function ProductPage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-12">
-          {/* Galeria: miniaturas na lateral + imagem grande 2:3 + vídeo */}
-          <div className="flex flex-col-reverse md:flex-row gap-3">
-            {/* Miniaturas (coluna lateral no desktop, linha no mobile) */}
-            {(product.images.length > 1 || product.videoUrl) && (
-              <div className="flex md:flex-col gap-3 md:w-20 overflow-x-auto md:overflow-y-auto md:max-h-[600px]">
-                {product.images.map((image, index) => (
+          {/* Galeria: imagem grande 2:3 + miniaturas em linha embaixo + vídeo */}
+          <div className="flex flex-col-reverse gap-3">
+            {/* Miniaturas: linha embaixo da foto grande, dividindo a largura por igual */}
+            {(galleryImages.length > 1 || product.videoUrl) && (
+              <div className="flex gap-2 sm:gap-3 overflow-x-auto">
+                {galleryImages.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => { setShowVideo(false); setSelectedImage(index); }}
-                    className={`relative aspect-[2/3] w-16 md:w-full flex-shrink-0 bg-gray-100 overflow-hidden border-2 rounded-md ${
+                    className={`relative aspect-[2/3] flex-1 basis-0 min-w-[3.5rem] max-w-[7rem] bg-gray-100 overflow-hidden border-2 rounded-md ${
                       !showVideo && selectedImage === index
                         ? "border-[#8C2F39]"
                         : "border-transparent hover:border-gray-300"
                     }`}
                   >
-                    <Image src={image} alt={`${product.name} ${index + 1}`} fill sizes="80px" className="object-cover" />
+                    <Image src={image} alt={`${product.name} ${index + 1}`} fill sizes="112px" className="object-cover" />
                   </button>
                 ))}
                 {product.videoUrl && (
                   <button
                     onClick={() => setShowVideo(true)}
-                    className={`relative aspect-[2/3] w-16 md:w-full flex-shrink-0 bg-black overflow-hidden border-2 rounded-md flex items-center justify-center ${
+                    className={`relative aspect-[2/3] flex-1 basis-0 min-w-[3.5rem] max-w-[7rem] bg-black overflow-hidden border-2 rounded-md flex items-center justify-center ${
                       showVideo ? "border-[#8C2F39]" : "border-transparent hover:border-gray-300"
                     }`}
                     title="Vídeo do produto"
                   >
-                    {product.images[0] && (
-                      <Image src={product.images[0]} alt="vídeo" fill sizes="80px" className="object-cover opacity-40" />
+                    {galleryImages[0] && (
+                      <Image src={galleryImages[0]} alt="vídeo" fill sizes="112px" className="object-cover opacity-40" />
                     )}
                     <Play size={20} className="relative text-white" fill="white" />
                   </button>
@@ -304,9 +322,9 @@ export default function ProductPage() {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
-              ) : product.images[selectedImage] ? (
+              ) : galleryImages[selectedImage] ? (
                 <Image
-                  src={product.images[selectedImage]}
+                  src={galleryImages[selectedImage]}
                   alt={product.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 45vw"
@@ -337,15 +355,15 @@ export default function ProductPage() {
             <div className="border-t border-b py-4">
               <div className="flex items-baseline gap-3">
                 <span className="text-4xl font-bold">
-                  R$ {product.pixPrice.toFixed(2).replace(".", ",")}
+                  R$ {vp.pixPrice.toFixed(2).replace(".", ",")}
                 </span>
                 <span className="text-lg text-green-600 font-semibold">
                   10% OFF no PIX
                 </span>
               </div>
               <p className="text-gray-600 mt-1">
-                ou {product.installments}x de R${" "}
-                {product.installmentPrice.toFixed(2).replace(".", ",")} sem juros
+                ou {vp.installments}x de R${" "}
+                {vp.installmentPrice.toFixed(2).replace(".", ",")} sem juros
               </p>
             </div>
 
@@ -495,6 +513,29 @@ export default function ProductPage() {
                 </div>
               </div>
             </div>
+
+            {/* Descrição — na coluna da direita, fonte menor (ref.: useange) */}
+            <div className="border-t pt-6">
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-900 mb-4">
+                Descrição
+              </h2>
+              {product.description ? (
+                <div
+                  className="text-sm text-gray-700 leading-relaxed whitespace-pre-line [&_strong]:text-gray-900"
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                />
+              ) : (
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {product.name} — conforto e estilo para o seu dia a dia. Adicione uma
+                  descrição completa deste produto no painel administrativo.
+                </p>
+              )}
+            </div>
+
+            {/* Avaliação — logo abaixo da descrição, na mesma coluna */}
+            <div className="border-t pt-6">
+              <ReviewSection productId={product.id} />
+            </div>
           </div>
         </div>
 
@@ -504,31 +545,11 @@ export default function ProductPage() {
           title="Você também pode gostar"
         />
 
-        {/* Product Description */}
-        <div className="mt-16 max-w-4xl">
-          <h2 className="text-2xl font-light mb-6">Descrição do Produto</h2>
-          <div className="prose max-w-none">
-            {product.description ? (
-              <div
-                className="text-gray-800 text-lg font-medium leading-relaxed whitespace-pre-line"
-                dangerouslySetInnerHTML={{ __html: product.description }}
-              />
-            ) : (
-              <p className="text-gray-800 text-lg font-medium leading-relaxed">
-                {product.name} — conforto e estilo para o seu dia a dia. Adicione uma descrição
-                completa deste produto no painel administrativo.
-              </p>
-            )}
-          </div>
-        </div>
-
         {/* Quem comprou também comprou / Produtos similares */}
         <SimilarProducts
           productId={product.id}
           categoryId={product.category_id}
         />
-
-        <ReviewSection productId={product.id} />
       </div>
     </div>
   );

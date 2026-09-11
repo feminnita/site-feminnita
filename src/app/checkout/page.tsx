@@ -151,7 +151,12 @@ export default function CheckoutPage() {
         id: i.id, name: i.name, category: i.category,
         price: i.pixPrice ?? i.price, quantity: i.quantity,
       }));
-      trackPurchase(data.orderNumber, analyticsItems, total, shippingCost, discount);
+      // metaEventId = id do pedido (orders.id, = event_id do CAPI) p/ dedup; metaPaid=true só p/ cartão aprovado na hora.
+      // Pix/boleto: o Meta Purchase sai do CAPI (webhook Asaas) quando o pagamento é confirmado — evita contar Pix não pago.
+      trackPurchase(data.orderNumber, analyticsItems, total, shippingCost, discount, {
+        metaEventId: data.orderId,
+        metaPaid: data.status === "paid",
+      });
 
       localStorage.removeItem("cart");
       localStorage.removeItem("abandonedCart");
