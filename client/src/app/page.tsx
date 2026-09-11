@@ -3,8 +3,7 @@ import { HeroCarousel } from "../components/home/HeroCarousel";
 import { Vitrine } from "../components/home/Vitrine";
 import { InstagramFeed } from "../components/home/InstagramFeed";
 // import { Newsletter } from "../components/Newsletter";
-import { ProductCard } from "../components/product/ProductCard";
-import { HOME_SECTION_GRID } from "../components/product/productGrid";
+import { ProductRowCarousel } from "../components/home/ProductRowCarousel";
 import { getHomeBanners } from "../services/bannersService";
 import { fetchProducts } from "../services/productsService";
 import type { StoreProduct } from "../types/product/products";
@@ -26,7 +25,9 @@ async function getHomeProducts() {
     flag: "is_new" | "is_bestseller" | "is_outlet",
   ): Promise<StoreProduct[]> => {
     const products = await fetchProducts({ flag, limit: 30 });
-    return products.filter(hasPhoto).slice(0, 5);
+    // Era 5 (o que cabia numa linha da grade). Agora a fileira rola, então cabe
+    // tudo o que estiver marcado — teto de 20 pra a home não ficar pesada.
+    return products.filter(hasPhoto).slice(0, 20);
   };
 
   const [novidades, destaques, outlet] = await Promise.all([
@@ -66,11 +67,7 @@ export default async function Home() {
       {novidades.length > 0 && (
         <section className="container mx-auto px-4 py-16">
           <h2 className="mb-12 text-center text-3xl font-light">{sections.lancamentos}</h2>
-          <div className={HOME_SECTION_GRID}>
-            {novidades.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <ProductRowCarousel products={novidades} />
         </section>
       )}
 
@@ -119,11 +116,7 @@ export default async function Home() {
       {destaques.length > 0 && (
         <section className="container mx-auto px-4 py-16">
           <h2 className="mb-12 text-center text-3xl font-light">{sections.maisVendidos}</h2>
-          <div className={HOME_SECTION_GRID}>
-            {destaques.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <ProductRowCarousel products={destaques} />
         </section>
       )}
 
@@ -203,11 +196,7 @@ export default async function Home() {
               </p>
             )}
           </div>
-          <div className={HOME_SECTION_GRID}>
-            {outlet.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <ProductRowCarousel products={outlet} />
         </section>
       )}
 
