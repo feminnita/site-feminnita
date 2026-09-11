@@ -16,6 +16,7 @@ import {
 } from "@/src/utils/analytics";
 import { buildCartItem, getDisplayImages } from "@/src/utils/product";
 import { recordCartColor, recordColorClick } from "@/src/lib/colorAffinity";
+import { registrar } from "@/src/lib/eventos";
 import type { SkuStock, StoreProduct } from "@/src/types/product/products";
 
 export function useProductPage(idOverride?: string) {
@@ -67,6 +68,10 @@ export function useProductPage(idOverride?: string) {
         if (!product) return;
         setSelectedColor(product.colors[0] || "");
         trackProductView(product.id);
+        // trackProductView incrementa o contador antigo do produto (numero sem
+        // data e sem sessao). Este aqui grava o evento com data, sessao e
+        // origem — e o que as telas de marketing conseguem ler.
+        registrar("product_view", { productId: product.id });
         trackViewItemAnalytics(product);
     }, [product]);
 

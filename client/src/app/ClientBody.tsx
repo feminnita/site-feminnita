@@ -10,6 +10,8 @@ import { AuthProvider } from "../hooks/count/useAuth";
 import { CartProvider } from "../hooks/cart/useCart";
 import { ColorSwatchesProvider } from "../hooks/color/useColorSwatches";
 import { registrarOrigem } from "../lib/origemDaVisita";
+import { registrar } from "../lib/eventos";
+import { usePathname } from "next/navigation";
 
 export default function ClientBody({
     children,
@@ -23,6 +25,14 @@ export default function ClientBody({
     useEffect(() => {
         registrarOrigem();
     }, []);
+
+    // Uma visita de pagina por rota. Aqui e nao em cada page.tsx porque a loja
+    // e SPA: trocar de pagina nao recarrega nada, entao so o pathname avisa.
+    // registrarOrigem() roda antes, para o primeiro evento ja sair com a origem.
+    const rota = usePathname();
+    useEffect(() => {
+        registrar("page_view");
+    }, [rota]);
 
     return (
         <AuthProvider>

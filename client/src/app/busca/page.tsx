@@ -5,6 +5,7 @@ import { ProductCard } from "../../components/product/ProductCard";
 import { PRODUCT_GRID } from "../../components/product/productGrid";
 import { fetchProducts } from "../../services/productsService";
 import type { StoreProduct } from "../../types/product/products";
+import { registrarBusca } from "../../lib/eventos";
 import { Search } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -30,14 +31,18 @@ function BuscaContent() {
 
     const searchProducts = (searchTerm: string) => {
         const term = searchTerm.toLowerCase();
-        setResults(
-            allProducts.filter(
-                (p) =>
-                    p.name.toLowerCase().includes(term) ||
-                    p.code?.toLowerCase().includes(term) ||
-                    p.category.toLowerCase().includes(term),
-            ),
+        const achados = allProducts.filter(
+            (p) =>
+                p.name.toLowerCase().includes(term) ||
+                p.code?.toLowerCase().includes(term) ||
+                p.category.toLowerCase().includes(term),
         );
+        setResults(achados);
+
+        // Só registra depois que o catálogo chegou. Antes disso allProducts está
+        // vazio e TODA busca daria zero resultados — a tela de "busca sem
+        // resultado" encheria de termo que a loja na verdade tem.
+        if (allProducts.length) registrarBusca(searchTerm, achados.length);
     };
 
     const handleSearch = (e: React.FormEvent) => {
