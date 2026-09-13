@@ -185,6 +185,13 @@
       "breakpoints": true
     },
     {
+      "idx": 26,
+      "version": "7",
+      "when": 1789298287325,
+      "tag": "0026_afiliados_e_cashback",
+      "breakpoints": true
+    },
+    {
       "idx": 27,
       "version": "7",
       "when": 1789298328172,

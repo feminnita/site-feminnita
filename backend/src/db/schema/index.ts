@@ -29,3 +29,6 @@ export * from './integrations/bling';
 
 //
 export * from './analytics/events';
+
+//
+export * from './afiliados/afiliados';

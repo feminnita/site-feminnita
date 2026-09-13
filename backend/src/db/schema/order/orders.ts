@@ -22,6 +22,10 @@ export const orders = pgTable('orders', {
     couponId: uuid('coupon_id').references(() => coupons.id),
     couponCode: text('coupon_code'),
     asaasPaymentId: text('asaas_payment_id'),
+    // Coluna que ja existia no banco, sem nenhum codigo lendo ou escrevendo
+    // nela. Passa a ser usada agora: guarda o codigo COMO ESTAVA na compra,
+    // porque a afiliada pode trocar de codigo depois e o pedido precisa
+    // continuar dizendo por qual link veio.
     affiliateCode: text('affiliate_code'),
     meOrderId: text('me_order_id'),
     labelUrl: text('label_url'),
@@ -53,6 +57,23 @@ export const orders = pgTable('orders', {
     // orgânica, link no Instagram, indicação).
     landingPage: text('landing_page'),
     referrer: text('referrer'),
+
+    // Afiliada que trouxe este pedido, quando veio de ?ref=CODIGO.
+    // Sem FK de proposito: apagar uma afiliada nao pode apagar nem alterar
+    // pedido — pedido e documento, e o historico de comissao fica de pe.
+    affiliateId: uuid('affiliate_id'),
+    // Percentual e valor CONGELADOS na compra. Se a comissao dela mudar amanha,
+    // os pedidos antigos mantem o que valia na epoca — senao o "a pagar" muda
+    // sozinho no passado, e nao se fecha conta assim.
+    affiliateRate: numeric('affiliate_rate', { precision: 5, scale: 2 }),
+    affiliateCommission: numeric('affiliate_commission', { precision: 10, scale: 2 }),
+
+    // Cashback: quanto este pedido GEROU de credito para a cliente e quanto
+    // CONSUMIU. Ficam aqui alem do extrato para a tela do pedido mostrar os dois
+    // sem precisar somar o extrato inteiro.
+    cashbackEarned: numeric('cashback_earned', { precision: 10, scale: 2 }),
+    cashbackUsed: numeric('cashback_used', { precision: 10, scale: 2 }),
+
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({

@@ -27,6 +27,9 @@ export type CreateOrderInput = {
         landingPage?: string;
         referrer?: string;
     };
+    // Codigo do link ?ref=CODIGO que trouxe a visita. Chega do navegador;
+    // o servidor confere no banco se existe e se esta aprovada.
+    afiliada?: string;
     couponCode?: string;
     shippingAddress: Record<string, unknown>;
     shippingServiceId?: number;

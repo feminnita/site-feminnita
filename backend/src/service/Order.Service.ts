@@ -5,6 +5,7 @@ import * as EmailService from '../integrations/resend/Services';
 import * as MelhorEnvio from '../integrations/melhorEnvio/Service';
 import * as AdminOrderService from '../service/OrderLifecycle.Service';
 import * as ResaleTermService from '../service/ResaleTerm.Service';
+import * as AffiliateRepository from '../repository/Affiliate.Repository';
 import type { CreateOrderInput } from '../types/order';
 
 
@@ -109,6 +110,38 @@ export async function createOrder(input: CreateOrderInput) {
 
     const totalCents = OrderDomain.calculateTotalCents(subtotalCents, discountCents, shippingCostCents);
 
+    // Afiliada que trouxe a venda. O codigo chega do navegador, entao quem
+    // decide e o banco: so credita se existir E estiver aprovada.
+    //
+    // A base e o que entrou PELOS PRODUTOS: subtotal menos desconto, sem frete.
+    // Sem tirar o desconto, uma venda com cupom de 30% pagaria comissao sobre
+    // dinheiro que nao entrou. Sem tirar o frete, pagaria sobre o que vai para
+    // a transportadora.
+    let afiliada: {
+        affiliateId?: string;
+        affiliateCode?: string;
+        affiliateRate?: string;
+        affiliateCommission?: string;
+    } = {};
+
+    if (input.afiliada) {
+        const a = await AffiliateRepository.aprovadaPorCodigo(input.afiliada);
+        if (a) {
+            const baseCents = Math.max(subtotalCents - discountCents, 0);
+            const percentual = Number(a.percentual);
+            afiliada = {
+                affiliateId: a.id,
+                affiliateCode: a.codigo,
+                // Congelados: mudar a comissao dela amanha nao pode mexer no
+                // que ja foi vendido.
+                affiliateRate: a.percentual,
+                affiliateCommission: OrderDomain.fromCents(
+                    Math.round((baseCents * percentual) / 100),
+                ),
+            };
+        }
+    }
+
     const customer = await OrderRepository.findCustomerForCharge(input.customerId);
     if (!customer) throw new Error('CUSTOMER_NOT_FOUND');
     if (!customer.cpf) throw new Error('CPF_REQUIRED');
@@ -149,6 +182,7 @@ export async function createOrder(input: CreateOrderInput) {
             // Origem da visita: chega do navegador, entao e limitada em tamanho
             // antes de gravar — campo de URL e coisa que qualquer um edita.
             ...limitarOrigem(input.origem),
+            ...afiliada,
         },
         resolvedItems.map((item) => ({
             productId: item.productId,

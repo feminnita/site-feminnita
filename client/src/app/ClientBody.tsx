@@ -10,6 +10,7 @@ import { AuthProvider } from "../hooks/count/useAuth";
 import { CartProvider } from "../hooks/cart/useCart";
 import { ColorSwatchesProvider } from "../hooks/color/useColorSwatches";
 import { registrarOrigem } from "../lib/origemDaVisita";
+import { registrarAfiliada } from "../lib/afiliada";
 import { registrar } from "../lib/eventos";
 import { usePathname } from "next/navigation";
 
@@ -24,6 +25,10 @@ export default function ClientBody({
     // primeiro clique e nao da para saber qual arte gerou a venda.
     useEffect(() => {
         registrarOrigem();
+        // ?ref=CODIGO tem que ser lido na CHEGADA: a cliente navega, o parametro
+        // some da URL no primeiro clique, e no checkout nao haveria como saber
+        // qual afiliada trouxe a venda.
+        registrarAfiliada();
     }, []);
 
     // Uma visita de pagina por rota. Aqui e nao em cada page.tsx porque a loja
