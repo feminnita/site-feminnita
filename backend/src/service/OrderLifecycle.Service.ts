@@ -1,6 +1,7 @@
 import * as OrdeRepository from '../repository/OrderLifecycle.Repository';
 import { orderStatusEnum, paymentStatusEnum } from '../db/schema';
 import * as EmailService from '../integrations/resend/Services';
+import * as CashbackService from './Cashback.Service';
 
 
 async function confirmSaleForOrder(orderId: string) {
@@ -112,6 +113,11 @@ export async function updateOrderStatus(
         );
         if (!transitioned) return before; // já estava pago -> não repete efeito
         await confirmSaleForOrder(transitioned.id);
+        // Cashback entra AQUI, dentro do bloco que so roda na transicao: webhook
+        // duplicado nao pode dar credito dobrado. Nao pode derrubar a confirmacao
+        // do pagamento — se falhar, o pedido segue pago e o erro fica no log.
+        await CashbackService.creditarPorPedidoPago(transitioned.id)
+            .catch((e) => console.error('Falha ao creditar cashback:', e));
         await sendPaymentConfirmedEmail(transitioned);
         return transitioned;
     }
@@ -125,8 +131,14 @@ export async function updateOrderStatus(
         const updated = await OrdeRepository.saveShippedAt(order.id);
         await sendOrderShippedEmail(order);
         return updated;
-    } else if (order.status === 'cancelled' && !wasCancelled && !wasPaid) {
-        await releaseReservationForOrder(order.id);
+    } else if (order.status === 'cancelled' && !wasCancelled) {
+        // Reserva so volta para o estoque se a venda nunca foi paga.
+        if (!wasPaid) await releaseReservationForOrder(order.id);
+        // Cashback sai SEMPRE que cancela. Sem isto a cliente recebe o dinheiro
+        // de volta E fica com o credito — a loja paga duas vezes pela mesma
+        // compra desfeita.
+        await CashbackService.estornarPorPedido(order.id)
+            .catch((e) => console.error('Falha ao estornar cashback:', e));
     }
 
     return order;
