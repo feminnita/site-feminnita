@@ -61,3 +61,50 @@ export async function saldos() {
         a_pagar: Number((r.comissao_total - r.ja_pago).toFixed(2)),
     }));
 }
+
+/**
+ * Inscricao de uma candidata a afiliada. Nasce SEMPRE como 'pendente': quem
+ * aprova e a Chris, no painel. Ate la o codigo nao credita nada.
+ */
+export async function inscrever(dados: {
+    nome: string;
+    email: string;
+    telefone?: string | null;
+    instagram?: string | null;
+}) {
+    // O codigo sai do @ do Instagram, que e como ela se chama no mundo real e
+    // e o que a seguidora reconhece. Sem Instagram, sai do nome.
+    const base = (dados.instagram || dados.nome)
+        .normalize('NFD')
+        .replace(new RegExp('[\u0300-\u036f]', 'g'), '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '')
+        .slice(0, 12) || 'AFILIADA';
+
+    // Codigo e unico. Duas afiliadas com o mesmo link creditariam a errada, e
+    // isso e briga de dinheiro — entao tenta variacoes ate achar um livre.
+    for (let tentativa = 0; tentativa < 12; tentativa++) {
+        const codigo = tentativa === 0 ? base : `${base}${tentativa + 1}`;
+        try {
+            const [linha] = await db
+                .insert(afiliadas)
+                .values({
+                    nome: dados.nome,
+                    email: dados.email.toLowerCase(),
+                    telefone: dados.telefone ?? null,
+                    instagram: dados.instagram ?? null,
+                    codigo,
+                })
+                .returning({ id: afiliadas.id, codigo: afiliadas.codigo });
+            return linha;
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : '';
+            // E-mail repetido e a MESMA pessoa se inscrevendo de novo: nao e
+            // erro dela, e nao pode virar duas fichas.
+            if (msg.includes('affiliates_email_unique')) throw new Error('JA_INSCRITA');
+            if (!msg.includes('affiliates_code_unique')) throw e;
+            // codigo batido: tenta o proximo
+        }
+    }
+    throw new Error('CODIGO_INDISPONIVEL');
+}

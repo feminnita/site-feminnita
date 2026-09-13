@@ -15,6 +15,7 @@ import { storeResaleTermRoutes } from './ResaleTerm.Routes';
 import { storeNewsletterRoutes } from './Newsletter.Routes';
 import { storeBlogRoutes, storeTrainingRoutes, storeStoryRoutes } from './Post.Routes';
 import { storeEventRoutes } from './Event.Routes';
+import { storeAffiliateRoutes } from './Affiliate.Routes';
 
 export const routes = Router();
 
@@ -35,6 +36,7 @@ routes.use('/api/store/blog', storeBlogRoutes);
 routes.use('/api/store/treinamento', storeTrainingRoutes);
 routes.use('/api/store/historias', storeStoryRoutes);
 routes.use('/api/store/events', storeEventRoutes);
+routes.use('/api/store/afiliadas', storeAffiliateRoutes);
 
 routes.use('/api/webhooks/asaas', asaaswebhookRoutes);
 
