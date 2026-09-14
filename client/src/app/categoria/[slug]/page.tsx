@@ -20,6 +20,8 @@ export default function CategoryPage() {
 
     const [category, setCategory] = useState<CategoryRow | null>(null);
     const [products, setProducts] = useState<StoreProduct[]>([]);
+    // Guardadas para agrupar a pagina por SETOR (as filhas da categoria aberta).
+    const [todasCategorias, setTodasCategorias] = useState<CategoryRow[]>([]);
     const [banner, setBanner] = useState<CategoryBannerType | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -34,6 +36,7 @@ export default function CategoryPage() {
                 getCategoryBanner(slug),
             ]);
             setBanner(catBanner);
+            setTodasCategorias(allCats);
             const cat = allCats.find((c) => c.slug === slug) ?? null;
             setCategory(cat);
 
@@ -79,6 +82,36 @@ export default function CategoryPage() {
         );
     }
 
+    // Agrupa os produtos pelo SETOR a que pertencem — a filha da categoria
+    // aberta que contem o produto (direto ou mais abaixo). Produto ligado na
+    // propria categoria cai em "Outros", no fim: e melhor aparecer numa secao
+    // generica do que sumir da pagina.
+    const setores = (() => {
+        if (!category) return [];
+        const filhas = todasCategorias.filter((c) => c.parentId === category.id);
+        if (!filhas.length) return [];
+
+        const usados = new Set<string>();
+        const lista = filhas
+            .map((filha) => {
+                const dentro = new Set(
+                    collectDescendantGrandchildrenIds(todasCategorias, filha.id),
+                );
+                const itens = products.filter(
+                    (p) => p.category_id && dentro.has(p.category_id),
+                );
+                itens.forEach((p) => usados.add(p.id));
+                return { id: filha.id, nome: filha.name, itens };
+            })
+            .filter((s) => s.itens.length > 0);
+
+        const sobraram = products.filter((p) => !usados.has(p.id));
+        if (sobraram.length) {
+            lista.push({ id: "__outros", nome: "Outros", itens: sobraram });
+        }
+        return lista;
+    })();
+
     return (
         <div className="min-h-screen bg-white">
             <Header />
@@ -95,11 +128,34 @@ export default function CategoryPage() {
                 </p>
 
                 {products.length > 0 ? (
-                    <div className={PRODUCT_GRID}>
-                        {products.map((product) => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
-                    </div>
+                    setores.length > 1 ? (
+                        // Uma secao por SETOR (as filhas da categoria aberta).
+                        // Em Feminino sao 40+ produtos misturados: pijama curto,
+                        // longo, plus size, blusa. Numa grade so, a cliente rola
+                        // sem achar o que quer — separado, ela vai direto.
+                        setores.map((setor) => (
+                            <section key={setor.id} className="mb-14">
+                                <div className="mb-6 flex items-baseline justify-between gap-4 border-b pb-2">
+                                    <h2 className="text-2xl font-light">{setor.nome}</h2>
+                                    <span className="shrink-0 text-sm text-gray-400">
+                                        {setor.itens.length}{" "}
+                                        {setor.itens.length === 1 ? "produto" : "produtos"}
+                                    </span>
+                                </div>
+                                <div className={PRODUCT_GRID}>
+                                    {setor.itens.map((product) => (
+                                        <ProductCard key={product.id} product={product} />
+                                    ))}
+                                </div>
+                            </section>
+                        ))
+                    ) : (
+                        <div className={PRODUCT_GRID}>
+                            {products.map((product) => (
+                                <ProductCard key={product.id} product={product} />
+                            ))}
+                        </div>
+                    )
                 ) : (
                     <div className="py-16 text-center text-gray-400">
                         <p className="text-xl">Nenhum produto disponível no momento</p>
