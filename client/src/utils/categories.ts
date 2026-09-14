@@ -121,6 +121,19 @@ export function listGrandchildCategories(rows: CategoryRow[]): CategoryRow[] {
     return rows.filter((r) => r.parentId !== null && filhosIds.has(r.parentId));
 }
 
+/**
+ * A categoria pedida MAIS todas abaixo dela.
+ *
+ * Antes isto devolvia so os nos de nivel 3 — assumia que todo produto mora
+ * dois andares abaixo. Categoria de nivel 2 sem filhos devolvia lista VAZIA, e
+ * a pagina mostrava "Nenhum produto disponivel" com produto cadastrado ali
+ * dentro. Foi o caso de Blusas: 8 produtos ativos ligados direto nela, tela
+ * zerada. "pet" tinha o mesmo problema.
+ *
+ * A regra certa e a que a cliente espera: clicar numa categoria mostra o que
+ * esta nela E o que esta nas de baixo. Nao importa quantos andares a arvore
+ * tem hoje nem quantos vai ter depois.
+ */
 export function collectDescendantGrandchildrenIds(
     rows: CategoryRow[],
     categoryId: string,
@@ -137,13 +150,12 @@ export function collectDescendantGrandchildrenIds(
         return null;
     }
 
-    function collectLeaves(node: CategoryNode): string[] {
-        if (node.level === 3) return [node.id];
-        return node.children.flatMap(collectLeaves);
+    function collectSelfAndDescendants(node: CategoryNode): string[] {
+        return [node.id, ...node.children.flatMap(collectSelfAndDescendants)];
     }
 
     const target = findNode(tree, categoryId);
-    return target ? collectLeaves(target) : [];
+    return target ? collectSelfAndDescendants(target) : [];
 }
 
 export function findAncestor(
