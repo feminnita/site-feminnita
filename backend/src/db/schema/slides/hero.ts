@@ -14,6 +14,18 @@ export const heroSlides = pgTable('hero_slides', {
     title: text('title'),
     subtitle: text('subtitle'),
     textPosition: text('text_position').default('center-center'),
+    // Claro ou escuro do texto. Sem isto a vitrine assumia sempre o mesmo.
+    textTheme: text('text_theme').default('light'),
+
+    // Celular tem outra regra, e nao e detalhe: a arte e cortada em outra
+    // proporcao, entao o lugar que funciona no desktop cai EM CIMA da modelo.
+    // A Chris ja configurava isto no painel e o banco ja guardava — mas este
+    // schema nao conhecia as colunas, entao a loja nunca recebia e caia no
+    // valor do desktop. Configuracao que existe e nao vale e pior que nao ter:
+    // ela mexe, salva, e nada muda.
+    textPositionMobile: text('text_position_mobile'),
+    textThemeMobile: text('text_theme_mobile'),
+
     focal: text('focal').default('center'),
     orderIndex: integer('order_index').notNull().default(0),
     active: boolean('active').notNull().default(true),
