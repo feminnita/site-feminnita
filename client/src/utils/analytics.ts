@@ -45,6 +45,16 @@ export function trackViewItemAnalytics(product: StoreProduct): void {
         value: product.pixPrice,
         currency: "BRL",
     });
+
+    // O TikTok so recebia do checkout pra baixo (InitiateCheckout e PlaceAnOrder).
+    // Sem produto visto e sem carrinho, ele otimiza sem enxergar o topo do funil —
+    // e e justamente ai que o publico de remarketing se forma.
+    ttq("ViewContent", {
+        content_ids: [product.id],
+        content_type: "product",
+        value: product.pixPrice,
+        currency: "BRL",
+    });
 }
 
 export function trackAddToCartAnalytics(
@@ -65,6 +75,13 @@ export function trackAddToCartAnalytics(
     });
 
     fbq("AddToCart", {
+        content_ids: [product.id],
+        content_type: "product",
+        value: product.pixPrice * quantity,
+        currency: "BRL",
+    });
+
+    ttq("AddToCart", {
         content_ids: [product.id],
         content_type: "product",
         value: product.pixPrice * quantity,

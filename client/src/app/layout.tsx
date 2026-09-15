@@ -39,6 +39,10 @@ export const metadata: Metadata = {
     "atacado para revenda",
   ],
   authors: [{ name: "Feminnita" }],
+  // A home é o endereço oficial dela mesma. Sem isto só a página de produto tinha
+  // canonical, e a home ficava sujeita a ser indexada por variações de URL
+  // (utm de campanha, barra final, www x sem www).
+  alternates: { canonical: "/" },
   openGraph: {
     title: "Feminnita | Pijamas e Moda Íntima no Atacado",
     description:
@@ -46,12 +50,25 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     siteName: "Feminnita",
+    // O link da loja vai por WhatsApp pra revendedora o dia inteiro. Sem imagem,
+    // chega como uma caixinha de texto cinza. A página de PRODUTO já manda a foto
+    // do produto (generateMetadata em produto/[id]); esta é a capa de tudo que não
+    // é produto: home, listagens, coleções. metadataBase resolve o caminho absoluto.
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Feminnita — pijamas e moda íntima no atacado, direto da fábrica",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Feminnita | Pijamas e Moda Íntima no Atacado",
     description:
       "Pijamas e moda íntima feminina, atacado direto da fábrica. Pedido mínimo R$ 199.",
+    images: ["/og-image.jpg"],
   },
   robots: { index: true, follow: true },
   icons: {

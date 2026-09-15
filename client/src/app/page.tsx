@@ -8,6 +8,17 @@ import { getHomeBanners } from "../services/bannersService";
 import { fetchProducts } from "../services/productsService";
 import type { StoreProduct } from "../types/product/products";
 import Link from "next/link";
+import {
+  JsonLd,
+  organizationSchema,
+  webSiteSchema,
+} from "../components/common/JsonLd";
+
+// Mesma fonte de verdade do metadataBase no layout: na virada do dominio muda
+// a env e o schema acompanha junto, sem ficar um apontando pra Vercel e o outro
+// pra feminnita.com.br.
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://site-feminnita-alpha.vercel.app";
 
 // home renderizada por request: reflete Hero/Banners/títulos na hora, sem esperar publish
 export const dynamic = "force-dynamic";
@@ -58,6 +69,10 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen">
+      {/* Quem e a marca e como buscar nela. A pagina de produto ja se identificava;
+          a home nao se identificava para ninguem. */}
+      <JsonLd data={organizationSchema(SITE_URL)} />
+      <JsonLd data={webSiteSchema(SITE_URL)} />
       <Header />
       <HeroCarousel slides={slides} />
       {/* Newsletter */}
