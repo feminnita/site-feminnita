@@ -13,7 +13,7 @@ import {
     Truck,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const STORAGE_KEY = "feminnita:lastOrder";
 const POLL_START_MS = 3000;
@@ -25,6 +25,7 @@ function OrderConfirmedContent() {
     const [loaded, setLoaded] = useState(false);
     const [paid, setPaid] = useState(false);
     const [copied, setCopied] = useState(false);
+    const firedRef = useRef(false);
 
     // sessionStorage só existe no navegador — lê depois de montar
     useEffect(() => {
@@ -34,12 +35,6 @@ function OrderConfirmedContent() {
                 const parsed = JSON.parse(raw) as OrderPaymentResult;
                 setOrder(parsed);
                 if (parsed.method === "card") setPaid(true);
-
-                if ((window as any).gtag) {
-                    (window as any).gtag("event", "purchase_confirmed", {
-                        order_id: parsed.orderId,
-                    });
-                }
             }
         } catch {
             // sessionStorage corrompido — cai no fallback
@@ -97,6 +92,19 @@ function OrderConfirmedContent() {
             document.removeEventListener("visibilitychange", onVisibility);
         };
     }, [order, paid]);
+
+    // Marcador interno de pagamento confirmado — SÓ quando pago de fato, 1x.
+    // A conversão de venda (Meta/GA4/TikTok) é reportada server-side; aqui não
+    // dispara nada em pedido não pago nem re-dispara ao reabrir a aba.
+    useEffect(() => {
+        if (!paid || !order || firedRef.current) return;
+        firedRef.current = true;
+        if ((window as any).gtag) {
+            (window as any).gtag("event", "purchase_confirmed", {
+                order_id: order.orderId,
+            });
+        }
+    }, [paid, order]);
 
     const copyPix = () => {
         if (!order?.pixCopyPaste) return;

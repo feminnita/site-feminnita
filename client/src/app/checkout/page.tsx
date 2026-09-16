@@ -19,7 +19,6 @@ import {
     trackAddPaymentInfo,
     trackAddShippingInfo,
     trackBeginCheckout,
-    trackPurchase,
 } from "../../utils/analytics";
 import { isValidateCpf } from "../../utils/checkout";
 import { PIX_DISCOUNT_RATE } from "../../utils/pricing";
@@ -381,14 +380,9 @@ export default function CheckoutPage() {
                 },
             });
 
-            trackPurchase(
-                result.orderNumber,
-                selectedItems,
-                result.total,
-                shippingCost,
-                discount + couponDiscount,
-            );
-
+            // A conversão de venda é reportada SERVER-SIDE (Meta CAPI/GA4/TikTok)
+            // quando o pagamento cai de fato — não aqui, na criação do pedido.
+            // Disparar aqui contava Pix/boleto não pago (~65% não paga).
             sessionStorage.setItem("feminnita:lastOrder", JSON.stringify(result));
             removeSelected();
 

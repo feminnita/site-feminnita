@@ -38,6 +38,23 @@ export const env = {
         token: required('ME_TOKEN'),
     },
 
+    // Conversão de venda paga reportada server-side. TUDO opcional: sem token,
+    // a plataforma é pulada — nunca derruba o boot nem o pagamento.
+    conversions: {
+        meta: {
+            pixelId: process.env.META_PIXEL_ID ?? '',
+            metaToken: process.env.META_CAPI_TOKEN ?? '',
+        },
+        ga4: {
+            measurementId: process.env.GA4_MEASUREMENT_ID ?? '',
+            apiSecret: process.env.GA4_API_SECRET ?? '',
+        },
+        tiktok: {
+            pixelId: process.env.TIKTOK_PIXEL_ID ?? '',
+            accessToken: process.env.TIKTOK_ACCESS_TOKEN ?? '',
+        },
+    },
+
     store: {
         cep: required('STORE_CEP'),
         name: required('FEMINNITA_NAME'),

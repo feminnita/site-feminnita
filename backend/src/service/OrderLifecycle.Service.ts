@@ -2,6 +2,7 @@ import * as OrdeRepository from '../repository/OrderLifecycle.Repository';
 import { orderStatusEnum, paymentStatusEnum } from '../db/schema';
 import * as EmailService from '../integrations/resend/Services';
 import * as CashbackService from './Cashback.Service';
+import { sendPurchaseConversions } from '../integrations/conversions/Conversions.Service';
 
 
 async function confirmSaleForOrder(orderId: string) {
@@ -70,6 +71,35 @@ async function sendOrderShippedEmail(order: {
     });
 }
 
+// Reporta a venda PAGA às plataformas (server-side, 1x, só no pago). Roda
+// dentro do bloco de transição para "pago" e nunca lança — se um pixel falhar,
+// o pedido segue pago e o erro fica no log.
+async function reportPurchaseConversion(order: {
+    id: string;
+    orderNumber: string;
+    total: string;
+    customerId: string | null;
+}) {
+    const items = await OrdeRepository.findItemsByOrderId(order.id);
+    const customer = order.customerId
+        ? await OrdeRepository.findCustomerById(order.customerId)
+        : null;
+
+    await sendPurchaseConversions({
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        value: Number(order.total),
+        currency: 'BRL',
+        email: customer?.email ?? null,
+        items: items.map((i) => ({
+            productId: i.productId,
+            productName: i.productName,
+            quantity: i.quantity,
+            unitPrice: Number(i.unitPrice),
+        })),
+    });
+}
+
 export async function updateOrderStatus(
     id: string,
     input: {
@@ -119,6 +149,9 @@ export async function updateOrderStatus(
         await CashbackService.creditarPorPedidoPago(transitioned.id)
             .catch((e) => console.error('Falha ao creditar cashback:', e));
         await sendPaymentConfirmedEmail(transitioned);
+        // Conversão de venda paga (Meta/GA4/TikTok) — só aqui, 1x por pedido.
+        await reportPurchaseConversion(transitioned)
+            .catch((e) => console.error('Falha ao reportar conversão:', e));
         return transitioned;
     }
 
