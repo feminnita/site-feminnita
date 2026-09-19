@@ -82,23 +82,18 @@ export function ProductCard({
     const colorImg = selectedColor ? colorThumb(product, selectedColor) : undefined;
     const baseImage = overrideImage ?? product.images?.[0];
     const primary = colorImg ?? baseImage;
-    // Troca no hover. Prefere a segunda pose da MESMA cor; sem ela, usa uma foto
-    // do produto — que e de outra estampa.
+    // Troca no hover: com uma cor escolhida, so a segunda pose DAQUELA cor.
     //
-    // Mostrar outra estampa no hover foi decisao da Chris, com o porque na mesa:
-    // hoje ela gera UMA foto por cor, entao exigir a segunda pose da propria cor
-    // deixaria quase toda a vitrine parada, e card parado ao lado de card que se
-    // mexe parece defeito. Movimento com outra estampa e menos ruim que a loja
-    // parecer quebrada. Quando a segunda foto da cor existir, ela vence sozinha.
-    //
-    // O filtro contra a foto da capa evita o pior caso: trocar uma imagem por
-    // ela mesma, que faria o card "piscar" sem nada acontecer.
+    // Chegamos a usar uma foto do produto como segunda imagem, para o card nao
+    // ficar parado. Vimos no ar e a Chris cortou: na vitrine de blusas, o card
+    // da estampa de tucanos virava a estampa verde — que era o card do lado.
+    // Dois cards identicos na tela, e nenhum dizendo a verdade sobre a peca que
+    // anuncia. Quem da o movimento agora e o card do produto, que vem junto.
     const fotosDaCor = selectedColor ? colorPhotos(product, selectedColor) : [];
     const secondary = showVariants
-        ? fotosDaCor[1] ??
-          (selectedColor
-              ? product.images?.find((i) => i !== fotosDaCor[0])
-              : product.images?.[1])
+        ? selectedColor
+            ? fotosDaCor[1]
+            : product.images?.[1]
         : undefined;
 
     return (

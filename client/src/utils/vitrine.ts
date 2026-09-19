@@ -42,6 +42,11 @@ export function abrirCoresEmCards(produtos: StoreProduct[]): CardDeVitrine[] {
             continue;
         }
 
+        // O produto inteiro abre a fila. E o unico card com as fotos do
+        // ensaio — e portanto o unico que se mexe no hover, porque as cores
+        // tem uma foto so cada. Sem ele, a vitrine inteira ficava parada.
+        cards.push({ chave: produto.id, produto });
+
         for (const cor of comFoto) {
             cards.push({
                 chave: `${produto.id}:${cor}`,
