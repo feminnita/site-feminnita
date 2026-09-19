@@ -14,7 +14,7 @@ export async function quoteShipping(toCep: string, items: QuotableItem[]): Promi
     // inclusive sem a retirada na fábrica, que nem depende de transportadora.
     const rawOptions = Array.isArray(resposta) ? resposta : [resposta];
 
-    return rawOptions
+    const cotadas = rawOptions
         .filter((option) => !option.error && option.price)
         .map((option) => ({
             id: option.id,
@@ -24,6 +24,33 @@ export async function quoteShipping(toCep: string, items: QuotableItem[]): Promi
             deliveryDays: option.delivery_time ?? 0,
         }))
         // Mais barata primeiro. Com uma opcao so a ordem nao importava; com
-        // cinco, deixar a cara no topo e cobrar caro de quem nao rola a lista.
+        // catorze, deixar a cara no topo e cobrar caro de quem nao rola a lista.
         .sort((a, b) => Number(a.price) - Number(b.price));
+
+    return enxugar(cotadas);
+}
+
+// Transportadoras que a Chris aceita. Azul Cargo e LATAM sairam por decisao
+// dela: num pedido de R$ 214 a LATAM cotou R$ 111,95, e frete que custa metade
+// da compra nao e opcao, e ruido.
+const ACEITAS = ['correios', 'jadlog', 'loggi', 'jet', 'total express', 'buslog'];
+
+// Correios entra com PAC e SEDEX: um e o barato, o outro e o rapido, e a Chris
+// faz questao dos dois porque ha cliente que so confia em Correios. As demais
+// entram com UMA opcao, a mais barata — Jadlog sozinha tem tres servicos, e
+// catorze linhas na tela nao e escolha, e paralisia.
+const COM_DUAS = 'correios';
+
+function enxugar(opcoes: ShippingQuoteOption[]): ShippingQuoteOption[] {
+    const jaTem = new Set<string>();
+
+    return opcoes.filter((o) => {
+        const empresa = o.company.trim().toLowerCase();
+        if (!ACEITAS.some((aceita) => empresa.includes(aceita))) return false;
+        if (empresa.includes(COM_DUAS)) return true;
+
+        if (jaTem.has(empresa)) return false;
+        jaTem.add(empresa);
+        return true;
+    });
 }

@@ -78,8 +78,10 @@ export async function quote(req: Request, res: Response) {
         // Adicionada DEPOIS da regra de frete grátis para não interferir no cálculo.
         const pickup = config.pickup;
         if (pickup?.enabled) {
+            // Na FRENTE das transportadoras: e a unica gratis, e sair por
+            // ultimo depois de sete precos e esconder o melhor negocio de
+            // quem mora perto.
             options = [
-                ...options,
                 {
                     id: 0,
                     name: 'Retirar na fábrica',
@@ -91,6 +93,7 @@ export async function quote(req: Request, res: Response) {
                     hours: pickup.hours ?? '',
                     note: pickup.note ?? '',
                 } as never,
+                ...options,
             ];
         }
 
