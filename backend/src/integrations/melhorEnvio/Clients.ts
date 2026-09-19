@@ -44,13 +44,60 @@ async function request<T>(path: string, options: {
     return response.json() as Promise<T>;
 }
 
-export function calculate(toCep: string, pkg: PackageDimensions): Promise<RawQuoteOption[]> {
+/**
+ * Transportadoras que a loja pede na cotacao.
+ *
+ * Sem esta lista, a API do Melhor Envio devolve UMA opcao so — a JeT. Nao e
+ * limite da conta: pedindo explicitamente, a mesma conta e o mesmo CEP
+ * respondem Loggi, Jadlog, Correios SEDEX e outras, mais baratas inclusive. A
+ * cliente estava escolhendo entre uma opcao so, sem saber que havia outras.
+ *
+ * A lista vem da conta, nao do codigo: habilitar uma transportadora nova no
+ * Melhor Envio passa a valer na loja sozinho, sem deploy. Guardada em memoria
+ * por 6h porque muda raramente e a cotacao roda a cada CEP digitado.
+ */
+const SEIS_HORAS = 6 * 60 * 60 * 1000;
+
+// Rede para o dia em que a listagem falhar: sao os ids de hoje da conta da
+// Feminnita. Melhor cotar com a lista de ontem do que voltar a mostrar so uma.
+const SERVICOS_DE_RESERVA = [1, 2, 3, 4, 12, 15, 16, 17, 22, 27, 31, 32, 33, 34, 35];
+
+let servicosEmCache: { ids: number[]; quando: number } | null = null;
+
+async function servicosDaConta(): Promise<number[]> {
+    if (servicosEmCache && Date.now() - servicosEmCache.quando < SEIS_HORAS) {
+        return servicosEmCache.ids;
+    }
+
+    try {
+        const lista = await request<{ id: number }[]>('/me/shipment/services');
+        const ids = (Array.isArray(lista) ? lista : [])
+            .map((s) => s.id)
+            .filter((id) => Number.isFinite(id));
+        if (ids.length) {
+            servicosEmCache = { ids, quando: Date.now() };
+            return ids;
+        }
+    } catch (erro) {
+        console.error('Nao consegui listar os servicos do Melhor Envio:', erro);
+    }
+
+    return servicosEmCache?.ids ?? SERVICOS_DE_RESERVA;
+}
+
+export async function calculate(
+    toCep: string,
+    pkg: PackageDimensions,
+): Promise<RawQuoteOption[]> {
+    const servicos = await servicosDaConta();
+
     return request<RawQuoteOption[]>('/me/shipment/calculate', {
         method: 'POST',
         body: {
             from: { postal_code: env.store.cep },
             to: { postal_code: toCep },
             package: pkg,
+            services: servicos.join(','),
         },
     });
 }

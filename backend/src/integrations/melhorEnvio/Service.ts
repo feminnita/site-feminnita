@@ -22,5 +22,8 @@ export async function quoteShipping(toCep: string, items: QuotableItem[]): Promi
             company: option.company?.name ?? '',
             price: option.price!,
             deliveryDays: option.delivery_time ?? 0,
-        }));
+        }))
+        // Mais barata primeiro. Com uma opcao so a ordem nao importava; com
+        // cinco, deixar a cara no topo e cobrar caro de quem nao rola a lista.
+        .sort((a, b) => Number(a.price) - Number(b.price));
 }
