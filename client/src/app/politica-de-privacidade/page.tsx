@@ -42,9 +42,9 @@ export default function PoliticaDePrivacidadePage() {
                 <li>WhatsApp / telefone</li>
                 <li>Endereço de entrega</li>
                 <li>
-                  Dados de pagamento — processados diretamente pelo gateway{" "}
-                  <strong>Mercado Pago</strong>. A Feminnita não armazena os
-                  dados do cartão.
+                  Dados de pagamento — enviados ao gateway{" "}
+                  <strong>Asaas</strong>, que processa a cobrança. A Feminnita
+                  não armazena os dados do cartão.
                 </li>
               </ul>
             </div>
@@ -72,11 +72,11 @@ export default function PoliticaDePrivacidadePage() {
               </p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>
-                  <strong>Transportadora / Correios:</strong> nome e endereço,
-                  para a entrega do pedido;
+                  <strong>Melhor Envio, Correios e transportadoras:</strong>{" "}
+                  nome e endereço, para cotar o frete e entregar o pedido;
                 </li>
                 <li>
-                  <strong>Gateway de pagamento (Mercado Pago):</strong> dados
+                  <strong>Gateway de pagamento (Asaas):</strong> dados
                   necessários para processar o pagamento.
                 </li>
               </ul>

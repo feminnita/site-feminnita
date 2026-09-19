@@ -41,11 +41,18 @@ const API = process.env.NEXT_PUBLIC_API_URL || "";
 // sem mexer em código — link de grupo de WhatsApp vence e é refeito direto.
 type GrupoVip = { url?: string; titulo?: string; descricao?: string };
 
+// A foto do pop-up também vem do site_settings (chave newsletter_popup), pelo
+// mesmo motivo: trocar a imagem da campanha é decisão de quem vende, não de
+// quem programa. Sem imagem configurada, o pop-up volta ao formato de coluna
+// única — mais pobre, mas inteiro.
+type PopupConfig = { imagem?: string };
+
 export function NewsletterPopup() {
     const [aberto, setAberto] = useState(false);
     const [email, setEmail] = useState("");
     const [enviando, setEnviando] = useState(false);
     const [vip, setVip] = useState<GrupoVip | null>(null);
+    const [popup, setPopup] = useState<PopupConfig>({});
     const [inscrito, setInscrito] = useState(false);
 
     useEffect(() => {
@@ -63,7 +70,10 @@ export function NewsletterPopup() {
     useEffect(() => {
         if (!aberto || vip) return;
         fetchSettings()
-            .then((s) => setVip((s?.grupo_vip as GrupoVip) || {}))
+            .then((s) => {
+                setVip((s?.grupo_vip as GrupoVip) || {});
+                setPopup((s?.newsletter_popup as PopupConfig) || {});
+            })
             .catch(() => setVip({}));
     }, [aberto, vip]);
 
@@ -111,6 +121,8 @@ export function NewsletterPopup() {
 
     if (!aberto) return null;
 
+    const temFoto = Boolean(popup.imagem);
+
     return (
         <div
             className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
@@ -120,7 +132,11 @@ export function NewsletterPopup() {
             onClick={fechar}
         >
             <div
-                className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl"
+                className={`relative w-full overflow-hidden rounded-2xl bg-white shadow-2xl ${
+                    temFoto && !inscrito
+                        ? "max-h-[92vh] max-w-3xl md:grid md:grid-cols-2"
+                        : "max-w-md"
+                }`}
                 onClick={(e) => e.stopPropagation()}
             >
                 <button
@@ -166,16 +182,32 @@ export function NewsletterPopup() {
                         </button>
                     </div>
                 ) : (
-                <div className="px-7 py-9">
+                <>
+                {/* A foto ocupa metade no computador e uma faixa no celular, onde
+                    a tela é do formulário. Sem foto configurada, some e o texto
+                    volta a ocupar tudo. */}
+                {temFoto && (
+                    <div className="relative h-44 w-full md:h-auto">
+                        <img
+                            src={popup.imagem}
+                            alt=""
+                            className="h-full w-full object-cover object-top md:absolute md:inset-0"
+                        />
+                    </div>
+                )}
+
+                <div className={temFoto ? "px-7 py-8 md:flex md:flex-col md:justify-center" : "px-7 py-9"}>
                     <h2
                         id="newsletter-titulo"
-                        className="text-2xl font-semibold leading-snug text-gray-900"
+                        className="text-[26px] font-bold leading-[1.15] tracking-tight text-gray-900 md:text-[30px]"
                     >
-                        Quer receber as novidades da Feminnita em primeira mão?
+                        As promoções saem no grupo
+                        <br />
+                        antes do site.
                     </h2>
                     <p className="mt-3 text-sm leading-relaxed text-gray-600">
-                        Cadastre-se e receba lançamentos, promoções para revenda e conteúdo
-                        exclusivo antes de todo mundo.
+                        Deixe seu e-mail e receba o convite para o grupo VIP de
+                        revendedoras.
                     </p>
 
                     <form onSubmit={enviar} className="mt-6">
@@ -208,6 +240,7 @@ export function NewsletterPopup() {
                         .
                     </p>
                 </div>
+                </>
                 )}
             </div>
         </div>
