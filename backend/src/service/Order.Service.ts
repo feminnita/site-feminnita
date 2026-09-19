@@ -7,6 +7,7 @@ import * as AdminOrderService from '../service/OrderLifecycle.Service';
 import * as ResaleTermService from '../service/ResaleTerm.Service';
 import * as AffiliateRepository from '../repository/Affiliate.Repository';
 import * as SiteSettingsRepository from '../repository/SiteSettings.Repository';
+import * as AddressesRepository from '../repository/Addresses.Repository';
 import type { CreateOrderInput } from '../types/order';
 
 
@@ -198,6 +199,15 @@ export async function createOrder(input: CreateOrderInput) {
         })),
         coupon?.id,
     );
+
+    // Endereco digitado entra na agenda da cliente. Falhar aqui nao pode custar
+    // a venda: o pedido ja existe e ja tem o endereco dentro dele — isto e
+    // conveniencia para a proxima compra, nao parte do pedido.
+    try {
+        await AddressesRepository.saveFromCheckout(customer.id, shippingAddress);
+    } catch (erroDoEndereco) {
+        console.error('Nao consegui guardar o endereco na agenda:', erroDoEndereco);
+    }
 
     try {
         const { payment, pixQrCode, asaasCustomerId } = await AsaasService.createChargeWithCustomer(
