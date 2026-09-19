@@ -24,6 +24,10 @@ interface ProductCardProps {
     // cor, clicar tem que abrir NAQUELA estampa — a cliente clicou no xadrez,
     // chegar no liso seria trocar a mercadoria na frente dela.
     corDoLink?: string;
+    // Estampa que o card mostra na CAPA ao nascer. O card continua inteiro:
+    // bolinhas de cor, tamanhos e compra rápida seguem ali. É um card do mesmo
+    // produto começando por outra cor — não um card amputado de uma cor só.
+    corInicial?: string;
 }
 
 // Foto da COR (colorImages[cor][0]) tolerante a caixa/acento. undefined quando não há.
@@ -47,12 +51,13 @@ export function ProductCard({
     overrideImage,
     colorLabel,
     corDoLink,
+    corInicial,
 }: ProductCardProps) {
     const [isFavorite, setIsFavorite] = useState(false);
     const [open, setOpen] = useState(false);
     // Cor selecionada NO CARD: troca a foto do card pela foto daquela cor (B2).
     // Só na vitrine (sem overrideImage — o carrossel do produto fixa a própria foto).
-    const [selectedColor, setSelectedColor] = useState<string | null>(null);
+    const [selectedColor, setSelectedColor] = useState<string | null>(corInicial ?? null);
 
     const effective = effectivePrice(product.price, product.salePrice, product.saleStart, product.saleEnd);
     const onSale = hasActiveSale(product.price, product.salePrice, product.saleStart, product.saleEnd);

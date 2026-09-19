@@ -159,8 +159,7 @@ export default function CategoryPage() {
                                         <ProductCard
                                             key={card.chave}
                                             product={card.produto}
-                                            overrideImage={card.foto}
-                                            colorLabel={card.cor}
+                                            corInicial={card.cor}
                                             corDoLink={card.cor}
                                         />
                                     ))}
@@ -173,8 +172,7 @@ export default function CategoryPage() {
                                 <ProductCard
                                     key={card.chave}
                                     product={card.produto}
-                                    overrideImage={card.foto}
-                                    colorLabel={card.cor}
+                                    corInicial={card.cor}
                                     corDoLink={card.cor}
                                 />
                             ))}
