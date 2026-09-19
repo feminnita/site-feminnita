@@ -58,15 +58,24 @@ export function abrirCoresEmCards(produtos: StoreProduct[]): CardDeVitrine[] {
 // Quais abas abrem por cor. Escolhidas uma a uma pela Chris, nao por regra
 // automatica: e decisao de vitrine, e ela e quem decide o que fica na tela.
 //
-// O criterio ate agora tem sido a aba magra onde as cores estao fotografadas:
-//   masculino  6 produtos -> 44 cards
+// O criterio tem sido a aba magra onde as cores estao fotografadas:
+//   masculino  6 produtos -> 40 cards
 //   blusas     8 produtos -> 41 cards
+//   robe       1 produto  ->  5 cards
+//   senhoras   1 produto  ->  5 cards
+//   lingerie   1 produto  ->  3 cards
 //
-// O feminino inteiro nao esta aqui de proposito: 78 produtos virariam 639
+// O feminino inteiro nao esta aqui de proposito: 78 produtos virariam 643
 // cards, e isso pede paginacao antes — e outra conversa.
 //
 // Vale para a aba e para tudo abaixo dela (uma filha de Masculino tambem abre).
-const CATEGORIAS_ABERTAS_POR_COR = ["masculino", "blusa"];
+const CATEGORIAS_ABERTAS_POR_COR = [
+    "masculino",
+    "blusa",
+    "robe",
+    "lingerie",
+    "senhoras",
+];
 
 export function abrePorCor(
     categoria: CategoryRow | null,
