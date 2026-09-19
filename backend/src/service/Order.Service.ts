@@ -310,6 +310,94 @@ export async function automaticCoupon(customerId: string, subtotal: number) {
     }
 }
 
+/**
+ * Troca a forma de pagamento de um pedido que ainda nao foi pago.
+ *
+ * Antes existia so o link para a fatura do Asaas, e ele mentia por omissao: la
+ * o valor ja esta fechado no total do boleto, entao quem fechava no boleto e
+ * pagava por PIX pagava 5% a mais do que pagaria escolhendo PIX no checkout —
+ * sem nenhum aviso. Desconto que a loja promete e que some quando a cliente
+ * muda de ideia nao e desconto, e armadilha.
+ *
+ * Agora a troca e de verdade: recalcula o total com a regra da forma escolhida,
+ * CANCELA a cobranca antiga e emite outra. O cancelamento vem antes de propos
+ * porque duas cobrancas abertas do mesmo pedido e o caminho para a cliente
+ * pagar duas vezes.
+ *
+ * O cupom sobrevive a troca: ele e do pedido, nao da forma de pagamento.
+ *
+ * Cartao aqui nao pede os dados do cartao — a cliente digita na pagina segura
+ * do Asaas (invoiceUrl). Receber numero de cartao numa tela de pedido ja criado
+ * seria guardar dado sensivel onde ele nao precisa passar.
+ */
+export async function changePaymentMethod(
+    orderId: string,
+    customerId: string,
+    paymentMethod: 'pix' | 'boleto' | 'card',
+) {
+    const order = await OrderRepository.findOrderByIndAndCustomerId(orderId, customerId);
+    if (!order) throw new Error('ORDER_NOT_FOUND');
+
+    if (order.paymentStatus === 'paid') throw new Error('ORDER_ALREADY_PAID');
+    if (order.status === 'cancelled') throw new Error('ORDER_CANCELLED');
+
+    const subtotalCents = OrderDomain.toCents(Number(order.subtotal));
+    const shippingCents = OrderDomain.toCents(Number(order.shippingCost ?? 0));
+
+    // Desconto recalculado do zero, nunca ajustado a partir do antigo: o valor
+    // gravado soma cupom e PIX, e mexer nele por diferenca acumula erro de
+    // arredondamento a cada troca.
+    const coupon = order.couponId
+        ? await OrderRepository.findCouponById(order.couponId)
+        : null;
+    const couponCents = coupon
+        ? OrderDomain.calculateCouponDiscountCents(coupon, subtotalCents)
+        : 0;
+    const pixCents = OrderDomain.calculatePixDiscountCents(subtotalCents, paymentMethod);
+    const discountCents = couponCents + pixCents;
+    const totalCents = OrderDomain.calculateTotalCents(subtotalCents, discountCents, shippingCents);
+
+    const customer = await OrderRepository.findCustomerForCharge(customerId);
+    if (!customer) throw new Error('CUSTOMER_NOT_FOUND');
+
+    if (order.asaasPaymentId) {
+        await AsaasService.cancelCharge(order.asaasPaymentId);
+    }
+
+    const { payment, pixQrCode, asaasCustomerId } = await AsaasService.createChargeWithCustomer(
+        {
+            ...order,
+            paymentMethod,
+            total: OrderDomain.fromCents(totalCents),
+        } as never,
+        { ...customer, cpf: customer.cpf ?? '' } as never,
+    );
+
+    if (customer.asaasCustomerId !== asaasCustomerId) {
+        await OrderRepository.saveCustomerAsaasId(customer.id, asaasCustomerId);
+    }
+
+    await OrderRepository.saveOrderPaymentChange(order.id, {
+        paymentMethod,
+        discount: OrderDomain.fromCents(discountCents),
+        total: OrderDomain.fromCents(totalCents),
+        asaasPaymentId: payment.id,
+    });
+
+    return {
+        paymentMethod,
+        discount: OrderDomain.fromCents(discountCents),
+        total: OrderDomain.fromCents(totalCents),
+        payment: {
+            asaasPaymentId: payment.id,
+            invoiceUrl: payment.invoiceUrl,
+            bankSlipUrl: payment.bankSlipUrl ?? null,
+            pixQrCode: pixQrCode?.encodedImage ?? null,
+            pixCopyPaste: pixQrCode?.payload ?? null,
+        },
+    };
+}
+
 export async function listMyOrders(customerId: string) {
     const myOrders = await OrderRepository.findOrdersByCustomerId(customerId);
     if (myOrders.length === 0) return [];

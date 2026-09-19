@@ -64,6 +64,30 @@ export async function automaticCoupon(req: Request, res: Response) {
     }
 }
 
+const FORMAS_ACEITAS = ['pix', 'boleto', 'card'] as const;
+
+export async function changePaymentMethod(req: Request, res: Response) {
+    try {
+        const metodo = String(req.body.paymentMethod ?? '');
+        if (!FORMAS_ACEITAS.includes(metodo as (typeof FORMAS_ACEITAS)[number])) {
+            res.status(400).json({ error: 'INVALID_PAYMENT_METHOD' });
+            return;
+        }
+
+        const resultado = await OrderService.changePaymentMethod(
+            req.params.id as string,
+            req.customer!.id,
+            metodo as (typeof FORMAS_ACEITAS)[number],
+        );
+        res.json(resultado);
+    } catch (error) {
+        console.error('Troca de forma de pagamento falhou:', error);
+        res.status(400).json({
+            error: error instanceof Error ? error.message : 'Não foi possível trocar a forma de pagamento',
+        });
+    }
+}
+
 export async function listMine(req: Request, res: Response) {
     res.json(await OrderService.listMyOrders(req.customer!.id));
 }

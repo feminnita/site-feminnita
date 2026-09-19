@@ -151,6 +151,28 @@ export function saveOrderAsaasPaymentId(orderId: string, asaasPaymentId: string)
     return db.update(orders).set({ asaasPaymentId, updatedAt: new Date() }).where(eq(orders.id, orderId));
 }
 
+// Troca de forma de pagamento: valor, desconto e cobranca mudam juntos, numa
+// escrita so. Separar isso em varios updates deixaria o pedido, por um instante,
+// com total novo e cobranca velha.
+export function saveOrderPaymentChange(
+    orderId: string,
+    dados: {
+        paymentMethod: string;
+        discount: string;
+        total: string;
+        asaasPaymentId: string;
+    },
+) {
+    return db
+        .update(orders)
+        .set({ ...dados, updatedAt: new Date() })
+        .where(eq(orders.id, orderId));
+}
+
+export function findCouponById(couponId: string) {
+    return db.query.coupons.findFirst({ where: eq(coupons.id, couponId) });
+}
+
 export async function cancelOrdeAndReleaseStock(orderId: string) {
     const items = await db.query.orderItems.findMany({ where: eq(orderItems.orderId, orderId) });
     await db

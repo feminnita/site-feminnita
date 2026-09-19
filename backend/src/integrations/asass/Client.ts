@@ -74,6 +74,16 @@ export function createPayment(input: {
     });
 }
 
+// Cancela uma cobranca ainda nao paga. Usado quando a cliente troca a forma de
+// pagamento: o valor muda (o PIX tem 5%), entao a cobranca antiga nao serve
+// mais e nao pode ficar viva — duas cobrancas abertas do mesmo pedido e o
+// caminho para a cliente pagar duas vezes.
+export function cancelPayment(paymentId: string) {
+    return request<{ id: string; deleted: boolean }>(`/payments/${paymentId}`, {
+        method: 'DELETE',
+    });
+}
+
 export function getPixQrCode(paymentId: string) {
     return request<AsaasPixQrCode>(`/payments/${paymentId}/pixQrCode`);
 }

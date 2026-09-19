@@ -2,6 +2,7 @@
 
 import { Header } from "@/src/components/layout/Header";
 import { apiGet } from "@/src/services/api";
+import { changePaymentMethod } from "@/src/services/checkoutService";
 import type { OrderPaymentResult } from "@/src/types/checkout/checkout";
 import {
     Barcode,
@@ -105,6 +106,39 @@ function OrderConfirmedContent() {
             });
         }
     }, [paid, order]);
+
+    // Troca de forma de pagamento. O pedido continua o mesmo; o que muda e o
+    // total (PIX tem 5%) e a cobranca, que e refeita do lado do servidor.
+    const [trocando, setTrocando] = useState<"pix" | "boleto" | "card" | null>(null);
+
+    const trocarForma = async (forma: "pix" | "boleto" | "card") => {
+        if (!order || trocando) return;
+        setTrocando(forma);
+        try {
+            const novo = await changePaymentMethod(order.orderId, forma);
+            const atualizado = {
+                ...order,
+                method: novo.method,
+                total: novo.total,
+                invoiceUrl: novo.invoiceUrl,
+                bankSlipUrl: novo.bankSlipUrl,
+                pixQrCode: novo.pixQrCode,
+                pixCopyPaste: novo.pixCopyPaste,
+            };
+            setOrder(atualizado);
+            // Guarda tambem no sessionStorage: recarregar a pagina nao pode
+            // trazer de volta a cobranca que acabou de ser cancelada.
+            try {
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify(atualizado));
+            } catch {
+                /* storage bloqueado: a tela ja esta certa, so nao lembra */
+            }
+        } catch {
+            alert("Não foi possível trocar a forma de pagamento. Tente novamente.");
+        } finally {
+            setTrocando(null);
+        }
+    };
 
     const copyPix = () => {
         if (!order?.pixCopyPaste) return;
@@ -229,22 +263,47 @@ function OrderConfirmedContent() {
                         </div>
                     )}
 
-                    {/* Pagar de outra forma: a fatura do Asaas oferece os métodos
-                        habilitados na conta. Válvula de escape quando o PIX falha
-                        (ex.: incidente do Asaas) ou a cliente muda de ideia. */}
-                    {!paid && order.invoiceUrl && (
-                        <div className="mb-6 rounded-xl border bg-white p-4 text-center">
-                            <p className="mb-2 text-sm text-gray-600">
-                                Prefere pagar de outra forma, ou o PIX não funcionou?
+                    {/* Trocar de forma de pagamento DE VERDADE: o servidor
+                        recalcula o total, cancela a cobrança antiga e emite
+                        outra. Antes havia só um link para a fatura do Asaas, e
+                        lá o valor já estava fechado no total do boleto — quem
+                        trocava para PIX perdia os 5% sem ser avisado. */}
+                    {!paid && (
+                        <div className="mb-6 rounded-xl border bg-white p-4">
+                            <p className="mb-3 text-center text-sm text-gray-600">
+                                Prefere pagar de outra forma?
                             </p>
-                            <a
-                                href={order.invoiceUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#8C2F39] px-4 py-2 text-sm font-medium text-[#8C2F39] hover:bg-rose-50"
-                            >
-                                <ExternalLink size={15} /> Ver outras formas de pagamento
-                            </a>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+                                {(
+                                    [
+                                        { id: "pix", rotulo: "PIX", nota: "5% de desconto" },
+                                        { id: "boleto", rotulo: "Boleto", nota: "vence em 3 dias" },
+                                        { id: "card", rotulo: "Cartão", nota: "até 3x sem juros" },
+                                    ] as const
+                                )
+                                    .filter((forma) => forma.id !== method)
+                                    .map((forma) => (
+                                        <button
+                                            key={forma.id}
+                                            type="button"
+                                            disabled={trocando !== null}
+                                            onClick={() => trocarForma(forma.id)}
+                                            className="flex flex-col items-center rounded-lg border border-[#8C2F39] px-4 py-2 text-sm font-medium text-[#8C2F39] transition-colors hover:bg-rose-50 disabled:opacity-50"
+                                        >
+                                            <span>
+                                                {trocando === forma.id
+                                                    ? "Trocando..."
+                                                    : `Pagar com ${forma.rotulo}`}
+                                            </span>
+                                            <span className="text-xs font-normal text-gray-500">
+                                                {forma.nota}
+                                            </span>
+                                        </button>
+                                    ))}
+                            </div>
+                            <p className="mt-3 text-center text-xs text-gray-400">
+                                O valor é recalculado e a cobrança anterior é cancelada.
+                            </p>
                         </div>
                     )}
 

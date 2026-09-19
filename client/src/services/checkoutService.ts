@@ -88,6 +88,44 @@ export async function fetchAutomaticCoupon(
     }
 }
 
+// Troca a forma de pagamento de um pedido ja criado. O servidor recalcula o
+// total (o PIX tem 5%), cancela a cobranca antiga e emite outra.
+export async function changePaymentMethod(
+    orderId: string,
+    paymentMethod: "pix" | "boleto" | "card",
+): Promise<OrderPaymentResult> {
+    const data = (await apiPost<{
+        paymentMethod: "pix" | "boleto" | "card";
+        total: string;
+        payment: {
+            invoiceUrl: string | null;
+            bankSlipUrl: string | null;
+            pixQrCode: string | null;
+            pixCopyPaste: string | null;
+        };
+    }>(`/api/store/orders/${orderId}/pagamento`, { paymentMethod })) as {
+        paymentMethod: "pix" | "boleto" | "card";
+        total: string;
+        payment: {
+            invoiceUrl: string | null;
+            bankSlipUrl: string | null;
+            pixQrCode: string | null;
+            pixCopyPaste: string | null;
+        };
+    };
+
+    return {
+        orderId,
+        orderNumber: "",
+        total: Number(data.total),
+        method: data.paymentMethod,
+        invoiceUrl: data.payment.invoiceUrl,
+        bankSlipUrl: data.payment.bankSlipUrl,
+        pixQrCode: data.payment.pixQrCode,
+        pixCopyPaste: data.payment.pixCopyPaste,
+    };
+}
+
 const ERROR_MESSAGES: [string, string][] = [
     ["EMPTY_CART", "Seu carrinho está vazio."],
     ["PRODUCT_UNAVAILABLE", "Um dos produtos não está mais disponível."],

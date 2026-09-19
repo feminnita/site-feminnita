@@ -11,3 +11,4 @@ storeOrderRouter.post('/coupon/preview', OrderController.previewCoupon);
 storeOrderRouter.get('/coupon/automatico', OrderController.automaticCoupon);
 storeOrderRouter.get('/', OrderController.listMine);
 storeOrderRouter.get('/:id', OrderController.getMine);
+storeOrderRouter.post('/:id/pagamento', OrderController.changePaymentMethod);

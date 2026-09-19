@@ -42,6 +42,19 @@ export async function createChargeWithCustomer(order: OrderForCharge, customer: 
     }
 }
 
+// Cancelamento que nao derruba a troca de forma de pagamento. Se a cobranca
+// antiga ja sumiu, ou o Asaas esta fora do ar, o que a cliente precisa e da
+// cobranca NOVA — o resto vira alerta no log, nao erro na tela dela.
+export async function cancelCharge(paymentId: string): Promise<boolean> {
+    try {
+        await AsaasClient.cancelPayment(paymentId);
+        return true;
+    } catch (error) {
+        console.error(`Nao consegui cancelar a cobranca ${paymentId}:`, error);
+        return false;
+    }
+}
+
 function dueDateFor(paymentMethod: string): string {
     const date = new Date();
 
