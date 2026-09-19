@@ -39,7 +39,17 @@ export async function quote(req: Request, res: Response) {
             };
         });
 
-        let options = await MelhorEnvio.quoteShipping(cep, quotable);
+        // A transportadora é a parte que pode falhar: API fora do ar, token
+        // vencido, CEP sem cobertura. Quando falhava, o erro subia e o checkout
+        // ficava sem opção NENHUMA — levando junto a retirada na fábrica, que
+        // não depende de transportadora alguma. Agora a falha dela custa só as
+        // opções dela, e quem quer buscar na fábrica continua comprando.
+        let options: Awaited<ReturnType<typeof MelhorEnvio.quoteShipping>> = [];
+        try {
+            options = await MelhorEnvio.quoteShipping(cep, quotable);
+        } catch (erroDoFrete) {
+            console.error('Cotação da transportadora falhou (seguindo com as demais opções):', erroDoFrete);
+        }
 
         const configRow = await SiteSettingsRepository.findByKey('shipping_config');
         const config = (configRow?.value ?? {}) as ShippingConfig;
