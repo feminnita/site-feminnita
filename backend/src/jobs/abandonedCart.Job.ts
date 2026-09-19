@@ -30,15 +30,19 @@ export async function enviarLembretesDeCarrinho(): Promise<number> {
 
     let enviados = 0;
     for (const carrinho of abandonados) {
-        await EmailService.sendAbandonedCart({
+        const foi = await EmailService.sendAbandonedCart({
             customerName: (carrinho.name || '').split(' ')[0] || 'tudo bem',
             customerEmail: carrinho.email,
             items: Array.isArray(carrinho.items) ? carrinho.items : [],
             cartUrl: `${env.clientUrl}/carrinho`,
         });
 
-        // Marca DEPOIS de mandar. Se o envio falhar, o e-mail nao e dado como
-        // enviado e a proxima rodada tenta de novo.
+        // Marca DEPOIS de mandar, e SO se mandou. O envio engolia o proprio erro
+        // e devolvia igual em qualquer caso: bastava o Resend recusar para o
+        // carrinho ficar marcado como avisado e a cliente nunca mais receber
+        // nada — o banco dizendo "enviado" sobre um e-mail que nao existiu.
+        if (!foi) continue;
+
         await AbandonedCartRepository.marcarEnviado(carrinho.customerId);
         enviados++;
         await esperar(INTERVALO_ENTRE_ENVIOS_MS);

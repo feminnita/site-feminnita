@@ -177,7 +177,7 @@ export async function sendAbandonedCart(data: {
     customerEmail: string;
     items: { name: string; size: string; color?: string; quantity: number }[];
     cartUrl: string;
-}) {
+}): Promise<boolean> {
     try {
         const pecas = data.items.reduce((t, i) => t + (i.quantity || 0), 0);
 
@@ -227,7 +227,9 @@ export async function sendAbandonedCart(data: {
                 rodapeExtra: 'Já finalizou? Pode ignorar este e-mail. 😊',
             }),
         });
+        return true;
     } catch (error) {
         console.error(`E-mail de carrinho abandonado falhou (${data.customerEmail}):`, error);
+        return false;
     }
 }
