@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/count/useAuth";
 import { useCart } from "../../hooks/cart/useCart";
@@ -36,6 +36,7 @@ const MARKER_TABS: { href: string; label: string }[] = [
 
 export function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const { count: cartCount } = useCart();
   const { customer, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -65,11 +66,20 @@ export function Header() {
     router.push(q ? `/produtos?q=${encodeURIComponent(q)}` : "/produtos");
   };
 
+  // No checkout o header NAO persegue a tela. Somados, a faixa do parcelamento,
+  // a busca e os marcadores passam de 200px — no meio da escolha do pagamento
+  // eles cobriam o PIX, e a cliente escolhia como pagar enxergando metade das
+  // opcoes. Em toda a loja perseguir o scroll ajuda (busca e carrinho sempre a
+  // mao); na hora de pagar so atrapalha.
+  const naFinalizacao = pathname?.startsWith("/checkout") ?? false;
+
   return (
     // Com itens no carrinho, a MinOrderBar fica sticky no topo (48px) no desktop;
     // o header desce para md:top-12 e os dois se empilham sem se sobrepor.
     <header
-      className={`sticky top-0 z-50 border-b bg-white ${cartCount > 0 ? "md:top-12" : ""}`}
+      className={`z-50 border-b bg-white ${
+        naFinalizacao ? "relative" : `sticky top-0 ${cartCount > 0 ? "md:top-12" : ""}`
+      }`}
     >
       <div className="bg-gray-100 py-2 text-center text-sm">
         3X SEM JUROS nos cartões de crédito
