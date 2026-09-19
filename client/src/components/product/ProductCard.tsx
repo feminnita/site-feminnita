@@ -30,16 +30,23 @@ interface ProductCardProps {
     corInicial?: string;
 }
 
-// Foto da COR (colorImages[cor][0]) tolerante a caixa/acento. undefined quando não há.
+// Fotos da COR, tolerante a caixa/acento. Vazio quando a cor não tem foto.
+function colorPhotos(
+    product: Pick<StoreProduct, "colorImages">,
+    color: string,
+): string[] {
+    const map = product.colorImages;
+    if (!map || !color) return [];
+    const target = normalizeColorKey(color);
+    const key = Object.keys(map).find((k) => normalizeColorKey(k) === target);
+    return key ? map[key] ?? [] : [];
+}
+
 function colorThumb(
     product: Pick<StoreProduct, "colorImages">,
     color: string,
 ): string | undefined {
-    const map = product.colorImages;
-    if (!map || !color) return undefined;
-    const target = normalizeColorKey(color);
-    const key = Object.keys(map).find((k) => normalizeColorKey(k) === target);
-    return key ? map[key]?.[0] : undefined;
+    return colorPhotos(product, color)[0];
 }
 
 // Card de VITRINE com COMPRA RÁPIDA dentro do card (QuickBuyPanel).
@@ -75,8 +82,15 @@ export function ProductCard({
     const colorImg = selectedColor ? colorThumb(product, selectedColor) : undefined;
     const baseImage = overrideImage ?? product.images?.[0];
     const primary = colorImg ?? baseImage;
-    // Swap de hover só na vitrine SEM cor escolhida (com cor, a foto da cor permanece).
-    const secondary = showVariants && !selectedColor ? product.images?.[1] : undefined;
+    // Troca no hover: a segunda pose. Com uma cor escolhida ela tem que ser da
+    // MESMA cor — passar o mouse no xadrez e aparecer o liso e trocar a
+    // mercadoria na frente da cliente. Cor com uma foto so fica parada de
+    // proposito, ate existir a segunda foto dela.
+    const secondary = showVariants
+        ? selectedColor
+            ? colorPhotos(product, selectedColor)[1]
+            : product.images?.[1]
+        : undefined;
 
     return (
         <div className="product-card group relative">
