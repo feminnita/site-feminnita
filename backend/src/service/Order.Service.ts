@@ -6,6 +6,7 @@ import * as MelhorEnvio from '../integrations/melhorEnvio/Service';
 import * as AdminOrderService from '../service/OrderLifecycle.Service';
 import * as ResaleTermService from '../service/ResaleTerm.Service';
 import * as AffiliateRepository from '../repository/Affiliate.Repository';
+import * as SiteSettingsRepository from '../repository/SiteSettings.Repository';
 import type { CreateOrderInput } from '../types/order';
 
 
@@ -271,6 +272,42 @@ export async function previewCoupon(customerId: string, couponCode: string, subt
         code: coupon.code,
         discount: Number(OrderDomain.fromCents(discountCents)),
     };
+}
+
+/**
+ * O cupom que entra sozinho no carrinho.
+ *
+ * Cupom que a cliente precisa digitar e cupom que metade nao usa: ela viu a
+ * promessa no pop-up, fechou a aba e na hora de pagar nao lembra do codigo. A
+ * Chris pediu que entrasse direto, e esta certa.
+ *
+ * QUAL cupom vem de site_settings.newsletter_popup.cupom — a mesma chave que o
+ * pop-up anuncia. Assim a promessa e o desconto nunca se separam: trocar o
+ * cupom do pop-up troca o que o carrinho aplica, sem deploy.
+ *
+ * So vale para quem NUNCA comprou. E cupom de primeira compra: sem essa trava
+ * ele viraria 5% permanente para a loja inteira, e com o PIX somando, 10% fixo
+ * de margem entregue sem ninguem ter decidido isso.
+ *
+ * A trava por cliente que ja existia continua valendo por cima (o mesmo cupom
+ * nao sai duas vezes para a mesma pessoa), e a conferencia final acontece de
+ * novo na criacao do pedido — esta rota so sugere.
+ */
+export async function automaticCoupon(customerId: string, subtotal: number) {
+    const config = await SiteSettingsRepository.findByKey('newsletter_popup');
+    const code = String((config?.value as { cupom?: string })?.cupom ?? '').trim();
+    if (!code) return null;
+
+    const jaComprou = await OrderRepository.findOrdersByCustomerId(customerId);
+    if (jaComprou.length > 0) return null;
+
+    try {
+        return await previewCoupon(customerId, code, subtotal);
+    } catch {
+        // Cupom apagado, vencido ou esgotado: o carrinho segue sem desconto.
+        // Sugestao que falha nao pode derrubar a tela de quem esta comprando.
+        return null;
+    }
 }
 
 export async function listMyOrders(customerId: string) {

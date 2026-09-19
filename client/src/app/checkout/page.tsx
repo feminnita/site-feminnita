@@ -11,6 +11,7 @@ import {
     mapCouponError,
     mapOrderError,
     previewCoupon,
+    fetchAutomaticCoupon,
 } from "../../services/checkoutService";
 import { quoteShipping } from "../../services/shippingService";
 import { acceptResaleTerm, parseReacceptVersion } from "../../services/resaleTermService";
@@ -263,6 +264,27 @@ export default function CheckoutPage() {
             calculateShipping(cep);
         }
     }, [form.cep, selectedItems]);
+
+    // Cupom de primeira compra entra sozinho. A cliente viu a promessa no
+    // pop-up, fechou a aba e na hora de pagar nao lembra do codigo — exigir que
+    // ela digite e perder a venda que o desconto foi feito para ganhar.
+    //
+    // So enquanto ela nao mexeu em cupom nenhum: quem digitou o proprio codigo
+    // mandou mais que a sugestao da loja.
+    const cupomAutomaticoTentado = useRef(false);
+
+    useEffect(() => {
+        if (cupomAutomaticoTentado.current) return;
+        if (subtotal <= 0 || appliedCoupon || couponCode.trim()) return;
+
+        cupomAutomaticoTentado.current = true;
+        fetchAutomaticCoupon(subtotal).then((cupom) => {
+            if (!cupom) return;
+            setAppliedCoupon(cupom);
+            setCouponCode(cupom.code);
+            toast.success(`Cupom ${cupom.code} aplicado: desconto de primeira compra.`);
+        });
+    }, [subtotal, appliedCoupon, couponCode]);
 
     const handleApplyCoupon = async () => {
         const code = couponCode.trim().toUpperCase();

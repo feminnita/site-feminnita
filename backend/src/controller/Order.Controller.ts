@@ -47,6 +47,23 @@ export async function previewCoupon(req: Request, res: Response) {
     }
 }
 
+// Sugestao de cupom para o carrinho. Nunca falha para quem esta comprando:
+// sem cupom elegivel, responde vazio e a tela segue igual.
+export async function automaticCoupon(req: Request, res: Response) {
+    try {
+        const subtotal = Number(req.query.subtotal);
+        if (!Number.isFinite(subtotal) || subtotal <= 0) {
+            res.json(null);
+            return;
+        }
+
+        res.json(await OrderService.automaticCoupon(req.customer!.id, subtotal));
+    } catch (error) {
+        console.error('Cupom automatico falhou:', error);
+        res.json(null);
+    }
+}
+
 export async function listMine(req: Request, res: Response) {
     res.json(await OrderService.listMyOrders(req.customer!.id));
 }

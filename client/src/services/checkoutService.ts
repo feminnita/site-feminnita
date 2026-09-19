@@ -1,4 +1,4 @@
-import { apiPost } from "./api";
+import { apiGet, apiPost } from "./api";
 import { origemDaVisita } from "../lib/origemDaVisita";
 import { afiliadaDaVisita } from "../lib/afiliada";
 import { parseCardExpiry } from "../utils/checkout";
@@ -72,6 +72,20 @@ export async function previewCoupon(
     )) as { code: string; discount: number };
 
     return data;
+}
+
+// Cupom que a loja aplica sozinha (primeira compra). Responde null quando nao
+// ha nenhum — e isso e normal, nao erro.
+export async function fetchAutomaticCoupon(
+    subtotal: number,
+): Promise<{ code: string; discount: number } | null> {
+    try {
+        return await apiGet<{ code: string; discount: number } | null>(
+            `/api/store/orders/coupon/automatico?subtotal=${subtotal}`,
+        );
+    } catch {
+        return null;
+    }
 }
 
 const ERROR_MESSAGES: [string, string][] = [
