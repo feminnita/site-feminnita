@@ -55,10 +55,18 @@ export function abrirCoresEmCards(produtos: StoreProduct[]): CardDeVitrine[] {
     return cards;
 }
 
-// Por ora so o masculino abre por cor — e onde o buraco aparece e onde todos os
-// produtos tem foto em todas as cores. O feminino tem 78 produtos e viraria 639
-// cards: e outra decisao, com paginacao junto.
-const RAIZES_ABERTAS_POR_COR = ["masculino"];
+// Quais abas abrem por cor. Escolhidas uma a uma pela Chris, nao por regra
+// automatica: e decisao de vitrine, e ela e quem decide o que fica na tela.
+//
+// O criterio ate agora tem sido a aba magra onde as cores estao fotografadas:
+//   masculino  6 produtos -> 44 cards
+//   blusas     8 produtos -> 41 cards
+//
+// O feminino inteiro nao esta aqui de proposito: 78 produtos virariam 639
+// cards, e isso pede paginacao antes — e outra conversa.
+//
+// Vale para a aba e para tudo abaixo dela (uma filha de Masculino tambem abre).
+const CATEGORIAS_ABERTAS_POR_COR = ["masculino", "blusa"];
 
 export function abrePorCor(
     categoria: CategoryRow | null,
@@ -70,7 +78,7 @@ export function abrePorCor(
     while (atual && !vistos.has(atual.id)) {
         vistos.add(atual.id); // categoria mal cadastrada nao pode virar laco infinito
         const nome = normalizeColorKey(atual.name);
-        if (RAIZES_ABERTAS_POR_COR.some((raiz) => nome.includes(raiz))) return true;
+        if (CATEGORIAS_ABERTAS_POR_COR.some((alvo) => nome.includes(alvo))) return true;
         atual = todas.find((c) => c.id === atual?.parentId) ?? null;
     }
 
