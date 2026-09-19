@@ -84,6 +84,11 @@ export default function CategoryPage() {
         );
     }
 
+    // Abas escolhidas pela Chris abrem cada cor fotografada como um card. Vale
+    // para a aba aberta E para cada secao dentro dela: a secao Robe dentro de
+    // Feminino mostra as 5 estampas, igual a aba Robe aberta sozinha.
+    const porCor = abrePorCor(category, todasCategorias);
+
     // Agrupa os produtos pelo SETOR a que pertencem — a filha da categoria
     // aberta que contem o produto (direto ou mais abaixo). Produto ligado na
     // propria categoria cai em "Outros", no fim: e melhor aparecer numa secao
@@ -103,24 +108,35 @@ export default function CategoryPage() {
                     (p) => p.category_id && dentro.has(p.category_id),
                 );
                 itens.forEach((p) => usados.add(p.id));
-                return { id: filha.id, nome: filha.name, itens };
+                // A secao Robe dentro de Feminino tem que se comportar como a
+                // aba Robe aberta sozinha. Sem isso a cliente via 5 estampas
+                // num lugar e 1 no outro, para a mesma mercadoria.
+                return {
+                    id: filha.id,
+                    nome: filha.name,
+                    itens,
+                    aberta: abrePorCor(filha, todasCategorias),
+                };
             })
             .filter((s) => s.itens.length > 0);
 
         const sobraram = products.filter((p) => !usados.has(p.id));
         if (sobraram.length) {
-            lista.push({ id: "__outros", nome: "Outros", itens: sobraram });
+            lista.push({
+                id: "__outros",
+                nome: "Outros",
+                itens: sobraram,
+                aberta: porCor,
+            });
         }
         return lista;
     })();
 
-    // No masculino cada cor fotografada vira um card proprio: sao 6 produtos em
-    // tres setores, entao a grade mostrava 2 cards por linha e metade da tela
-    // vazia — escondendo as 44 estampas que existem de verdade.
-    const porCor = abrePorCor(category, todasCategorias);
-
-    const montarCards = (lista: StoreProduct[]): CardDeVitrine[] =>
-        porCor
+    const montarCards = (
+        lista: StoreProduct[],
+        aberta = porCor,
+    ): CardDeVitrine[] =>
+        aberta
             ? abrirCoresEmCards(lista)
             : lista.map((p) => ({ chave: p.id, produto: p }));
 
@@ -155,7 +171,7 @@ export default function CategoryPage() {
                                     </span>
                                 </div>
                                 <div className={PRODUCT_GRID}>
-                                    {montarCards(setor.itens).map((card) => (
+                                    {montarCards(setor.itens, setor.aberta).map((card) => (
                                         <ProductCard
                                             key={card.chave}
                                             product={card.produto}
