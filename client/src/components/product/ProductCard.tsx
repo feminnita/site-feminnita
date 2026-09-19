@@ -82,17 +82,30 @@ export function ProductCard({
     const colorImg = selectedColor ? colorThumb(product, selectedColor) : undefined;
     const baseImage = overrideImage ?? product.images?.[0];
     const primary = colorImg ?? baseImage;
-    // Troca no hover: com uma cor escolhida, so a segunda pose DAQUELA cor.
+    // Troca no hover. Ordem de preferencia:
+    //   1. segunda pose da PROPRIA cor (o ideal — nao existe ainda: a Chris
+    //      gera uma foto por cor);
+    //   2. foto do ensaio que NAO seja capa de nenhuma outra cor;
+    //   3. qualquer foto do ensaio diferente da que esta na capa.
     //
-    // Chegamos a usar uma foto do produto como segunda imagem, para o card nao
-    // ficar parado. Vimos no ar e a Chris cortou: na vitrine de blusas, o card
-    // da estampa de tucanos virava a estampa verde — que era o card do lado.
-    // Dois cards identicos na tela, e nenhum dizendo a verdade sobre a peca que
-    // anuncia. Quem da o movimento agora e o card do produto, que vem junto.
+    // O passo 2 e a licao do primeiro teste no ar: o card da estampa de tucanos
+    // virava a estampa verde, que era a capa do card do lado — dois cards
+    // identicos na tela. Pulando as capas alheias, o hover mostra uma pose do
+    // ensaio em vez de clonar o vizinho.
+    //
+    // Card parado foi decisao dela, com o porque na mesa: card imovel ao lado de
+    // card que se mexe parece defeito, e movimento vale mais que a pureza da
+    // estampa. Quando a segunda foto da cor existir, ela vence sozinha.
     const fotosDaCor = selectedColor ? colorPhotos(product, selectedColor) : [];
+    const capasDasCores = new Set(
+        Object.values(product.colorImages ?? {}).map((fotos) => fotos?.[0]),
+    );
+    const doEnsaio = (product.images ?? []).filter((i) => i !== fotosDaCor[0]);
     const secondary = showVariants
         ? selectedColor
-            ? fotosDaCor[1]
+            ? fotosDaCor[1] ??
+              doEnsaio.find((i) => !capasDasCores.has(i)) ??
+              doEnsaio[0]
             : product.images?.[1]
         : undefined;
 
