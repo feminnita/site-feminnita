@@ -14,7 +14,7 @@ import {
     trackAddToCartAnalytics,
     trackViewItemAnalytics,
 } from "@/src/utils/analytics";
-import { buildCartItem, getDisplayImages } from "@/src/utils/product";
+import { buildCartItem, getDisplayImages, normalizeColorKey } from "@/src/utils/product";
 import { recordCartColor, recordColorClick } from "@/src/lib/colorAffinity";
 import { registrar } from "@/src/lib/eventos";
 import type { SkuStock, StoreProduct } from "@/src/types/product/products";
@@ -66,7 +66,16 @@ export function useProductPage(idOverride?: string) {
 
     useEffect(() => {
         if (!product) return;
-        setSelectedColor(product.colors[0] || "");
+        // ?cor= vem dos cards de cor da vitrine. Lido de window (e nao pelo
+        // useSearchParams) porque aqui ja estamos no navegador, e assim a
+        // pagina nao passa a exigir um <Suspense> so por causa disto.
+        const pedida = new URLSearchParams(window.location.search).get("cor");
+        const daUrl = pedida
+            ? product.colors.find(
+                  (c) => normalizeColorKey(c) === normalizeColorKey(pedida),
+              )
+            : undefined;
+        setSelectedColor(daUrl || product.colors[0] || "");
         trackProductView(product.id);
         // trackProductView incrementa o contador antigo do produto (numero sem
         // data e sem sessao). Este aqui grava o evento com data, sessao e

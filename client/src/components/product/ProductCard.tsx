@@ -20,6 +20,10 @@ interface ProductCardProps {
     overrideImage?: string;
     // Nome da cor exibida no card (linha discreta sob o nome). Só com overrideImage.
     colorLabel?: string;
+    // Cor que o link leva para a página do produto (?cor=). Quando o card É uma
+    // cor, clicar tem que abrir NAQUELA estampa — a cliente clicou no xadrez,
+    // chegar no liso seria trocar a mercadoria na frente dela.
+    corDoLink?: string;
 }
 
 // Foto da COR (colorImages[cor][0]) tolerante a caixa/acento. undefined quando não há.
@@ -42,6 +46,7 @@ export function ProductCard({
     showCode = false,
     overrideImage,
     colorLabel,
+    corDoLink,
 }: ProductCardProps) {
     const [isFavorite, setIsFavorite] = useState(false);
     const [open, setOpen] = useState(false);
@@ -52,7 +57,8 @@ export function ProductCard({
     const effective = effectivePrice(product.price, product.salePrice, product.saleStart, product.saleEnd);
     const onSale = hasActiveSale(product.price, product.salePrice, product.saleStart, product.saleEnd);
 
-    const href = `/produto/${product.slug ?? product.id}`;
+    const base = `/produto/${product.slug ?? product.id}`;
+    const href = corDoLink ? `${base}?cor=${encodeURIComponent(corDoLink)}` : base;
 
     // Vitrine mostra bolinhas de cor + tamanhos; o carrossel do produto (overrideImage) não.
     const showVariants = !overrideImage;

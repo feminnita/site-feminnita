@@ -8,6 +8,8 @@ import { fetchProducts } from "../../../services/productsService";
 import { fetchCategories } from "../../../services/categoriesService";
 import { getCategoryBanner } from "../../../services/bannersService";
 import { collectDescendantGrandchildrenIds } from "../../../utils/categories";
+import { abrePorCor, abrirCoresEmCards } from "../../../utils/vitrine";
+import type { CardDeVitrine } from "../../../utils/vitrine";
 import type { CategoryRow } from "../../../types/categories/categories";
 import type { CategoryBanner as CategoryBannerType } from "../../../types/banners/banners";
 import type { StoreProduct } from "../../../types/product/products";
@@ -112,6 +114,16 @@ export default function CategoryPage() {
         return lista;
     })();
 
+    // No masculino cada cor fotografada vira um card proprio: sao 6 produtos em
+    // tres setores, entao a grade mostrava 2 cards por linha e metade da tela
+    // vazia — escondendo as 44 estampas que existem de verdade.
+    const porCor = abrePorCor(category, todasCategorias);
+
+    const montarCards = (lista: StoreProduct[]): CardDeVitrine[] =>
+        porCor
+            ? abrirCoresEmCards(lista)
+            : lista.map((p) => ({ chave: p.id, produto: p }));
+
     return (
         <div className="min-h-screen bg-white">
             <Header />
@@ -143,16 +155,28 @@ export default function CategoryPage() {
                                     </span>
                                 </div>
                                 <div className={PRODUCT_GRID}>
-                                    {setor.itens.map((product) => (
-                                        <ProductCard key={product.id} product={product} />
+                                    {montarCards(setor.itens).map((card) => (
+                                        <ProductCard
+                                            key={card.chave}
+                                            product={card.produto}
+                                            overrideImage={card.foto}
+                                            colorLabel={card.cor}
+                                            corDoLink={card.cor}
+                                        />
                                     ))}
                                 </div>
                             </section>
                         ))
                     ) : (
                         <div className={PRODUCT_GRID}>
-                            {products.map((product) => (
-                                <ProductCard key={product.id} product={product} />
+                            {montarCards(products).map((card) => (
+                                <ProductCard
+                                    key={card.chave}
+                                    product={card.produto}
+                                    overrideImage={card.foto}
+                                    colorLabel={card.cor}
+                                    corDoLink={card.cor}
+                                />
                             ))}
                         </div>
                     )
