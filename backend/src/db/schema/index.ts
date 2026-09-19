@@ -26,6 +26,7 @@ export * from './slides/hero';
 
 //
 export * from './integrations/bling';
+export * from './integrations/melhorEnvio';
 
 //
 export * from './analytics/events';
