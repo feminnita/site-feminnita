@@ -64,6 +64,8 @@ export function abrirCoresEmCards(produtos: StoreProduct[]): CardDeVitrine[] {
 //   robe       1 produto  ->  5 cards
 //   senhoras   1 produto  ->  5 cards
 //   lingerie   1 produto  ->  3 cards
+//   plus size 11 produtos -> 126 cards (leva junto as quatro sub-abas dela:
+//              baby doll plus size, pijama curto, pijama longo e camisola)
 //
 // O feminino inteiro nao esta aqui de proposito: 78 produtos virariam 643
 // cards, e isso pede paginacao antes — e outra conversa.
@@ -75,6 +77,7 @@ const CATEGORIAS_ABERTAS_POR_COR = [
     "robe",
     "lingerie",
     "senhoras",
+    "plus size",
 ];
 
 export function abrePorCor(
