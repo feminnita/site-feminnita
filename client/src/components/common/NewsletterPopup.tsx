@@ -45,7 +45,7 @@ type GrupoVip = { url?: string; titulo?: string; descricao?: string };
 // mesmo motivo: trocar a imagem da campanha é decisão de quem vende, não de
 // quem programa. Sem imagem configurada, o pop-up volta ao formato de coluna
 // única — mais pobre, mas inteiro.
-type PopupConfig = { imagem?: string };
+type PopupConfig = { imagem?: string; cupom?: string; cupomTexto?: string };
 
 export function NewsletterPopup() {
     const [aberto, setAberto] = useState(false);
@@ -106,7 +106,10 @@ export function NewsletterPopup() {
             gravar({ inscrito: true });
             // Quem acabou de dizer sim é quem mais entra no grupo VIP — o
             // convite vem aqui, não numa página que ninguém procura.
-            if (vip?.url) {
+            // Mostra a tela de sucesso se houver grupo VIP OU cupom. Antes ela
+            // dependia só do link do WhatsApp: o dia em que esse link vencesse
+            // e fosse apagado, o cupom prometido sumiria junto com ele.
+            if (vip?.url || popup.cupom) {
                 setInscrito(true);
             } else {
                 setAberto(false);
@@ -143,7 +146,10 @@ export function NewsletterPopup() {
                     type="button"
                     onClick={fechar}
                     aria-label="Fechar"
-                    className="absolute right-3 top-3 rounded-full bg-white/90 p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                    /* z-20: a foto vem DEPOIS no código e, por ser posicionada,
+                       pintava por cima do X — o clique ia para a imagem e o
+                       pop-up não fechava. Quem quer sair tem que conseguir. */
+                    className="absolute right-3 top-3 z-20 rounded-full bg-white/90 p-1.5 text-gray-500 shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900"
                 >
                     <X size={18} />
                 </button>
@@ -160,6 +166,22 @@ export function NewsletterPopup() {
                             {vip?.descricao ||
                                 "É no grupo do WhatsApp que as novidades e as promoções de atacado saem primeiro."}
                         </p>
+
+                        {/* O cupom prometido, entregue. Em destaque e selecionável:
+                            a pessoa precisa copiar isto para usar no checkout. */}
+                        {popup.cupom && (
+                            <div className="mt-5 rounded-xl border border-dashed border-[#8C2F39]/40 bg-[#8C2F39]/5 px-4 py-3">
+                                <p className="text-xs text-gray-600">
+                                    {popup.cupomTexto || "Seu cupom"}
+                                </p>
+                                <p className="mt-1 select-all font-mono text-xl font-bold tracking-wider text-[#8C2F39]">
+                                    {popup.cupom}
+                                </p>
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Use no carrinho, em &quot;Cupom de desconto&quot;.
+                                </p>
+                            </div>
+                        )}
                         <a
                             href={vip?.url}
                             target="_blank"
@@ -209,6 +231,14 @@ export function NewsletterPopup() {
                         Deixe seu e-mail e receba o convite para o grupo VIP de
                         revendedoras.
                     </p>
+
+                    {/* O cupom e o motivo concreto de deixar o e-mail. Aparece
+                        como promessa aqui e vira codigo na tela seguinte. */}
+                    {popup.cupomTexto && (
+                        <p className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#8C2F39]/10 px-3 py-2 text-sm font-semibold text-[#8C2F39]">
+                            🎁 {popup.cupomTexto}
+                        </p>
+                    )}
 
                     <form onSubmit={enviar} className="mt-6">
                         <label htmlFor="newsletter-email" className="sr-only">
