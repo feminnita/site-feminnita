@@ -330,6 +330,34 @@ export async function automaticCoupon(customerId: string, subtotal: number) {
  * do Asaas (invoiceUrl). Receber numero de cartao numa tela de pedido ja criado
  * seria guardar dado sensivel onde ele nao precisa passar.
  */
+/**
+ * Dados de pagamento de um pedido ainda nao pago, para a cliente retomar.
+ *
+ * Em "Meus Pedidos" nao havia link de pagamento nenhum: quem fechava no boleto
+ * e fechava a aba so conseguia pagar pelo e-mail. E boleto e exatamente o que
+ * se paga depois — a tela existia para o pedido que ja acabou, nao para o que
+ * ainda precisa ser pago.
+ */
+export async function getPaymentInfo(orderId: string, customerId: string) {
+    const order = await OrderRepository.findOrderByIndAndCustomerId(orderId, customerId);
+    if (!order) throw new Error('ORDER_NOT_FOUND');
+
+    if (order.paymentStatus === 'paid' || order.status === 'cancelled') return null;
+    if (!order.asaasPaymentId) return null;
+
+    const pagamento = await AsaasService.getPaymentForCustomer(
+        order.asaasPaymentId,
+        order.paymentMethod ?? 'pix',
+    );
+    if (!pagamento) return null;
+
+    return {
+        paymentMethod: order.paymentMethod,
+        total: order.total,
+        ...pagamento,
+    };
+}
+
 export async function changePaymentMethod(
     orderId: string,
     customerId: string,

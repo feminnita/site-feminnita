@@ -64,6 +64,15 @@ export async function automaticCoupon(req: Request, res: Response) {
     }
 }
 
+export async function getPaymentInfo(req: Request, res: Response) {
+    try {
+        res.json(await OrderService.getPaymentInfo(req.params.id as string, req.customer!.id));
+    } catch (error) {
+        console.error('Nao consegui montar o pagamento do pedido:', error);
+        res.json(null);
+    }
+}
+
 const FORMAS_ACEITAS = ['pix', 'boleto', 'card'] as const;
 
 export async function changePaymentMethod(req: Request, res: Response) {

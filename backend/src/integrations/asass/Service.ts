@@ -55,6 +55,29 @@ export async function cancelCharge(paymentId: string): Promise<boolean> {
     }
 }
 
+// Dados de pagamento para a cliente reabrir o pedido depois. Buscados no Asaas
+// na hora, e nao guardados no banco: boleto vence, cobranca e cancelada numa
+// troca de forma de pagamento, e link guardado envelhece calado — a cliente
+// clicaria num boleto morto sem entender por que.
+export async function getPaymentForCustomer(paymentId: string, paymentMethod: string) {
+    try {
+        const payment = await AsaasClient.getPayment(paymentId);
+        const pixQrCode =
+            paymentMethod === 'pix' ? await AsaasClient.getPixQrCode(paymentId).catch(() => null) : null;
+
+        return {
+            status: payment.status,
+            invoiceUrl: payment.invoiceUrl ?? null,
+            bankSlipUrl: payment.bankSlipUrl ?? null,
+            pixQrCode: pixQrCode?.encodedImage ?? null,
+            pixCopyPaste: pixQrCode?.payload ?? null,
+        };
+    } catch (error) {
+        console.error(`Nao consegui ler a cobranca ${paymentId}:`, error);
+        return null;
+    }
+}
+
 function dueDateFor(paymentMethod: string): string {
     const date = new Date();
 

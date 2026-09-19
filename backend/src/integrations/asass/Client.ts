@@ -84,6 +84,10 @@ export function cancelPayment(paymentId: string) {
     });
 }
 
+export function getPayment(paymentId: string) {
+    return request<AsaasPayment>(`/payments/${paymentId}`);
+}
+
 export function getPixQrCode(paymentId: string) {
     return request<AsaasPixQrCode>(`/payments/${paymentId}/pixQrCode`);
 }

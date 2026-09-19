@@ -88,6 +88,27 @@ export async function fetchAutomaticCoupon(
     }
 }
 
+export type InfoDePagamento = {
+    paymentMethod: "pix" | "boleto" | "card" | null;
+    total: string;
+    status: string;
+    invoiceUrl: string | null;
+    bankSlipUrl: string | null;
+    pixQrCode: string | null;
+    pixCopyPaste: string | null;
+};
+
+// Pagamento pendente de um pedido, para a cliente retomar depois. Buscado no
+// Asaas a cada abertura, e nao guardado: boleto vence e cobranca trocada e
+// cancelada. Responde null quando nao ha nada a pagar — e isso e normal.
+export async function fetchPaymentInfo(orderId: string): Promise<InfoDePagamento | null> {
+    try {
+        return await apiGet<InfoDePagamento | null>(`/api/store/orders/${orderId}/pagamento`);
+    } catch {
+        return null;
+    }
+}
+
 // Troca a forma de pagamento de um pedido ja criado. O servidor recalcula o
 // total (o PIX tem 5%), cancela a cobranca antiga e emite outra.
 export async function changePaymentMethod(
