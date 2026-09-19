@@ -5,22 +5,33 @@ import { BlogHeader, BlogFooter } from "../../components/blog/BlogChrome";
 import { CartaoEditorial, SeparadorComContagem } from "../../components/blog/Cartoes";
 import { SalaDeArquivos } from "../../components/blog/SalaDeArquivos";
 import { COR_DA_CATEGORIA } from "../../components/blog/categorias";
+import { BlogEmConstrucao } from "../../components/blog/EmConstrucao";
+import { BLOG_NO_AR } from "../../lib/blog";
 
 // Renderiza a cada visita: artigo novo aparece na hora, sem publicar de novo.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-    title: "Blog",
-    description:
-        "Conteúdo exclusivo para revendedoras de pijamas: treinamento, histórias e dicas para vender mais.",
-    alternates: { canonical: "https://feminnita.com.br/blog" },
-};
+export const metadata: Metadata = BLOG_NO_AR
+    ? {
+          title: "Blog",
+          description:
+              "Conteúdo exclusivo para revendedoras de pijamas: treinamento, histórias e dicas para vender mais.",
+          alternates: { canonical: "https://feminnita.com.br/blog" },
+      }
+    : {
+          // noindex enquanto nao ha conteudo: pagina vazia indexada ensina ao
+          // Google que o site tem buraco, e isso sobra depois.
+          title: "Em breve",
+          robots: { index: false, follow: false },
+      };
 
 export default async function BlogPage({
     searchParams,
 }: {
     searchParams: Promise<{ categoria?: string }>;
 }) {
+    if (!BLOG_NO_AR) return <BlogEmConstrucao />;
+
     const { categoria } = await searchParams;
     const todos = await listarArtigos();
     const artigos = categoria ? todos.filter((a) => a.category === categoria) : todos;

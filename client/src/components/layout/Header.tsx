@@ -19,6 +19,7 @@ import { useCart } from "../../hooks/cart/useCart";
 import { fetchCategories } from "../../services/categoriesService";
 import { recordSearch } from "../../lib/colorAffinity";
 import { buildTree, cleanCategoryTree } from "../../utils/categories";
+import { BLOG_NO_AR } from "../../lib/blog";
 import type { CategoryNode } from "../../types/categories/categories";
 import { CategoryDropdown, MobileCategoryAccordion } from "./CategoryNav";
 
@@ -27,11 +28,14 @@ import { CategoryDropdown, MobileCategoryAccordion } from "./CategoryNav";
 // separados de "Produtos". São fixos: LANÇAMENTOS · MAIS VENDIDOS · OUTLET sempre
 // aparecem — as páginas de listagem têm empty-state próprio quando ainda não há peça
 // marcada, então a faixa nunca leva a um "buraco" sem aviso.
+// BLOG so entra na faixa quando o blog estiver no ar (src/lib/blog.ts). Link
+// para pagina que ainda nao existe de verdade e promessa quebrada logo na
+// estreia — melhor nao oferecer do que oferecer vazio.
 const MARKER_TABS: { href: string; label: string }[] = [
   { href: "/lancamentos", label: "LANÇAMENTOS" },
   { href: "/mais-vendidos", label: "MAIS VENDIDOS" },
   { href: "/outlet", label: "OUTLET" },
-  { href: "/blog", label: "BLOG" },
+  ...(BLOG_NO_AR ? [{ href: "/blog", label: "BLOG" }] : []),
 ];
 
 export function Header() {

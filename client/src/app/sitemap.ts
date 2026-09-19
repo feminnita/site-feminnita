@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { fetchProducts } from "../services/productsService";
 import { fetchCategories } from "../services/categoriesService";
 import { listarArtigos } from "../services/blogService";
+import { BLOG_NO_AR } from "../lib/blog";
 
 const SITE = "https://feminnita.com.br";
 
@@ -16,7 +17,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const fixas: MetadataRoute.Sitemap = [
         { url: `${SITE}/`, changeFrequency: "daily", priority: 1 },
         { url: `${SITE}/produtos`, changeFrequency: "daily", priority: 0.9 },
-        { url: `${SITE}/blog`, changeFrequency: "weekly", priority: 0.7 },
         { url: `${SITE}/lancamentos`, changeFrequency: "daily", priority: 0.8 },
         { url: `${SITE}/mais-vendidos`, changeFrequency: "daily", priority: 0.8 },
         { url: `${SITE}/outlet`, changeFrequency: "daily", priority: 0.8 },
@@ -35,11 +35,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         listarArtigos().catch(() => []),
     ]);
 
-    const doBlog: MetadataRoute.Sitemap = artigos.map((a) => ({
-        url: `${SITE}/blog/${a.slug}`,
-        changeFrequency: "monthly" as const,
-        priority: 0.6,
-    }));
+    // Blog desligado nao entra no sitemap: oferecer ao Google uma pagina que
+    // responde "em construcao" e pedir para ele indexar um buraco.
+    const doBlog: MetadataRoute.Sitemap = BLOG_NO_AR
+        ? [
+              { url: `${SITE}/blog`, changeFrequency: "weekly" as const, priority: 0.7 },
+              ...artigos.map((a) => ({
+                  url: `${SITE}/blog/${a.slug}`,
+                  changeFrequency: "monthly" as const,
+                  priority: 0.6,
+              })),
+          ]
+        : [];
 
     const deCategoria: MetadataRoute.Sitemap = (categorias as { slug?: string }[])
         .filter((c) => c.slug)

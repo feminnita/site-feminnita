@@ -5,6 +5,8 @@ import { Header } from "../../../components/layout/Header";
 import { JsonLd } from "../../../components/common/JsonLd";
 import { buscarArtigo } from "../../../services/blogService";
 import { corDaCategoria } from "../../../components/blog/categorias";
+import { BlogEmConstrucao } from "../../../components/blog/EmConstrucao";
+import { BLOG_NO_AR } from "../../../lib/blog";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +17,8 @@ export async function generateMetadata({
 }: {
     params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
+    if (!BLOG_NO_AR) return { title: "Em breve", robots: { index: false, follow: false } };
+
     const { slug } = await params;
     const artigo = await buscarArtigo(slug);
     if (!artigo) return { title: "Artigo não encontrado" };
@@ -41,6 +45,8 @@ export default async function ArtigoPage({
 }: {
     params: Promise<{ slug: string }>;
 }) {
+    if (!BLOG_NO_AR) return <BlogEmConstrucao />;
+
     const { slug } = await params;
     const artigo = await buscarArtigo(slug);
     if (!artigo) notFound();
