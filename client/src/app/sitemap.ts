@@ -4,7 +4,16 @@ import { fetchCategories } from "../services/categoriesService";
 import { listarArtigos } from "../services/blogService";
 import { BLOG_NO_AR } from "../lib/blog";
 
-const SITE = "https://feminnita.com.br";
+// Mesma fonte de verdade do canonical, do og:url e do feed: NEXT_PUBLIC_SITE_URL.
+//
+// Estava escrito a mao como "https://feminnita.com.br", enquanto o canonical
+// saia de NEXT_PUBLIC_SITE_URL. Duas respostas para a mesma pergunta: o
+// sitemap entregava ao Google uma lista de enderecos sem www, e o canonical de
+// cada pagina apontava para outro lugar. Na virada do dominio, o principal e o
+// WWW — entao cada endereco do sitemap seria um redirecionamento, e o Google
+// leria o mapa inteiro como desatualizado.
+const SITE =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://site-feminnita-alpha.vercel.app";
 
 // A loja nao tinha sitemap: o Google precisava descobrir cada produto seguindo
 // link por link, e produto novo demorava a ser encontrado. Aqui ele recebe a
