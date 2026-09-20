@@ -6,6 +6,7 @@ import { useCart } from "@/src/hooks/cart/useCart";
 import { fetchProductStock } from "@/src/services/productsService";
 import { buildCartItem, normalizeColorKey } from "@/src/utils/product";
 import { recordCartColor, recordColorClick } from "@/src/lib/colorAffinity";
+import { trackAddToCartAnalytics } from "@/src/utils/analytics";
 import { sortSizes } from "@/src/utils/sizes";
 import type { SkuStock, StoreProduct } from "@/src/types/product/products";
 
@@ -177,6 +178,14 @@ export function QuickBuyPanel({
             }),
         );
         recordCartColor(color); // sinal de afinidade de cor (sessão)
+        // Quem compra pelo card da vitrine tambem conta.
+        //
+        // O AddToCart so era disparado na pagina do produto. Uma compra feita
+        // pelo botao rapido — que e o caminho mais curto e provavelmente o mais
+        // usado — nao aparecia na Meta nem no GA4. O funil ficava com um degrau
+        // faltando, e o publico de remarketing perdia justamente quem ja tinha
+        // escolhido cor e tamanho.
+        trackAddToCartAnalytics(product, qty);
         const label = needColor ? `${qty}x ${size} · ${color}` : `${qty}x ${size}`;
         setAdded((a) => [...a, { id: Date.now(), label }]);
         // NÃO fecha: reseta a seleção e volta pronto pra próxima escolha.
