@@ -172,3 +172,37 @@ export async function sendPurchaseConversions(input: PurchaseInput): Promise<voi
         }
     });
 }
+
+
+/**
+ * Diz no log, no boot, o que esta realmente ligado.
+ *
+ * Este arquivo pula a plataforma em silencio quando falta chave
+ * (`if (!pixelId || !metaToken) return;`) — de proposito, para nunca derrubar
+ * um pagamento por causa de medicao. O efeito colateral e o pior tipo de erro:
+ * a loja roda achando que mede e nao mede, e so se descobre semanas depois,
+ * olhando um relatorio vazio.
+ *
+ * Nunca imprime valor: so LIGADO/DESLIGADO, e para o Meta e o GA4 tambem o que
+ * falta, porque quase sempre e uma das duas metades que ficou de fora.
+ */
+export function relatarConfiguracao(): void {
+    const estado = (nome: string, partes: Record<string, string>) => {
+        const faltando = Object.entries(partes)
+            .filter(([, v]) => !v)
+            .map(([k]) => k);
+        if (!faltando.length) return `${nome}=LIGADO`;
+        if (faltando.length === Object.keys(partes).length) return `${nome}=desligado`;
+        return `${nome}=INCOMPLETO (falta ${faltando.join(', ')})`;
+    };
+
+    const { meta, ga4, tiktok } = env.conversions;
+    console.log(
+        '[CONVERSOES] ' +
+            [
+                estado('meta', { META_PIXEL_ID: meta.pixelId, META_CAPI_TOKEN: meta.metaToken }),
+                estado('ga4', { GA4_MEASUREMENT_ID: ga4.measurementId, GA4_API_SECRET: ga4.apiSecret }),
+                estado('tiktok', { TIKTOK_PIXEL_ID: tiktok.pixelId, TIKTOK_ACCESS_TOKEN: tiktok.accessToken }),
+            ].join(' | '),
+    );
+}

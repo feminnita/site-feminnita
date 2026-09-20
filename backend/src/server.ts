@@ -6,6 +6,7 @@ import { routes } from './routes/routes';
 import { startExpireOrderJob } from './jobs/expireOrder.Job';
 import { startAbandonedCartJob } from './jobs/abandonedCart.Job';
 import { errorHandler } from './middleware/errorHandler';
+import { relatarConfiguracao } from './integrations/conversions/Conversions.Service';
 
 const app = express();
 
@@ -60,6 +61,10 @@ app.set('trust proxy', 1)
 const PORT = process.env.PORT || 3333;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    // Medicao ligada ou nao, dito em voz alta: as conversoes server-side pulam
+    // a plataforma em silencio quando falta chave, e uma loja que acha que mede
+    // e nao mede so se descobre no relatorio vazio, semanas depois.
+    relatarConfiguracao();
     // Libera a reserva de estoque de pedidos não pagos após o TTL. Sem isso,
     // todo PIX abandonado prende estoque pra sempre (reserved_qty nunca volta).
     startExpireOrderJob();
