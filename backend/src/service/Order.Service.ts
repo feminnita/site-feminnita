@@ -236,7 +236,7 @@ export async function createOrder(input: CreateOrderInput) {
         await OrderRepository.saveOrderAsaasPaymentId(order.id, payment.id);
 
         if (input.paymentMethod === 'card' && payment.status === 'CONFIRMED') {
-            await AdminOrderService.updateOrderStatus(order.id, { paymentStatus: 'paid', status: 'confirmed' });
+            await AdminOrderService.updateOrderStatus(order.id, { paymentStatus: 'paid', status: 'paid' });
         } else {
             await EmailService.sendOrderReceived({
                 customerName: customer.name,

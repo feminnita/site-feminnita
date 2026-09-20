@@ -4,8 +4,12 @@ import * as AdminOrderService from '../../service/OrderLifecycle.Service';
 import { env } from '../../config/env';
 
 const EVENT_MAP: Record<string, { paymentStatus: string; status?: string }> = {
-    PAYMENT_RECEIVED: { paymentStatus: 'paid', status: 'confirmed' },
-    PAYMENT_CONFIRMED: { paymentStatus: 'paid', status: 'confirmed' },
+    // 'paid' e nao 'confirmed': as duas palavras existiam na mesma lista de
+    // situacoes, e a Chris abriu o pedido pago procurando "Pago" e achou
+    // "Confirmado". Duas palavras para a mesma coisa, em telas diferentes, e
+    // uma pergunta a mais toda vez que alguem olha.
+    PAYMENT_RECEIVED: { paymentStatus: 'paid', status: 'paid' },
+    PAYMENT_CONFIRMED: { paymentStatus: 'paid', status: 'paid' },
     PAYMENT_OVERDUE: { paymentStatus: 'overdue' },
     PAYMENT_REFUNDED: { paymentStatus: 'refunded', status: 'cancelled' },
     PAYMENT_CHARGEBACK_REQUESTED: { paymentStatus: 'disputed' },
