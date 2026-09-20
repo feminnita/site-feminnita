@@ -1,3 +1,5 @@
+import { effectivePrice } from "../../utils/pricing";
+
 type Props = { data: Record<string, unknown> };
 
 export function JsonLd({ data }: Props) {
@@ -9,31 +11,63 @@ export function JsonLd({ data }: Props) {
     );
 }
 
+/**
+ * O que o Google le da pagina para montar o catalogo do Shopping.
+ *
+ * O Merchant Center desta loja NAO e alimentado por arquivo: o Google entra no
+ * site, le este bloco e monta o produto sozinho. Entao o que esta aqui precisa
+ * bater, ao centavo, com o que a cliente ve na tela — preco divergente entre a
+ * pagina e o dado estruturado e uma das causas classicas de reprovacao.
+ *
+ * Tres coisas estavam erradas:
+ *
+ * 1. O PRECO ignorava a promocao. Declarava um intervalo entre o preco no PIX e
+ *    o preco cheio (56,99 a 59,99) enquanto a pagina vendia por 31,99. Agora sai
+ *    de effectivePrice(), a MESMA funcao que a tela usa — sem segunda fonte de
+ *    verdade, que foi exatamente o erro que deixou o sitemap fora de sincronia.
+ *
+ * 2. O sku era o id interno do banco (um UUID). O feed.xml manda o CODIGO
+ *    (24400) em g:id, e o Pixel da Meta manda o codigo em content_ids. Tres
+ *    nomes para a mesma peca: o Google nao casava o produto lido da pagina com
+ *    o produto do feed, e o remarketing dinamico nao encontrava o anuncio.
+ *
+ * 3. A descricao de reserva dizia "Moda Fitness" — a loja vende moda de dormir.
+ */
 export function productSchema(product: {
     id: string;
+    code?: string | number | null;
     name: string;
     description?: string;
     images: string[];
-    pixPrice: number;
     price: number;
+    salePrice?: number | null;
+    saleStart?: string | null;
+    saleEnd?: string | null;
     sizes: string[];
     inStock?: boolean;
 }) {
+    const preco = effectivePrice(
+        product.price,
+        product.salePrice,
+        product.saleStart,
+        product.saleEnd,
+    );
+
     return {
         "@context": "https://schema.org",
         "@type": "Product",
         name: product.name,
         description:
-            product.description || `${product.name} — Moda Fitness Feminnita`,
+            product.description ||
+            `${product.name} — pijamas e moda de dormir Feminnita`,
         image: product.images,
-        sku: product.id,
+        sku: String(product.code ?? product.id),
         brand: { "@type": "Brand", name: "Feminnita" },
         offers: {
-            "@type": "AggregateOffer",
+            "@type": "Offer",
             priceCurrency: "BRL",
-            lowPrice: product.pixPrice,
-            highPrice: product.price,
-            offerCount: product.sizes.length,
+            price: preco.toFixed(2),
+            itemCondition: "https://schema.org/NewCondition",
             availability:
                 product.inStock === false
                     ? "https://schema.org/OutOfStock"
