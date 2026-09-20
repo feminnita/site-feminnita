@@ -372,6 +372,10 @@ export async function changePaymentMethod(
     orderId: string,
     customerId: string,
     paymentMethod: 'pix' | 'boleto' | 'card',
+    // Parcelas so valem no cartao. Vem da tela porque a loja promete "ate 3x
+    // sem juros": sem mandar o numero, a cobranca nascia sempre em 1x e a
+    // promessa da vitrine nao aparecia na hora de pagar.
+    installments = 1,
 ) {
     const order = await OrderRepository.findOrderByIndAndCustomerId(orderId, customerId);
     if (!order) throw new Error('ORDER_NOT_FOUND');
@@ -406,6 +410,7 @@ export async function changePaymentMethod(
         {
             ...order,
             paymentMethod,
+            installments: paymentMethod === 'card' ? installments : 1,
             total: OrderDomain.fromCents(totalCents),
         } as never,
         { ...customer, cpf: customer.cpf ?? '' } as never,
@@ -417,6 +422,7 @@ export async function changePaymentMethod(
 
     await OrderRepository.saveOrderPaymentChange(order.id, {
         paymentMethod,
+        installments: paymentMethod === 'card' ? installments : 1,
         discount: OrderDomain.fromCents(discountCents),
         total: OrderDomain.fromCents(totalCents),
         asaasPaymentId: payment.id,

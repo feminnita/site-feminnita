@@ -111,11 +111,20 @@ function OrderConfirmedContent() {
     // total (PIX tem 5%) e a cobranca, que e refeita do lado do servidor.
     const [trocando, setTrocando] = useState<"pix" | "boleto" | "card" | null>(null);
 
+    // Quantas vezes, quando a escolha for cartao. A loja anuncia "3x sem juros"
+    // na faixa do topo; se a troca cria a cobranca em 1x, a promessa morre
+    // justamente na hora de pagar.
+    const [parcelas, setParcelas] = useState(1);
+
     const trocarForma = async (forma: "pix" | "boleto" | "card") => {
         if (!order || trocando) return;
         setTrocando(forma);
         try {
-            const novo = await changePaymentMethod(order.orderId, forma);
+            const novo = await changePaymentMethod(
+                order.orderId,
+                forma,
+                forma === "card" ? parcelas : 1,
+            );
             const atualizado = {
                 ...order,
                 method: novo.method,
@@ -282,7 +291,32 @@ function OrderConfirmedContent() {
                                     ] as const
                                 )
                                     .filter((forma) => forma.id !== method)
-                                    .map((forma) => (
+                                    .map((forma) =>
+                                        forma.id === "card" ? (
+                                            <div
+                                                key="card"
+                                                className="flex flex-col items-center gap-1 rounded-lg border border-[#8C2F39] px-4 py-2"
+                                            >
+                                                <select
+                                                    id="parcelas-troca"
+                                                    value={parcelas}
+                                                    onChange={(e) => setParcelas(Number(e.target.value))}
+                                                    className="rounded border border-gray-200 px-2 py-1 text-xs"
+                                                >
+                                                    <option value={1}>1x sem juros</option>
+                                                    <option value={2}>2x sem juros</option>
+                                                    <option value={3}>3x sem juros</option>
+                                                </select>
+                                                <button
+                                                    type="button"
+                                                    disabled={trocando !== null}
+                                                    onClick={() => trocarForma("card")}
+                                                    className="text-sm font-medium text-[#8C2F39] disabled:opacity-50"
+                                                >
+                                                    {trocando === "card" ? "Trocando..." : "Pagar com Cartão"}
+                                                </button>
+                                            </div>
+                                        ) : (
                                         <button
                                             key={forma.id}
                                             type="button"
@@ -299,7 +333,8 @@ function OrderConfirmedContent() {
                                                 {forma.nota}
                                             </span>
                                         </button>
-                                    ))}
+                                        ),
+                                    )}
                             </div>
                             <p className="mt-3 text-center text-xs text-gray-400">
                                 O valor é recalculado e a cobrança anterior é cancelada.

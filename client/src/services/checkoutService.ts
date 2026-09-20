@@ -114,6 +114,7 @@ export async function fetchPaymentInfo(orderId: string): Promise<InfoDePagamento
 export async function changePaymentMethod(
     orderId: string,
     paymentMethod: "pix" | "boleto" | "card",
+    installments = 1,
 ): Promise<OrderPaymentResult> {
     const data = (await apiPost<{
         paymentMethod: "pix" | "boleto" | "card";
@@ -124,7 +125,7 @@ export async function changePaymentMethod(
             pixQrCode: string | null;
             pixCopyPaste: string | null;
         };
-    }>(`/api/store/orders/${orderId}/pagamento`, { paymentMethod })) as {
+    }>(`/api/store/orders/${orderId}/pagamento`, { paymentMethod, installments })) as {
         paymentMethod: "pix" | "boleto" | "card";
         total: string;
         payment: {

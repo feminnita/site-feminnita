@@ -83,10 +83,16 @@ export async function changePaymentMethod(req: Request, res: Response) {
             return;
         }
 
+        // A loja promete ate 3x. Numero fora disso e erro de quem chamou, nao
+        // escolha da cliente: corta para a faixa em vez de aceitar 12x.
+        const pedidas = Number(req.body.installments);
+        const parcelas = Number.isFinite(pedidas) ? Math.min(Math.max(Math.trunc(pedidas), 1), 3) : 1;
+
         const resultado = await OrderService.changePaymentMethod(
             req.params.id as string,
             req.customer!.id,
             metodo as (typeof FORMAS_ACEITAS)[number],
+            parcelas,
         );
         res.json(resultado);
     } catch (error) {

@@ -158,6 +158,7 @@ export function saveOrderPaymentChange(
     orderId: string,
     dados: {
         paymentMethod: string;
+        installments: number;
         discount: string;
         total: string;
         asaasPaymentId: string;
