@@ -210,7 +210,14 @@ export function QuickBuyPanel({
                     ? // Celular: bottom sheet LARGURA INTEIRA subindo de baixo.
                       "fixed inset-x-0 bottom-0 z-[60] max-h-[88vh] overflow-y-auto rounded-t-2xl bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl"
                     : // Desktop: POPOVER com largura própria, ancorado ao LADO do card (a foto continua visível).
-                      `absolute top-0 z-40 max-h-[80vh] w-[380px] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-gray-200 bg-white p-4 shadow-2xl ${
+                      //
+                      // z-[60] e obrigatorio, nao enfeite: o cabecalho e sticky
+                      // com z-50 e a barra do pedido minimo com z-40. Em z-40 o
+                      // painel passava POR BAIXO dos dois — nos cards da primeira
+                      // fileira, o nome do produto e a escolha de estampa
+                      // sumiam atras do cabecalho e a compra travava ali.
+                      // O mesmo numero que a versao de celular ja usava.
+                      `absolute top-0 z-[60] max-h-[80vh] w-[380px] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl border border-gray-200 bg-white p-4 shadow-2xl ${
                           side === "right" ? "left-full ml-3" : "right-full mr-3"
                       }`
             }
