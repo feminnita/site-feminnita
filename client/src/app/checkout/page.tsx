@@ -408,12 +408,24 @@ export default function CheckoutPage() {
                 setReacceptVersion(null);
             }
 
-            await updateProfile({
-                name: f.name,
-                phone: f.phone,
-                cpf: f.cpf,
-                birthDate: profile?.birthDate ?? null,
-            });
+            // Salvar o perfil so faz sentido para quem TEM perfil.
+            //
+            // Esta chamada vai para /api/store/account, que exige sessao. Na
+            // compra sem conta ela voltava 401 e a execucao morria aqui — o
+            // pedido nunca chegava a ser enviado. Na tela aparecia "Erro ao
+            // processar o pedido", e na aba Network nao havia nenhuma chamada
+            // a /orders, porque de fato nunca houve.
+            //
+            // A convidada nao perde nada: nome, telefone e CPF vao junto com o
+            // pedido, e o servidor cria a cliente com eles.
+            if (customer) {
+                await updateProfile({
+                    name: f.name,
+                    phone: f.phone,
+                    cpf: f.cpf,
+                    birthDate: profile?.birthDate ?? null,
+                });
+            }
 
             const result = await createOrder({
                 // So vai quando nao ha sessao. O servidor prefere a sessao
