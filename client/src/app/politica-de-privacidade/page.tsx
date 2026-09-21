@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { enderecoEmLinha, razaoSocialComCnpj } from "@/src/lib/empresa";
 
 export const metadata: Metadata = {
   title: "Política de Privacidade",
@@ -116,8 +117,10 @@ export default function PoliticaDePrivacidadePage() {
                 6. Contato do controlador
               </h3>
               <p>
-                Controlador dos dados:{" "}
-                <strong>[RAZÃO SOCIAL / CNPJ — preencher]</strong>.
+                {/* Estava no ar como "[RAZAO SOCIAL / CNPJ — preencher]",
+                    a mostra para qualquer cliente que abrisse a pagina. */}
+                Controlador dos dados: <strong>{razaoSocialComCnpj()}</strong>,
+                com sede em {enderecoEmLinha()}.
               </p>
               <p className="mt-2">
                 Para exercer os seus direitos ou tirar dúvidas sobre esta

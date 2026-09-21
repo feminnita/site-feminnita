@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { enderecoEmLinha, razaoSocialComCnpj } from "@/src/lib/empresa";
 
 // Rodapé GLOBAL — renderizado no ClientBody, aparece em todas as páginas uma
 // única vez. Dados de contato reais da Feminnita. Formas de pagamento em texto
@@ -111,7 +112,12 @@ export function Footer() {
         </div>
 
         <div className="border-t pt-8 text-center">
-          <p className="text-sm text-gray-600">
+          {/* Identificacao da empresa: exigencia do Decreto 7.962/2013 (lei do
+              e-commerce), que pede razao social, CNPJ e endereco fisico em
+              local de destaque. A loja subiu sem nada disso. */}
+          <p className="text-sm text-gray-700">{razaoSocialComCnpj()}</p>
+          <p className="mt-1 text-sm text-gray-600">{enderecoEmLinha()}</p>
+          <p className="mt-4 text-sm text-gray-600">
             © 2026 Feminnita. Todos os direitos reservados.
           </p>
           <div className="mt-4 flex justify-center gap-6">
