@@ -40,6 +40,10 @@ export type StoreProduct = {
   videoUrl: string | null;
   colors: string[];
   sizes: string[];
+  // Subconjunto com estoque de verdade. A VITRINE usa estes para nao
+  // anunciar cor e tamanho que a cliente nao vai achar ao clicar.
+  availableColors?: string[];
+  availableSizes?: string[];
   category: string;
   category_id: string | null;
   featured: boolean;

@@ -43,6 +43,24 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
         0,
     );
 
+    // O que a VITRINE pode anunciar: so cor e tamanho que existem de verdade.
+    //
+    // O card mostrava a lista do CADASTRO — todas as cores e todos os tamanhos.
+    // No 61000 isso virou promessa falsa: o card anunciava 4 estampas e
+    // P·M·G·GG, a cliente clicava e encontrava 2 estampas e P·M·G, porque
+    // Preto e Satin estao zerados e o Bege nao tem GG.
+    //
+    // Nao filtro `colors`/`sizes` acima de proposito: a pagina do produto e a
+    // tabela de medidas dependem da lista completa. Aqui vai um par novo, que
+    // so a vitrine consome.
+    const disponivel = (v: VariantRow) =>
+        Math.max(0, (v.stockQty ?? 0) - (v.reservedQty ?? 0) - (v.minStock ?? 0)) > 0;
+    const comEstoque = pvs.filter(disponivel);
+    const availableColors = [...new Set(comEstoque.map((v) => v.color).filter(Boolean))] as string[];
+    const availableSizes = sortSizes(
+        [...new Set(comEstoque.map((v) => v.size).filter(Boolean))] as string[],
+    );
+
     const colorImages: Record<string, string[]> = {};
     for (const imageRow of colorImageRows.filter((c) => c.productId === p.id)) {
         if (imageRow.color) colorImages[imageRow.color] = Array.isArray(imageRow.images) ? imageRow.images : [];
@@ -61,6 +79,7 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
         images: Array.isArray(p.images) ? p.images : [],
         colorImages, videoUrl: p.videoUrl ?? null,
         colors, sizes,
+        availableColors, availableSizes,
         category: row.categoryName ?? '', category_id: p.categoryId ?? null,
         featured: p.featured ?? false, isNew: p.isNew ?? false, isBestseller: p.isBestseller ?? false,
         isOutlet: p.isOutlet ?? false,

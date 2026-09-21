@@ -25,6 +25,10 @@ export type StoreProduct = {
     videoUrl: string | null;
     colors: string[];
     sizes: string[];
+    // Subconjunto de colors/sizes com estoque de verdade. A vitrine usa estes;
+    // a pagina do produto e a tabela de medidas continuam na lista completa.
+    availableColors: string[];
+    availableSizes: string[];
     category: string;
     category_id: string | null;
     featured: boolean;

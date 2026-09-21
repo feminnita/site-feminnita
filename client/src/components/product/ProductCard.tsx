@@ -74,8 +74,17 @@ export function ProductCard({
 
     // Vitrine mostra bolinhas de cor + tamanhos; o carrossel do produto (overrideImage) não.
     const showVariants = !overrideImage;
-    const colors = showVariants ? product.colors ?? [] : [];
-    const sizes = showVariants ? sortSizes(product.sizes ?? []) : [];
+    // A vitrine anuncia o que EXISTE, nao o que esta cadastrado.
+    //
+    // Antes usava a lista do cadastro e virava promessa falsa: o 61000 exibia
+    // 4 estampas e P·M·G·GG no card, e ao clicar a cliente encontrava 2
+    // estampas e P·M·G — Preto e Satin zerados, Bege sem GG.
+    //
+    // O ?? mantem a loja de pe se o servidor ainda nao mandar os campos novos.
+    const colors = showVariants ? product.availableColors ?? product.colors ?? [] : [];
+    const sizes = showVariants
+        ? sortSizes(product.availableSizes ?? product.sizes ?? [])
+        : [];
     const MAX_SWATCHES = 6;
 
     // Foto do card: cor escolhida (se tiver foto) → senão capa. Com overrideImage, fixa.

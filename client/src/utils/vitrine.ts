@@ -33,7 +33,11 @@ export function abrirCoresEmCards(produtos: StoreProduct[]): CardDeVitrine[] {
     const cards: CardDeVitrine[] = [];
 
     for (const produto of produtos) {
-        const comFoto = (produto.colors ?? []).filter((cor) => fotoDaCor(produto, cor));
+        // So cor COM ESTOQUE ganha card proprio. Uma cor esgotada virando card
+        // e um anuncio de algo que a cliente nao pode comprar: ela clica, chega
+        // na pagina e a estampa nem aparece na lista.
+        const doProduto = produto.availableColors ?? produto.colors ?? [];
+        const comFoto = doProduto.filter((cor) => fotoDaCor(produto, cor));
 
         // Com uma cor fotografada (ou nenhuma) nao ha o que abrir: abrir daria
         // o card de sempre, so que sem as bolinhas de cor — pior do que esta.
