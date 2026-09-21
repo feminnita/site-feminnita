@@ -140,6 +140,9 @@ export default function CheckoutPage() {
 
     const [form, setForm] = useState({
         name: "",
+        // Compra sem conta: a cliente digita o proprio e-mail. Quem esta logada
+        // nao ve este campo — o e-mail dela manda.
+        email: "",
         cpf: "",
         phone: "",
         cep: "",
@@ -161,10 +164,10 @@ export default function CheckoutPage() {
     useEffect(() => {
         if (authLoading || !ready || isProcessing) return;
 
-        if (!customer) {
-            router.replace("/login?redirect=/checkout");
-            return;
-        }
+        // Obrigar cadastro antes de comprar derrubava a venda: no atacado quem
+        // chega ao checkout ja decidiu, e ser barrada por um formulario de
+        // conta e o momento classico de desistencia. Agora a cliente se
+        // identifica aqui mesmo, e a conta vira convite DEPOIS do pagamento.
 
         if (selectedItems.length === 0) {
             router.push("/carrinho");
@@ -275,6 +278,14 @@ export default function CheckoutPage() {
 
     useEffect(() => {
         if (cupomAutomaticoTentado.current) return;
+        // So para quem tem conta: o cupom automatico e de PRIMEIRA COMPRA, e
+        // "primeira" so existe com identidade. Sem sessao nao da para saber, e
+        // o endereco que responde isso exige login — sem esta guarda, toda
+        // convidada dispararia um 401 ao abrir o checkout.
+        //
+        // Ela nao fica sem cupom: pode digitar o codigo, e a previa aceita
+        // convidada.
+        if (!customer) return;
         if (subtotal <= 0 || appliedCoupon || couponCode.trim()) return;
 
         cupomAutomaticoTentado.current = true;
@@ -284,7 +295,7 @@ export default function CheckoutPage() {
             setCouponCode(cupom.code);
             toast.success(`Cupom ${cupom.code} aplicado: desconto de primeira compra.`);
         });
-    }, [subtotal, appliedCoupon, couponCode]);
+    }, [customer, subtotal, appliedCoupon, couponCode]);
 
     const handleApplyCoupon = async () => {
         const code = couponCode.trim().toUpperCase();
@@ -376,6 +387,16 @@ export default function CheckoutPage() {
             });
 
             const result = await createOrder({
+                // So vai quando nao ha sessao. O servidor prefere a sessao
+                // sempre que ela existe — ninguem compra em nome de outra.
+                convidado: customer
+                    ? undefined
+                    : {
+                        name: form.name,
+                        email: form.email,
+                        phone: form.phone,
+                        cpf: form.cpf,
+                    },
                 items: selectedItems,
                 paymentMethod,
                 installments: Number(form.installments) || 1,
@@ -430,7 +451,7 @@ export default function CheckoutPage() {
     const inputClass =
         "w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#8C2F39] focus:border-transparent text-base";
 
-    if (authLoading || !ready || !customer || selectedItems.length === 0) {
+    if (authLoading || !ready || selectedItems.length === 0) {
         return (
             <div className="flex min-h-screen items-center justify-center">
                 <Loader2 className="animate-spin text-[#8C2F39]" size={50} />
@@ -535,13 +556,26 @@ export default function CheckoutPage() {
                                         onChange={(e) => set("name", e.target.value)}
                                         className={inputClass}
                                     />
-                                    <input
-                                        name="email"
-                                        type="email"
-                                        value={customer.email}
-                                        disabled
-                                        className={`${inputClass} bg-gray-50 text-gray-400`}
-                                    />
+                                    {customer ? (
+                                        <input
+                                            name="email"
+                                            type="email"
+                                            value={customer.email}
+                                            disabled
+                                            className={`${inputClass} bg-gray-50 text-gray-400`}
+                                        />
+                                    ) : (
+                                        <input
+                                            name="email"
+                                            type="email"
+                                            placeholder="E-mail *"
+                                            required
+                                            value={form.email}
+                                            onChange={(e) => set("email", e.target.value.trim())}
+                                            className={inputClass}
+                                            autoComplete="email"
+                                        />
+                                    )}
                                     <input
                                         name="cpf"
                                         placeholder="CPF *"

@@ -263,13 +263,26 @@ export async function createOrder(input: CreateOrderInput) {
     }
 }
 
-export async function previewCoupon(customerId: string, couponCode: string, subtotal: number) {
+/**
+ * customerId vazio = compra sem conta, antes de a cliente se identificar.
+ *
+ * Nesse caso nao da para checar "ja usou este cupom": ainda nao se sabe quem
+ * e. E tudo bem — isto aqui e uma PREVIA, um calculo na tela. A verificacao
+ * que vale acontece na criacao do pedido, quando o e-mail ja resolveu a
+ * cliente e o mesmo teste roda com identidade.
+ *
+ * O contrario — exigir login para calcular um desconto — bloquearia o cupom
+ * inteiro para quem compra sem conta.
+ */
+export async function previewCoupon(customerId: string | null, couponCode: string, subtotal: number) {
 
     const coupon = await OrderRepository.findCouponByCode(couponCode);
     if (!coupon) throw new Error('COUPON_NOT_FOUND');
 
-    const alreadyUsed = await OrderRepository.findOrderByCustomerAndCoupon(customerId, coupon.id);
-    if (alreadyUsed) throw new Error('COUPON_ALREADY_USED');
+    if (customerId) {
+        const alreadyUsed = await OrderRepository.findOrderByCustomerAndCoupon(customerId, coupon.id);
+        if (alreadyUsed) throw new Error('COUPON_ALREADY_USED');
+    }
 
     if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
         throw new Error('COUPON_MAX_USES_REACHED');

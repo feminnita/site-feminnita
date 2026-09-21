@@ -26,6 +26,42 @@ export async function insertCustomer(values: {
     return customer;
 }
 
+/**
+ * Cliente criada pela COMPRA SEM CONTA: sem senha.
+ *
+ * A coluna password_hash ja era opcional por causa do login com Google, entao
+ * isto nao exige mudanca no banco.
+ *
+ * Por que criar um registro em vez de gravar nome e e-mail soltos no pedido:
+ * tudo que vem depois ja sabe trabalhar com cliente — o e-mail de confirmacao,
+ * o aviso de rastreio, o painel, o envio ao Bling, a etiqueta do Melhor Envio,
+ * o endereco salvo. Guardar os dados fora dessa tabela obrigaria a remendar
+ * cada um desses caminhos.
+ *
+ * E se um dia ela criar senha com o mesmo e-mail, os pedidos ja estao la.
+ */
+export async function insertGuestCustomer(values: {
+    name: string;
+    email: string;
+    phone?: string | null;
+    cpf?: string | null;
+}) {
+    const [customer] = await db.insert(customers).values(values).returning();
+    return customer;
+}
+
+/** Completa dados que faltavam numa cliente ja existente, sem sobrescrever o que ela ja tem. */
+export async function fillCustomerContact(
+    id: string,
+    values: { phone?: string | null; cpf?: string | null },
+) {
+    const patch: Record<string, string> = {};
+    if (values.phone) patch.phone = values.phone;
+    if (values.cpf) patch.cpf = values.cpf;
+    if (!Object.keys(patch).length) return;
+    await db.update(customers).set(patch).where(eq(customers.id, id));
+}
+
 export function acceptResaleTerm(customerId: string, version: number, ip: string | null) {
     return db
         .update(customers)

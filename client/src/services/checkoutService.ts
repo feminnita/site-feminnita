@@ -7,6 +7,10 @@ import { ApiOrderResponse, type CardInput, type OrderPaymentResult, type Shippin
 
 
 export async function createOrder(input: {
+    // Quem esta comprando, quando NAO ha sessao. O servidor usa a sessao
+    // sempre que ela existe e ignora este campo — ninguem compra em nome
+    // de outra pessoa mandando um e-mail no corpo da requisicao.
+    convidado?: { name: string; email: string; phone?: string; cpf?: string };
     items: CartItem[];
     paymentMethod: "pix" | "boleto" | "card";
     installments: number;
@@ -18,6 +22,7 @@ export async function createOrder(input: {
 }): Promise<OrderPaymentResult> {
 
     const payload = {
+        convidado: input.convidado,
         items: input.items.map((item) => ({
             productId: item.id,
             size: item.selectedSize,

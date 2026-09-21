@@ -1,11 +1,47 @@
 import { Request, Response } from 'express';
 import * as OrderService from '../service/Order.Service';
+import * as AuthRepository from '../repository/Auth.Repository';
+
+/**
+ * Quem esta comprando: a sessao, se houver; senao o formulario do checkout.
+ *
+ * A compra sem conta nao grava nome e e-mail soltos no pedido — ela resolve
+ * uma CLIENTE. Se ja existe uma com aquele e-mail, reaproveita (e completa
+ * telefone/CPF que faltavam); se nao existe, cria uma sem senha.
+ *
+ * Assim o e-mail de confirmacao, o aviso de rastreio, o painel, o Bling e a
+ * etiqueta continuam funcionando sem nenhum caminho paralelo.
+ */
+async function identificarCompradora(req: Request): Promise<string> {
+    if (req.customer?.id) return req.customer.id;
+
+    const c = req.body.convidado ?? {};
+    const nome = String(c.name ?? '').trim();
+    const email = String(c.email ?? '').trim().toLowerCase();
+    const telefone = String(c.phone ?? '').trim() || null;
+    const cpf = String(c.cpf ?? '').trim() || null;
+
+    if (!nome || !email) throw new Error('GUEST_DATA_REQUIRED');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('GUEST_EMAIL_INVALID');
+
+    const existente = await AuthRepository.findCustomerByEmail(email);
+    if (existente) {
+        // Nao sobrescreve o nome: quem ja tem conta escolheu como quer ser
+        // chamada. Só preenche o que estava vazio.
+        await AuthRepository.fillCustomerContact(existente.id, { phone: telefone, cpf });
+        return existente.id;
+    }
+
+    const nova = await AuthRepository.insertGuestCustomer({ name: nome, email, phone: telefone, cpf });
+    return nova.id;
+}
 
 export async function createOrder(req: Request, res: Response) {
 
     try {
+        const customerId = await identificarCompradora(req);
         const order = await OrderService.createOrder({
-            customerId: req.customer!.id,
+            customerId,
             items: req.body.items,
             paymentMethod: req.body.paymentMethod,
             installments: req.body.installments,
@@ -39,7 +75,7 @@ export async function previewCoupon(req: Request, res: Response) {
             return;
         }
 
-        const result = await OrderService.previewCoupon(req.customer!.id, code, subtotal);
+        const result = await OrderService.previewCoupon(req.customer?.id ?? null, code, subtotal);
         res.json(result);
     } catch (error) {
         console.error(error);
