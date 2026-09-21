@@ -166,6 +166,11 @@ export function useProductPage(idOverride?: string) {
         cart.add(buildCartItem({ product, selectedSize, selectedColor, quantity }));
         recordCartColor(selectedColor); // sinal de afinidade de cor (sessão)
         trackAddToCartAnalytics(product, quantity);
+        // Tambem no registro da propria loja: a Meta e o GA4 contam a visitante
+        // anonima, mas so eles. Sem esta linha o painel enxerga zero carrinho
+        // quando ninguem faz login — e foi o que aconteceu: 4 abandonos na Meta,
+        // nenhum no painel.
+        registrar("add_to_cart", { productId: product.id });
         toast.success(`${quantity}x adicionado ao carrinho!`);
     };
 

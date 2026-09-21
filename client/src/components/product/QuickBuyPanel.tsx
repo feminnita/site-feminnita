@@ -7,6 +7,7 @@ import { fetchProductStock } from "@/src/services/productsService";
 import { buildCartItem, normalizeColorKey } from "@/src/utils/product";
 import { recordCartColor, recordColorClick } from "@/src/lib/colorAffinity";
 import { trackAddToCartAnalytics } from "@/src/utils/analytics";
+import { registrar } from "@/src/lib/eventos";
 import { sortSizes } from "@/src/utils/sizes";
 import type { SkuStock, StoreProduct } from "@/src/types/product/products";
 
@@ -186,6 +187,7 @@ export function QuickBuyPanel({
         // faltando, e o publico de remarketing perdia justamente quem ja tinha
         // escolhido cor e tamanho.
         trackAddToCartAnalytics(product, qty);
+        registrar("add_to_cart", { productId: product.id });
         const label = needColor ? `${qty}x ${size} · ${color}` : `${qty}x ${size}`;
         setAdded((a) => [...a, { id: Date.now(), label }]);
         // NÃO fecha: reseta a seleção e volta pronto pra próxima escolha.

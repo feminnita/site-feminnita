@@ -93,6 +93,12 @@ async function sendMeta(input: PurchaseInput): Promise<void> {
     );
 }
 
+// Uma sessao por pedido: estavel (o mesmo pedido reenviado nao vira duas
+// sessoes) e unica entre pedidos.
+function ga4SessionId(orderId: string): string {
+    return String(parseInt(createHash('md5').update(`s:${orderId}`).digest('hex').slice(0, 12), 16));
+}
+
 async function sendGA4(input: PurchaseInput): Promise<void> {
     const { measurementId, apiSecret } = env.conversions.ga4;
     if (!measurementId || !apiSecret) return;
@@ -105,6 +111,18 @@ async function sendGA4(input: PurchaseInput): Promise<void> {
                 {
                     name: 'purchase',
                     params: {
+                        // engagement_time_msec e session_id sao OBRIGATORIOS na
+                        // pratica. Sem eles o Measurement Protocol responde 204
+                        // (aceito) e o evento simplesmente NAO APARECE nos
+                        // relatorios do GA4 — nem em Tempo real, nem em
+                        // Monetizacao. Era o caso aqui: a compra saia do
+                        // servidor, o Google aceitava, e a loja aparecia com
+                        // zero venda.
+                        //
+                        // O Google nao devolve erro nenhum nesse caso, entao o
+                        // sintoma e exatamente "nao registra compra" sem pista.
+                        engagement_time_msec: 1,
+                        session_id: ga4SessionId(input.orderId),
                         transaction_id: input.orderNumber,
                         currency: input.currency,
                         value: input.value,
