@@ -335,24 +335,53 @@ export default function CheckoutPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Le tambem o que esta ESCRITO na tela, nao so o estado do React.
+        //
+        // O preenchimento automatico do Chrome as vezes escreve no campo sem
+        // avisar a aplicacao: a cliente ve tudo preenchido e o pedido sai sem
+        // o dado. Foi o que aconteceu — POST rejeitado em 4ms por falta de
+        // nome/e-mail, com a tela mostrando os dois preenchidos.
+        //
+        // O estado tem prioridade (e o que ela digitou de fato); a tela so
+        // preenche o que estiver vazio.
+        const naTela = new FormData(e.currentTarget as HTMLFormElement);
+        const f = { ...form };
+        for (const chave of Object.keys(f) as (keyof typeof f)[]) {
+            const valor = naTela.get(chave as string);
+            if (!f[chave] && typeof valor === "string" && valor.trim()) {
+                f[chave] = valor.trim();
+            }
+        }
+
+        if (!customer) {
+            if (!f.name.trim() || !f.email.trim()) {
+                setError("Preencha seu nome e e-mail para continuar.");
+                return;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) {
+                setError("Confira o e-mail digitado.");
+                return;
+            }
+        }
+
         if (!selectedShipping) {
             setError("Selecione uma opção de frete.");
             return;
         }
-        if (!isValidateCpf(form.cpf)) {
+        if (!isValidateCpf(f.cpf)) {
             setError("CPF inválido. Confira os números digitados.");
             return;
         }
-        if (!form.phone.replace(/\D/g, "").match(/^\d{10,11}$/)) {
+        if (!f.phone.replace(/\D/g, "").match(/^\d{10,11}$/)) {
             setError("Informe um WhatsApp válido com DDD.");
             return;
         }
         if (paymentMethod === "card") {
             if (
-                !form.card_number ||
-                !form.card_name ||
-                form.card_expiry.length < 5 ||
-                !form.card_cvv
+                !f.card_number ||
+                !f.card_name ||
+                f.card_expiry.length < 5 ||
+                !f.card_cvv
             ) {
                 setError("Preencha todos os dados do cartão.");
                 return;
@@ -380,9 +409,9 @@ export default function CheckoutPage() {
             }
 
             await updateProfile({
-                name: form.name,
-                phone: form.phone,
-                cpf: form.cpf,
+                name: f.name,
+                phone: f.phone,
+                cpf: f.cpf,
                 birthDate: profile?.birthDate ?? null,
             });
 
@@ -392,34 +421,34 @@ export default function CheckoutPage() {
                 convidado: customer
                     ? undefined
                     : {
-                        name: form.name,
-                        email: form.email,
-                        phone: form.phone,
-                        cpf: form.cpf,
+                        name: f.name,
+                        email: f.email,
+                        phone: f.phone,
+                        cpf: f.cpf,
                     },
                 items: selectedItems,
                 paymentMethod,
-                installments: Number(form.installments) || 1,
+                installments: Number(f.installments) || 1,
                 card:
                     paymentMethod === "card"
                         ? {
-                            number: form.card_number,
-                            name: form.card_name,
-                            expiry: form.card_expiry,
-                            cvv: form.card_cvv,
+                            number: f.card_number,
+                            name: f.card_name,
+                            expiry: f.card_expiry,
+                            cvv: f.card_cvv,
                         }
                         : undefined,
                 couponCode: appliedCoupon?.code,
                 shippingServiceId: selectedShipping.id,
                 pickup: selectedShipping.pickup === true,
                 shippingAddress: {
-                    cep: form.cep,
-                    street: form.street,
-                    number: form.number,
-                    complement: form.complement || undefined,
-                    neighborhood: form.neighborhood,
-                    city: form.city,
-                    state: form.state,
+                    cep: f.cep,
+                    street: f.street,
+                    number: f.number,
+                    complement: f.complement || undefined,
+                    neighborhood: f.neighborhood,
+                    city: f.city,
+                    state: f.state,
                 },
             });
 

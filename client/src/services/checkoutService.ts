@@ -154,6 +154,11 @@ export async function changePaymentMethod(
 }
 
 const ERROR_MESSAGES: [string, string][] = [
+    // Compra sem conta. Sem estas duas, faltar o e-mail virava "Erro ao
+    // processar o pedido" — a cliente reenviava, dava o mesmo, e desistia
+    // sem nunca saber que era um campo vazio.
+    ["GUEST_DATA_REQUIRED", "Preencha seu nome e e-mail para continuar."],
+    ["GUEST_EMAIL_INVALID", "Confira o e-mail digitado."],
     ["EMPTY_CART", "Seu carrinho está vazio."],
     ["PRODUCT_UNAVAILABLE", "Um dos produtos não está mais disponível."],
     ["SKU_NOT_FOUND", "Uma das variações escolhidas não está mais disponível."],
