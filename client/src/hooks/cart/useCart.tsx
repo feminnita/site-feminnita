@@ -57,8 +57,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             setItems(serverItems);
             setReady(true);
         })().catch(() => {
+            // Falhou a conversa com o servidor: NAO jogue o carrinho fora.
+            //
+            // Isto zerava a tela com setItems([]), e a cliente via "carrinho
+            // vazio" depois de criar conta. O motivo de fundo e que o cookie de
+            // sessao e cross-site (loja em feminnita.com.br, API em
+            // onrender.com) e navegador de celular bloqueia cookie de terceiro
+            // — no iPhone, sempre. A chamada autenticada volta 401 e caia aqui.
+            //
+            // O que estava no navegador continua valendo. Mostrar o carrinho
+            // local e melhor que mostrar vazio: a cliente pelo menos consegue
+            // seguir. A correcao de verdade e a API passar a responder no
+            // mesmo dominio da loja.
             if (!cancelled) {
-                setItems([]);
+                setItems(cartService.readCart());
                 setReady(true);
             }
         });
