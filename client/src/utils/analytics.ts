@@ -96,7 +96,16 @@ export function trackBeginCheckout(items: CartItem[], value: number): void {
         items: items.map(toGA4Item),
     });
     fbq("InitiateCheckout", {
-        num_items: items.length,
+        // num_items e PECA, nao modelo. Com items.length, um carrinho de 6
+        // pijamas do mesmo modelo era reportado como 1 item — e no atacado o
+        // pedido e exatamente isso: muita peca de poucos modelos. O Meta
+        // otimiza por esse numero, entao ele estava aprendendo errado.
+        num_items: items.reduce((soma, i) => soma + i.quantity, 0),
+        // content_ids faltava aqui, embora o Purchase ja mandasse: sem ele o
+        // Meta nao liga o checkout ao produto do catalogo, e o remarketing
+        // dinamico nao tem o que mostrar de volta.
+        content_ids: items.map((i) => i.id),
+        content_type: "product",
         value,
         currency: "BRL",
     });
@@ -150,7 +159,8 @@ export function trackPurchase(
         content_type: "product",
         value,
         currency: "BRL",
-        num_items: items.length,
+        // Peça, não modelo — mesmo motivo do InitiateCheckout acima.
+        num_items: items.reduce((soma, i) => soma + i.quantity, 0),
     });
     ttq("PlaceAnOrder", {
         content_ids: items.map((i) => i.id),
