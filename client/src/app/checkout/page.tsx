@@ -42,6 +42,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { MIN_ORDER, formatBRL } from "../../lib/minOrder";
 
 type AppliedCoupon = { code: string; discount: number };
 
@@ -364,6 +365,14 @@ export default function CheckoutPage() {
             }
         }
 
+        // O minimo tambem e conferido no servidor — e la que a regra vale de
+        // verdade. Aqui e so para a cliente saber ANTES de preencher tudo.
+        if (subtotal < MIN_ORDER) {
+            setError(
+                `O pedido mínimo é de ${formatBRL(MIN_ORDER)}. Faltam ${formatBRL(MIN_ORDER - subtotal)}.`,
+            );
+            return;
+        }
         if (!selectedShipping) {
             setError("Selecione uma opção de frete.");
             return;

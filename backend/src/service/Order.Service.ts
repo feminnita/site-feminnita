@@ -59,6 +59,20 @@ export async function createOrder(input: CreateOrderInput) {
 
     const subtotalCents = OrderDomain.calculateSubtotalCents(resolvedItems);
 
+    // Pedido minimo do atacado, conferido AQUI.
+    //
+    // Ate agora o minimo existia so na tela: uma barra de progresso que
+    // informava e nao impedia nada. Nem o checkout olhava para ela. Na pratica
+    // qualquer pessoa fechava um pedido de R$ 30 no atacado — e a obrigacao de
+    // enviar era da loja.
+    //
+    // Regra de negocio que so mora na tela nao e regra: e sugestao. Quem decide
+    // e o servidor, porque e ele que ninguem consegue contornar.
+    const minimoCents = OrderDomain.toCents(await pedidoMinimo());
+    if (subtotalCents < minimoCents) {
+        throw new Error(`MIN_ORDER_NOT_REACHED:${OrderDomain.fromCents(minimoCents)}`);
+    }
+
     let coupon = null;
     let couponDiscountCents = 0;
 
@@ -274,6 +288,18 @@ export async function createOrder(input: CreateOrderInput) {
  * O contrario — exigir login para calcular um desconto — bloquearia o cupom
  * inteiro para quem compra sem conta.
  */
+/**
+ * Quanto a loja exige por pedido.
+ *
+ * Le de site_settings.min_order quando existir, para a Chris poder mudar sem
+ * deploy; cai em 199 se nao existir — o mesmo numero que a vitrine anuncia.
+ */
+async function pedidoMinimo(): Promise<number> {
+    const row = await SiteSettingsRepository.findByKey('min_order');
+    const valor = Number((row?.value as { valor?: unknown })?.valor);
+    return Number.isFinite(valor) && valor > 0 ? valor : 199;
+}
+
 export async function previewCoupon(customerId: string | null, couponCode: string, subtotal: number) {
 
     const coupon = await OrderRepository.findCouponByCode(couponCode);

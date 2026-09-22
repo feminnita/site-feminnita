@@ -159,6 +159,7 @@ const ERROR_MESSAGES: [string, string][] = [
     // sem nunca saber que era um campo vazio.
     ["GUEST_DATA_REQUIRED", "Preencha seu nome e e-mail para continuar."],
     ["GUEST_EMAIL_INVALID", "Confira o e-mail digitado."],
+    ["MIN_ORDER_NOT_REACHED", "O pedido mínimo é de R$ 199,00. Adicione mais peças para finalizar."],
     ["EMPTY_CART", "Seu carrinho está vazio."],
     ["PRODUCT_UNAVAILABLE", "Um dos produtos não está mais disponível."],
     ["SKU_NOT_FOUND", "Uma das variações escolhidas não está mais disponível."],
