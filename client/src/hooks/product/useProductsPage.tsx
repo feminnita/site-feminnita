@@ -37,9 +37,21 @@ export function useProductsPage() {
     const [loading, setLoading] = useState(true);
     const [allProducts, setAllProducts] = useState<StoreProduct[]>([]);
     const [results, setResults] = useState<StoreProduct[]>([]);
+    /**
+     * Se o catálogo já chegou da API — diferente de "veio vazio".
+     *
+     * Sem isto, o filtro rodava 200 ms depois de abrir a página, achava a lista
+     * ainda vazia (a API leva ~2 s) e desligava o loading: quem abria /produtos
+     * lia "Nenhum produto encontrado — tente uma busca diferente ou remova
+     * alguns filtros" durante quase dois segundos, e só então os 87 produtos
+     * apareciam. Para quem chega de anúncio, a loja estava vazia.
+     */
+    const [catalogoChegou, setCatalogoChegou] = useState(false);
 
     useEffect(() => {
-        fetchProducts().then((products) => setAllProducts(products));
+        fetchProducts()
+            .then((products) => setAllProducts(products))
+            .finally(() => setCatalogoChegou(true));
     }, []);
 
     // Reflete a URL quando a busca do header muda enquanto já estamos em /produtos.
@@ -79,6 +91,11 @@ export function useProductsPage() {
 
     useEffect(() => {
         setLoading(true);
+        // Enquanto o catálogo não chegou não há o que filtrar: sair daqui
+        // mantendo loading=true deixa o esqueleto na tela, em vez de anunciar
+        // uma loja vazia que na verdade só está carregando.
+        if (!catalogoChegou) return;
+
         const timer = setTimeout(() => {
             const filters: ProductFilters = {
                 query,
@@ -93,7 +110,7 @@ export function useProductsPage() {
             setLoading(false);
         }, 200);
         return () => clearTimeout(timer);
-    }, [query, sizes, maxPrice, sort, allProducts]);
+    }, [query, sizes, maxPrice, sort, allProducts, catalogoChegou]);
 
     const toggleSize = (size: string) =>
         setSizes((prev) =>

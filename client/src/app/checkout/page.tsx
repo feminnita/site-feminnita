@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Header } from "../../components/layout/Header";
 import { useAuth } from "../../hooks/count/useAuth";
 import { useCart } from "../../hooks/cart/useCart";
@@ -538,6 +539,31 @@ export default function CheckoutPage() {
                     </div>
                 )}
 
+                {/*
+                 * O mínimo dito na entrada, não na saída.
+                 *
+                 * A conferência já existia, mas dentro do submit: a cliente
+                 * preenchia nome, CPF, WhatsApp e o endereço inteiro, escolhia
+                 * frete e pagamento, e só ao clicar em Finalizar descobria que
+                 * o pedido não alcançava o mínimo. Quem passa por isso não
+                 * volta para completar o carrinho — fecha a aba.
+                 */}
+                {ready && subtotal > 0 && subtotal < MIN_ORDER && (
+                    <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                        <div className="flex items-start gap-2">
+                            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                            <p>
+                                Este é um atacado: o pedido mínimo é{" "}
+                                <strong>{formatBRL(MIN_ORDER)}</strong>. Faltam{" "}
+                                <strong>{formatBRL(MIN_ORDER - subtotal)}</strong> para fechar.{" "}
+                                <Link href="/carrinho" className="font-semibold underline">
+                                    Voltar ao carrinho e adicionar peças
+                                </Link>
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Mobile/tablet: resumo recolhível */}
                 <div className="mb-4 overflow-hidden rounded-xl border bg-white lg:hidden">
                     <button
@@ -763,8 +789,11 @@ export default function CheckoutPage() {
                                                             </div>
                                                         ) : (
                                                             <p className="text-xs text-gray-500">
+                                                                {/* "útil" no plural é "úteis": troca o "il" por "eis",
+                                                                    não acrescenta. Somando, saía "dias útileis" em
+                                                                    todas as sete transportadoras do checkout. */}
                                                                 {opt.deliveryDays > 0
-                                                                    ? `até ${opt.deliveryDays} dia${opt.deliveryDays > 1 ? "s" : ""} útil${opt.deliveryDays > 1 ? "eis" : ""}`
+                                                                    ? `até ${opt.deliveryDays} dia${opt.deliveryDays > 1 ? "s" : ""} út${opt.deliveryDays > 1 ? "eis" : "il"}`
                                                                     : "prazo a confirmar"}
                                                             </p>
                                                         )}
@@ -1037,7 +1066,7 @@ export default function CheckoutPage() {
 
                                 <button
                                     type="submit"
-                                    disabled={isProcessing || !selectedShipping}
+                                    disabled={isProcessing || !selectedShipping || subtotal < MIN_ORDER}
                                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#8C2F39] py-4 font-semibold text-white transition-colors hover:bg-[#7a2832] disabled:opacity-50"
                                 >
                                     {isProcessing ? (
@@ -1065,7 +1094,7 @@ export default function CheckoutPage() {
                     >
                         <button
                             type="submit"
-                            disabled={isProcessing || !selectedShipping}
+                            disabled={isProcessing || !selectedShipping || subtotal < MIN_ORDER}
                             className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#8C2F39] py-4 font-semibold text-white transition-transform active:scale-[0.98] disabled:opacity-50"
                         >
                             {isProcessing ? (
