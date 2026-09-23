@@ -75,7 +75,16 @@ export async function previewCoupon(req: Request, res: Response) {
             return;
         }
 
-        const result = await OrderService.previewCoupon(req.customer?.id ?? null, code, subtotal);
+        // O e-mail vem do proprio checkout quando a cliente compra sem conta.
+        // Sem ele a previa nao saberia se ela ja comprou, mostraria o desconto
+        // e a criacao do pedido recusaria depois — pior que nao oferecer e
+        // oferecer e tirar na hora de pagar.
+        const result = await OrderService.previewCoupon(
+            req.customer?.id ?? null,
+            code,
+            subtotal,
+            typeof req.body?.email === 'string' ? req.body.email : null,
+        );
         res.json(result);
     } catch (error) {
         console.error(error);
@@ -93,7 +102,11 @@ export async function automaticCoupon(req: Request, res: Response) {
             return;
         }
 
-        res.json(await OrderService.automaticCoupon(req.customer!.id, subtotal));
+        res.json(await OrderService.automaticCoupon(
+            req.customer?.id ?? null,
+            subtotal,
+            typeof req.query.email === 'string' ? req.query.email : null,
+        ));
     } catch (error) {
         console.error('Cupom automatico falhou:', error);
         res.json(null);

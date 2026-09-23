@@ -15,9 +15,14 @@ storeOrderRouter.post('/', optionalCustomerAuth, OrderController.createOrder);
 // ("esta cliente ja usou?") roda na criacao do pedido, com identidade.
 storeOrderRouter.post('/coupon/preview', optionalCustomerAuth, OrderController.previewCoupon);
 
-storeOrderRouter.use(requireCustomerAuth);
+// O cupom automatico TAMBEM e aberto. Atras da trava ele so existia para quem
+// tinha conta — e depois que comprar sem conta virou o caminho normal, o
+// desconto de primeira compra deixou de chegar em quem ele foi feito para
+// alcancar: a revendedora que esta comprando pela primeira vez.
 // Antes de '/:id': 'coupon' seria lido como id de pedido.
-storeOrderRouter.get('/coupon/automatico', OrderController.automaticCoupon);
+storeOrderRouter.get('/coupon/automatico', optionalCustomerAuth, OrderController.automaticCoupon);
+
+storeOrderRouter.use(requireCustomerAuth);
 storeOrderRouter.get('/', OrderController.listMine);
 storeOrderRouter.get('/:id', OrderController.getMine);
 storeOrderRouter.get('/:id/pagamento', OrderController.getPaymentInfo);

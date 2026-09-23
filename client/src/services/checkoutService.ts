@@ -70,10 +70,16 @@ export async function createOrder(input: {
 export async function previewCoupon(
     code: string,
     subtotal: number,
+    /**
+     * Quem compra sem conta se identifica pelo e-mail. É por ele que o servidor
+     * sabe se ela já comprou — e portanto se o cupom de primeira compra vale.
+     * Sem isso, a tela mostraria um desconto que o pedido recusaria depois.
+     */
+    email?: string,
 ): Promise<{ code: string; discount: number }> {
     const data = (await apiPost<{ code: string; discount: number }>(
         "/api/store/orders/coupon/preview",
-        { code, subtotal },
+        { code, subtotal, email },
     )) as { code: string; discount: number };
 
     return data;
@@ -83,10 +89,12 @@ export async function previewCoupon(
 // ha nenhum — e isso e normal, nao erro.
 export async function fetchAutomaticCoupon(
     subtotal: number,
+    email?: string,
 ): Promise<{ code: string; discount: number } | null> {
     try {
+        const comEmail = email ? `&email=${encodeURIComponent(email)}` : "";
         return await apiGet<{ code: string; discount: number } | null>(
-            `/api/store/orders/coupon/automatico?subtotal=${subtotal}`,
+            `/api/store/orders/coupon/automatico?subtotal=${subtotal}${comEmail}`,
         );
     } catch {
         return null;

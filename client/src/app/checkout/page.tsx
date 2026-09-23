@@ -16,6 +16,7 @@ import {
 } from "../../services/checkoutService";
 import { quoteShipping } from "../../services/shippingService";
 import { registrarCarrinhoDeVisitante } from "../../services/cartLeadService";
+import { NaoSaiaAgora } from "../../components/checkout/NaoSaiaAgora";
 import { acceptResaleTerm, parseReacceptVersion } from "../../services/resaleTermService";
 import { ApiError } from "../../services/api";
 import {
@@ -114,6 +115,15 @@ function CouponBox({
         </div>
     );
 }
+
+/**
+ * O cupom da última chance. Vale 6% — os 3% da primeira compra mais os 3% de
+ * finalizar agora —, porque o pedido guarda UM cupom e não dois.
+ *
+ * É de primeira compra, e o servidor confere pelo e-mail: sem isso a
+ * revendedora aprende o macete e passa a fingir que vai sair toda vez.
+ */
+const CUPOM_DE_SAIDA = "FICA6";
 
 export default function CheckoutPage() {
     const router = useRouter();
@@ -315,17 +325,46 @@ export default function CheckoutPage() {
         //
         // Ela nao fica sem cupom: pode digitar o codigo, e a previa aceita
         // convidada.
-        if (!customer) return;
         if (subtotal <= 0 || appliedCoupon || couponCode.trim()) return;
 
+        // Quem compra SEM conta tambem tem direito ao desconto de primeira
+        // compra — e hoje e a maioria. O que identifica essa cliente e o
+        // e-mail que ela acabou de digitar; sem ele nao da para saber se ja
+        // comprou, entao o cupom so entra depois que o campo esta preenchido.
+        const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
+        if (!customer && !emailValido) return;
+
         cupomAutomaticoTentado.current = true;
-        fetchAutomaticCoupon(subtotal).then((cupom) => {
+        fetchAutomaticCoupon(subtotal, customer ? undefined : form.email).then((cupom) => {
             if (!cupom) return;
             setAppliedCoupon(cupom);
             setCouponCode(cupom.code);
             toast.success(`Cupom ${cupom.code} aplicado: desconto de primeira compra.`);
         });
-    }, [customer, subtotal, appliedCoupon, couponCode]);
+    }, [customer, subtotal, appliedCoupon, couponCode, form.email]);
+
+    /**
+     * O cupom da última chance, para quem está saindo do checkout.
+     *
+     * Substitui o de 3% por um de 6% — o pedido guarda UM cupom, então "mais
+     * 3%" vira um cupom de 6%. Para a cliente a conta é a mesma; o que muda é
+     * que não existe empilhamento de cupom para dar errado depois.
+     */
+    const aceitarCupomDeSaida = async () => {
+        try {
+            const cupom = await previewCoupon(
+                CUPOM_DE_SAIDA,
+                subtotal,
+                customer ? undefined : form.email,
+            );
+            setAppliedCoupon(cupom);
+            setCouponCode(cupom.code);
+            toast.success("Mais 3% aplicados. Agora são 6% de desconto!");
+        } catch {
+            // Cliente que ja comprou antes cai aqui, e esta certo: o cupom e
+            // de primeira compra. Nao mostra erro — ela nem pediu nada.
+        }
+    };
 
     const handleApplyCoupon = async () => {
         const code = couponCode.trim().toUpperCase();
@@ -541,6 +580,22 @@ export default function CheckoutPage() {
     return (
         <div className="min-h-screen bg-gray-50 pb-28 md:pb-8">
             <Header />
+
+            {/*
+              A última oferta, para quem está indo embora.
+              Só aparece se ainda não há o cupom de saída aplicado e a cliente
+              já se identificou — sem e-mail não dá para saber se ela é nova, e
+              prometer desconto que o servidor vai recusar é pior que calar.
+            */}
+            <NaoSaiaAgora
+                podeOferecer={
+                    ready &&
+                    selectedItems.length > 0 &&
+                    appliedCoupon?.code !== CUPOM_DE_SAIDA &&
+                    (!!customer || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+                }
+                onAceitar={aceitarCupomDeSaida}
+            />
 
             {/* Trust bar */}
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-[#8C2F39] px-4 py-2 text-center text-xs text-white">

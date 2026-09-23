@@ -8,6 +8,7 @@ import * as ResaleTermService from '../service/ResaleTerm.Service';
 import * as AffiliateRepository from '../repository/Affiliate.Repository';
 import * as SiteSettingsRepository from '../repository/SiteSettings.Repository';
 import * as AddressesRepository from '../repository/Addresses.Repository';
+import * as AuthRepository from '../repository/Auth.Repository';
 import type { CreateOrderInput } from '../types/order';
 
 
@@ -83,6 +84,17 @@ export async function createOrder(input: CreateOrderInput) {
 
         const alreadyUsed = await OrderRepository.findOrderByCustomerAndCoupon(input.customerId, coupon.id);
         if (alreadyUsed) throw new Error('COUPON_ALREADY_USED');
+
+        // Cupom de primeira compra: vale so para quem nunca comprou, e nao
+        // "uma vez por cupom". Sem isto, quem comprou com o de 3% pegaria o de
+        // 6% na compra seguinte, e o desconto viraria tabela de preco.
+        //
+        // Aqui e a conferencia que MANDA: input.customerId ja foi resolvido
+        // pelo e-mail, entao comprar sem conta nao escapa.
+        if (coupon.firstPurchaseOnly) {
+            const jaComprou = await OrderRepository.findOrdersByCustomerId(input.customerId);
+            if (jaComprou.length > 0) throw new Error('COUPON_FIRST_PURCHASE_ONLY');
+        }
 
         couponDiscountCents = OrderDomain.calculateCouponDiscountCents(coupon, subtotalCents);
 
@@ -313,14 +325,33 @@ async function pedidoMinimo(): Promise<number> {
     return Number.isFinite(valor) && valor > 0 ? valor : 199;
 }
 
-export async function previewCoupon(customerId: string | null, couponCode: string, subtotal: number) {
+export async function previewCoupon(
+    customerId: string | null,
+    couponCode: string,
+    subtotal: number,
+    email?: string | null,
+) {
 
     const coupon = await OrderRepository.findCouponByCode(couponCode);
     if (!coupon) throw new Error('COUPON_NOT_FOUND');
 
+    // Quem compra sem conta nao tem customerId aqui, mas ja digitou o e-mail
+    // no checkout. E por ele que se descobre se ela ja e cliente — e e assim
+    // que o cupom de primeira compra deixa de ser burlavel comprando como
+    // visitante.
+    if (!customerId && email) {
+        const cliente = await AuthRepository.findCustomerByEmail(String(email).trim().toLowerCase());
+        if (cliente) customerId = cliente.id;
+    }
+
     if (customerId) {
         const alreadyUsed = await OrderRepository.findOrderByCustomerAndCoupon(customerId, coupon.id);
         if (alreadyUsed) throw new Error('COUPON_ALREADY_USED');
+
+        if (coupon.firstPurchaseOnly) {
+            const jaComprou = await OrderRepository.findOrdersByCustomerId(customerId);
+            if (jaComprou.length > 0) throw new Error('COUPON_FIRST_PURCHASE_ONLY');
+        }
     }
 
     if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
@@ -355,16 +386,29 @@ export async function previewCoupon(customerId: string | null, couponCode: strin
  * nao sai duas vezes para a mesma pessoa), e a conferencia final acontece de
  * novo na criacao do pedido — esta rota so sugere.
  */
-export async function automaticCoupon(customerId: string, subtotal: number) {
+export async function automaticCoupon(
+    customerId: string | null,
+    subtotal: number,
+    email?: string | null,
+) {
     const config = await SiteSettingsRepository.findByKey('newsletter_popup');
     const code = String((config?.value as { cupom?: string })?.cupom ?? '').trim();
     if (!code) return null;
 
-    const jaComprou = await OrderRepository.findOrdersByCustomerId(customerId);
-    if (jaComprou.length > 0) return null;
+    // Quem compra sem conta chega aqui sem id, mas com o e-mail que digitou no
+    // checkout. E por ele que se sabe se ela ja e cliente.
+    if (!customerId && email) {
+        const cliente = await AuthRepository.findCustomerByEmail(String(email).trim().toLowerCase());
+        if (cliente) customerId = cliente.id;
+    }
+
+    if (customerId) {
+        const jaComprou = await OrderRepository.findOrdersByCustomerId(customerId);
+        if (jaComprou.length > 0) return null;
+    }
 
     try {
-        return await previewCoupon(customerId, code, subtotal);
+        return await previewCoupon(customerId, code, subtotal, email);
     } catch {
         // Cupom apagado, vencido ou esgotado: o carrinho segue sem desconto.
         // Sugestao que falha nao pode derrubar a tela de quem esta comprando.
