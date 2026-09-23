@@ -121,7 +121,14 @@ export async function createOrder(input: CreateOrderInput) {
 
         shippingCostCents = OrderDomain.toCents(chosenShipping.price);
         chosenShippingServiceId = chosenShipping.id;
-        shippingMethodName = chosenShipping.name;
+        // Guarda TRANSPORTADORA + servico, como a cliente escolheu na tela.
+        // So o servico nao identifica nada: "Standard" e o nome que a JeT e a
+        // Total Express usam, entao dois pedidos de transportadoras diferentes
+        // chegavam identicos na folha de separacao, e a Chris tinha de ir ao
+        // Melhor Envio descobrir qual era para despachar.
+        shippingMethodName = chosenShipping.company
+            ? `${chosenShipping.company} — ${chosenShipping.name}`
+            : chosenShipping.name;
     }
 
     const totalCents = OrderDomain.calculateTotalCents(subtotalCents, discountCents, shippingCostCents);
