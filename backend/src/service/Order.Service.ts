@@ -11,6 +11,12 @@ import * as AddressesRepository from '../repository/Addresses.Repository';
 import * as AuthRepository from '../repository/Auth.Repository';
 import type { CreateOrderInput } from '../types/order';
 
+/**
+ * Teto de parcelas no cartão — o mesmo MAX_PARCELAS de client/src/lib/parcelamento.ts.
+ * No Asaas 2x a 6x custam a mesma taxa (3,49%, cobrada uma vez); de 7x em diante
+ * sobe. Se mudar lá, muda aqui: a tela promete o número e é este que vai ao Asaas.
+ */
+export const MAX_PARCELAS = 6;
 
 
 export async function createOrder(input: CreateOrderInput) {
@@ -18,10 +24,10 @@ export async function createOrder(input: CreateOrderInput) {
         throw new Error('EMPTY_CART');
     }
 
-    // Clamp obrigatório: a loja só vende em até 3x sem juros. Nunca confiar no
-    // número de parcelas que vem do front — um front desatualizado (ou forjado)
+    // Clamp obrigatório: a loja só vende em até MAX_PARCELAS sem juros. Nunca confiar
+    // no número de parcelas que vem do front — um front desatualizado (ou forjado)
     // poderia mandar 10x e o Asaas cobraria em 10x. Aqui o servidor garante o teto.
-    input.installments = Math.min(3, Math.max(1, Math.trunc(Number(input.installments)) || 1));
+    input.installments = Math.min(MAX_PARCELAS, Math.max(1, Math.trunc(Number(input.installments)) || 1));
 
     const productIds = input.items.map((item) => item.productId);
     const dbProducts = await OrderRepository.findProductsByIds(productIds);
@@ -468,7 +474,7 @@ export async function changePaymentMethod(
     orderId: string,
     customerId: string,
     paymentMethod: 'pix' | 'boleto' | 'card',
-    // Parcelas so valem no cartao. Vem da tela porque a loja promete "ate 3x
+    // Parcelas so valem no cartao. Vem da tela porque a loja promete "ate 6x
     // sem juros": sem mandar o numero, a cobranca nascia sempre em 1x e a
     // promessa da vitrine nao aparecia na hora de pagar.
     installments = 1,
