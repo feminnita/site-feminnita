@@ -46,6 +46,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { MIN_ORDER, formatBRL } from "../../lib/minOrder";
+import { MAX_PARCELAS, TEXTO_PARCELAMENTO } from "../../lib/parcelamento";
 
 type AppliedCoupon = { code: string; discount: number };
 
@@ -947,7 +948,7 @@ export default function CheckoutPage() {
                                         id: "card" as const,
                                         Icon: CreditCard,
                                         title: "Cartão de crédito",
-                                        subtitle: "Parcelamento em até 3x sem juros",
+                                        subtitle: `Parcelamento ${TEXTO_PARCELAMENTO}`,
                                     },
                                     {
                                         id: "boleto" as const,
@@ -1045,7 +1046,7 @@ export default function CheckoutPage() {
                                             onChange={(e) => set("installments", e.target.value)}
                                             className={inputClass}
                                         >
-                                            {Array.from({ length: 3 }, (_, i) => i + 1).map((n) => (
+                                            {Array.from({ length: MAX_PARCELAS }, (_, i) => i + 1).map((n) => (
                                                 <option key={n} value={String(n)}>
                                                     {n}× de R${" "}
                                                     {(total / n).toLocaleString("pt-BR", {

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { MAX_PARCELAS } from "../../lib/parcelamento";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/count/useAuth";
@@ -86,7 +87,7 @@ export function Header() {
       }`}
     >
       <div className="bg-gray-100 py-2 text-center text-sm">
-        3X SEM JUROS nos cartões de crédito
+        {MAX_PARCELAS}X SEM JUROS nos cartões de crédito
       </div>
       <div className="container mx-auto px-4 py-4 md:py-6">
         <div className="relative flex items-center justify-between gap-3">

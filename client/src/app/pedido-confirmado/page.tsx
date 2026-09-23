@@ -1,6 +1,7 @@
 "use client";
 
 import { Header } from "@/src/components/layout/Header";
+import { MAX_PARCELAS } from "@/src/lib/parcelamento";
 import { apiGet } from "@/src/services/api";
 import { changePaymentMethod } from "@/src/services/checkoutService";
 import type { OrderPaymentResult } from "@/src/types/checkout/checkout";
@@ -287,7 +288,7 @@ function OrderConfirmedContent() {
                                     [
                                         { id: "pix", rotulo: "PIX", nota: "5% de desconto" },
                                         { id: "boleto", rotulo: "Boleto", nota: "vence em 3 dias" },
-                                        { id: "card", rotulo: "Cartão", nota: "até 3x sem juros" },
+                                        { id: "card", rotulo: "Cartão", nota: `até ${MAX_PARCELAS}x sem juros` },
                                     ] as const
                                 )
                                     .filter((forma) => forma.id !== method)
@@ -303,9 +304,9 @@ function OrderConfirmedContent() {
                                                     onChange={(e) => setParcelas(Number(e.target.value))}
                                                     className="rounded border border-gray-200 px-2 py-1 text-xs"
                                                 >
-                                                    <option value={1}>1x sem juros</option>
-                                                    <option value={2}>2x sem juros</option>
-                                                    <option value={3}>3x sem juros</option>
+                                                    {Array.from({ length: MAX_PARCELAS }, (_, i) => i + 1).map((n) => (
+                                                        <option key={n} value={n}>{n}x sem juros</option>
+                                                    ))}
                                                 </select>
                                                 <button
                                                     type="button"

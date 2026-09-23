@@ -48,7 +48,7 @@ export default function ComoComprarPage() {
               <li>
                 <strong>Escolha o pagamento.</strong> Você paga com{" "}
                 <strong>Pix</strong>, <strong>boleto bancário</strong> ou{" "}
-                <strong>cartão de crédito em até 3x sem juros</strong>.
+                <strong>cartão de crédito em até 6x sem juros</strong>.
               </li>
               <li>
                 <strong>Finalize a compra.</strong> Após a confirmação do

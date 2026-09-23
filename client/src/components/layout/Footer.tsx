@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { enderecoEmLinha, razaoSocialComCnpj } from "@/src/lib/empresa";
+import { TEXTO_PARCELAMENTO } from "@/src/lib/parcelamento";
 
 // Rodapé GLOBAL — renderizado no ClientBody, aparece em todas as páginas uma
 // única vez. Dados de contato reais da Feminnita. Formas de pagamento em texto
@@ -105,7 +106,7 @@ export function Footer() {
                 <span className="inline-block rounded border border-gray-200 px-2 py-1 text-xs font-semibold text-gray-700">
                   Cartão
                 </span>
-                <span>em até 3x sem juros</span>
+                <span>{TEXTO_PARCELAMENTO}</span>
               </li>
             </ul>
           </div>

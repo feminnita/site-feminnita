@@ -1,5 +1,7 @@
 "use client";
 
+import { MAX_PARCELAS } from "../../lib/parcelamento";
+
 import { fetchMyOrder } from "../../services/ordersService";
 import type { AccountOrderDetail } from "../../types/account/account";
 import {
@@ -21,7 +23,7 @@ const ROTULO_DA_FORMA: Record<string, string> = {
 const FORMAS_DE_PAGAMENTO: { id: FormaDePagamento; rotulo: string; nota: string }[] = [
     { id: "pix", rotulo: "PIX", nota: "5% de desconto" },
     { id: "boleto", rotulo: "Boleto", nota: "vence em 3 dias" },
-    { id: "card", rotulo: "Cartão", nota: "até 3x sem juros" },
+    { id: "card", rotulo: "Cartão", nota: `até ${MAX_PARCELAS}x sem juros` },
 ];
 import {
     CreditCard,

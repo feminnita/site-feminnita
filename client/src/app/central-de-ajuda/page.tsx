@@ -42,7 +42,7 @@ const faq = [
   },
   {
     q: "Quais formas de pagamento vocês aceitam?",
-    a: "Pix, boleto bancário e cartão de crédito em até 3x sem juros.",
+    a: "Pix, boleto bancário e cartão de crédito em até 6x sem juros.",
   },
   {
     q: "Como é calculado o frete?",
