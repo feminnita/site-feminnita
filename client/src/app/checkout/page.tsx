@@ -15,6 +15,7 @@ import {
     fetchAutomaticCoupon,
 } from "../../services/checkoutService";
 import { quoteShipping } from "../../services/shippingService";
+import { registrarCarrinhoDeVisitante } from "../../services/cartLeadService";
 import { acceptResaleTerm, parseReacceptVersion } from "../../services/resaleTermService";
 import { ApiError } from "../../services/api";
 import {
@@ -269,6 +270,33 @@ export default function CheckoutPage() {
             calculateShipping(cep);
         }
     }, [form.cep, selectedItems]);
+
+    /**
+     * Guarda o carrinho para poder lembrar quem desistir.
+     *
+     * Dispara quando a cliente SAI do campo de e-mail — ali ela terminou de
+     * digitar, e ainda faltam endereço, frete e pagamento, que é onde as
+     * pessoas somem.
+     *
+     * Só para quem não tem conta: de quem está logada o carrinho já é salvo.
+     * Uma vez por visita, porque o campo perde o foco toda vez que ela volta
+     * para conferir o e-mail, e não há motivo para repetir a gravação.
+     */
+    const carrinhoRegistrado = useRef(false);
+
+    const guardarCarrinhoParaLembrete = () => {
+        if (customer || carrinhoRegistrado.current) return;
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return;
+        if (selectedItems.length === 0) return;
+
+        carrinhoRegistrado.current = true;
+        void registrarCarrinhoDeVisitante({
+            email: form.email,
+            name: form.name,
+            phone: form.phone,
+            items: selectedItems,
+        });
+    };
 
     // Cupom de primeira compra entra sozinho. A cliente viu a promessa no
     // pop-up, fechou a aba e na hora de pagar nao lembra do codigo — exigir que
@@ -648,6 +676,7 @@ export default function CheckoutPage() {
                                             required
                                             value={form.email}
                                             onChange={(e) => set("email", e.target.value.trim())}
+                                            onBlur={guardarCarrinhoParaLembrete}
                                             className={inputClass}
                                             autoComplete="email"
                                         />
