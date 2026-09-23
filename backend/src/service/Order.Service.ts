@@ -115,7 +115,13 @@ export async function createOrder(input: CreateOrderInput) {
             };
         });
 
-        const shippingOptions = await MelhorEnvio.quoteShipping(toCep, quotable);
+        // Mesmo valor segurado da cotacao do carrinho: se divergisse, o preco
+        // mudaria entre a tela e o fechamento do pedido.
+        const shippingOptions = await MelhorEnvio.quoteShipping(
+            toCep,
+            quotable,
+            subtotalCents / 100,
+        );
         const chosenShipping = shippingOptions.find((option) => option.id === input.shippingServiceId);
         if (!chosenShipping) throw new Error('SHIPPING_OPTION_UNAVAILABLE');
 

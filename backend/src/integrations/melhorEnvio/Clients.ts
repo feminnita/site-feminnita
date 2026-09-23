@@ -88,6 +88,7 @@ async function servicosDaConta(): Promise<number[]> {
 export async function calculate(
     toCep: string,
     pkg: PackageDimensions,
+    valorSegurado?: number,
 ): Promise<RawQuoteOption[]> {
     const servicos = await servicosDaConta();
 
@@ -98,6 +99,13 @@ export async function calculate(
             to: { postal_code: toCep },
             package: pkg,
             services: servicos.join(','),
+            // O seguro entra na COTACAO, nao so na etiqueta. A etiqueta ja
+            // declarava o valor cheio da nota; a cotacao nao, e a diferenca
+            // saia do bolso da Chris. Medido: +R$ 9,63 a +R$ 14,76 por pedido,
+            // conforme a transportadora.
+            ...(valorSegurado && valorSegurado > 0
+                ? { options: { insurance_value: Number(valorSegurado.toFixed(2)) } }
+                : {}),
         },
     });
 }

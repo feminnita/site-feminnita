@@ -46,7 +46,10 @@ export async function quote(req: Request, res: Response) {
         // opções dela, e quem quer buscar na fábrica continua comprando.
         let options: Awaited<ReturnType<typeof MelhorEnvio.quoteShipping>> = [];
         try {
-            options = await MelhorEnvio.quoteShipping(cep, quotable);
+            // O valor do CARRINHO e o que se segura: e a mercadoria que vai na
+            // caixa. O seguro entra no preco que a cliente ve, em vez de virar
+            // diferenca paga pela Chris na hora da etiqueta.
+            options = await MelhorEnvio.quoteShipping(cep, quotable, subtotal);
         } catch (erroDoFrete) {
             console.error('Cotação da transportadora falhou (seguindo com as demais opções):', erroDoFrete);
         }

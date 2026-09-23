@@ -4,9 +4,24 @@ import type { ShippingQuoteOption } from './types';
 
 export type QuotableItem = Parameters<typeof combinePackage>[0][number];
 
-export async function quoteShipping(toCep: string, items: QuotableItem[]): Promise<ShippingQuoteOption[]> {
+/**
+ * @param valorSegurado Valor da mercadoria, para o seguro entrar na cotacao.
+ *
+ * Sem isto a loja cotava frete SEM seguro e cobrava esse preco da cliente,
+ * enquanto a etiqueta saia com o valor cheio declarado — e a diferenca ficava
+ * com a Chris, calada, em todo pedido. Medido no FEM-1028: R$ 75,73 cobrados
+ * da cliente, R$ 86,79 pagos ao Melhor Envio.
+ *
+ * O seguro nao e opcional aqui — "o indice de roubo e absurdo" —, entao ele
+ * precisa aparecer no preco em vez de virar prejuizo invisivel.
+ */
+export async function quoteShipping(
+    toCep: string,
+    items: QuotableItem[],
+    valorSegurado?: number,
+): Promise<ShippingQuoteOption[]> {
     const pkg = combinePackage(items);
-    const resposta = await MelhorEnvio.calculate(toCep, pkg);
+    const resposta = await MelhorEnvio.calculate(toCep, pkg, valorSegurado);
 
     // O Melhor Envio nem sempre devolve uma LISTA: quando sobra uma
     // transportadora só, vem o objeto sozinho. O `.filter` abaixo estourava,
