@@ -142,6 +142,10 @@ export default function CheckoutPage() {
     const [reacceptChecked, setReacceptChecked] = useState(false);
     const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
     const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
+    // Retirada escolhida de proposito ainda passa por uma pergunta: ela nao e um
+    // frete mais barato, e uma viagem ate Nova Friburgo. Guarda a opcao ate a
+    // cliente confirmar — so entao vira a escolhida.
+    const [confirmandoRetirada, setConfirmandoRetirada] = useState<ShippingOption | null>(null);
     const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
     const [couponCode, setCouponCode] = useState("");
     const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
@@ -242,9 +246,18 @@ export default function CheckoutPage() {
         try {
             const options = await quoteShipping(cep, selectedItems);
             setShippingOptions(options);
-            if (options[0]) {
-                setSelectedShipping(options[0]);
-                trackAddShippingInfo(selectedItems, subtotal, options[0].name);
+            // A retirada vem em PRIMEIRO na lista (o servidor poe na frente de
+            // proposito: e a unica gratis, e quem mora em Nova Friburgo precisa
+            // ve-la). So que marcar a primeira sozinha fazia toda cliente do
+            // Brasil chegar ao pagamento com "Retirar na fabrica" ja escolhida.
+            // Foi o que aconteceu no FEM-1031: cliente de Sao Paulo, pedido pago,
+            // retirada em Nova Friburgo que ela nunca vai fazer. O padrao passa a
+            // ser a primeira transportadora; a retirada continua na frente, visivel,
+            // mas exige um clique.
+            const padrao = options.find((o) => !o.pickup) ?? options[0];
+            if (padrao) {
+                setSelectedShipping(padrao);
+                trackAddShippingInfo(selectedItems, subtotal, padrao.name);
             }
         } catch {
             setShippingOptions([]);
@@ -850,7 +863,11 @@ export default function CheckoutPage() {
                                                         type="radio"
                                                         name="shipping"
                                                         checked={selectedShipping?.id === opt.id}
-                                                        onChange={() => setSelectedShipping(opt)}
+                                                        onChange={() =>
+                                                            opt.pickup
+                                                                ? setConfirmandoRetirada(opt)
+                                                                : setSelectedShipping(opt)
+                                                        }
                                                         className="accent-[#8C2F39]"
                                                     />
                                                     <div>
@@ -1201,6 +1218,68 @@ export default function CheckoutPage() {
                     </div>
                 </form>
             </div>
+
+            {/* Confirmacao da retirada. A cliente do FEM-1031 pagou um pedido com
+                retirada em Nova Friburgo morando em Sao Paulo. O aviso diz o que
+                a lista nao dizia: retirada nao e frete gratis, e ninguem entrega.
+                Quando a cidade dela nao e Nova Friburgo, a pergunta cita a cidade —
+                generico se le no automatico, o proprio nome da cidade nao. */}
+            {confirmandoRetirada && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="titulo-retirada"
+                >
+                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                        <h3 id="titulo-retirada" className="text-lg font-bold">
+                            Tem certeza que quer retirar na fábrica?
+                        </h3>
+
+                        <p className="mt-3 text-sm text-gray-700">
+                            Escolhendo a retirada,{" "}
+                            <strong>o pedido não é enviado pelos Correios nem por transportadora</strong>.
+                            Você precisa buscar pessoalmente na nossa fábrica, em Nova Friburgo – RJ.
+                        </p>
+
+                        {form.city && !/friburgo/i.test(form.city) && (
+                            <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+                                Você informou <strong>{form.city}{form.state ? ` – ${form.state}` : ""}</strong>.
+                                Se você não vai até Nova Friburgo, escolha uma transportadora.
+                            </p>
+                        )}
+
+                        {(confirmandoRetirada.address || confirmandoRetirada.hours) && (
+                            <div className="mt-3 rounded-lg border bg-gray-50 p-3 text-sm text-gray-600">
+                                {confirmandoRetirada.address && <p>{confirmandoRetirada.address}</p>}
+                                {confirmandoRetirada.hours && (
+                                    <p className="text-gray-500">{confirmandoRetirada.hours}</p>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="mt-5 flex flex-col gap-2">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSelectedShipping(confirmandoRetirada);
+                                    setConfirmandoRetirada(null);
+                                }}
+                                className="rounded-xl bg-[#8C2F39] py-3 font-semibold text-white hover:bg-[#7a2832]"
+                            >
+                                Sim, eu vou buscar na fábrica
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setConfirmandoRetirada(null)}
+                                className="rounded-xl border py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                            >
+                                Não, quero receber em casa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
