@@ -70,7 +70,7 @@ export function ProfileForm({
                     />
                 </div>
                 <div>
-                    <label className="mb-1 block text-gray-500">CPF</label>
+                    <label className="mb-1 block text-gray-500">CPF ou CNPJ</label>
                     <input
                         value={form.cpf ?? ""}
                         onChange={(e) => set("cpf", e.target.value)}
