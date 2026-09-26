@@ -24,7 +24,7 @@ import {
     trackAddShippingInfo,
     trackBeginCheckout,
 } from "../../utils/analytics";
-import { isValidateCpf } from "../../utils/checkout";
+import { isValidateCpfCnpj } from "../../utils/checkout";
 import { PIX_DISCOUNT_RATE } from "../../utils/pricing";
 import type { AccountCustomer } from "../../types/account/account";
 import type { ShippingOption } from "../../types/checkout/checkout";
@@ -459,8 +459,8 @@ export default function CheckoutPage() {
             setError("Selecione uma opção de frete.");
             return;
         }
-        if (!isValidateCpf(f.cpf)) {
-            setError("CPF inválido. Confira os números digitados.");
+        if (!isValidateCpfCnpj(f.cpf)) {
+            setError("CPF ou CNPJ inválido. Confira os números digitados.");
             return;
         }
         if (!f.phone.replace(/\D/g, "").match(/^\d{10,11}$/)) {
@@ -752,11 +752,11 @@ export default function CheckoutPage() {
                                     )}
                                     <input
                                         name="cpf"
-                                        placeholder="CPF *"
+                                        placeholder="CPF ou CNPJ *"
                                         required
                                         value={form.cpf}
                                         onChange={(e) =>
-                                            set("cpf", e.target.value.replace(/\D/g, "").slice(0, 11))
+                                            set("cpf", e.target.value.replace(/\D/g, "").slice(0, 14))
                                         }
                                         className={inputClass}
                                         inputMode="numeric"
