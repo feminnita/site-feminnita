@@ -26,6 +26,11 @@ export type CreateOrderInput = {
         utmTerm?: string;
         landingPage?: string;
         referrer?: string;
+        // Cookies do pixel da Meta lidos no navegador. Vao para a API de
+        // Conversoes junto da compra — sao o sinal que mais casa a venda com
+        // quem viu o anuncio.
+        fbp?: string;
+        fbc?: string;
     };
     // Codigo do link ?ref=CODIGO que trouxe a visita. Chega do navegador;
     // o servidor confere no banco se existe e se esta aprovada.

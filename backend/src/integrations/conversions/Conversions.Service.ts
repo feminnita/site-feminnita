@@ -23,6 +23,11 @@ type PurchaseInput = {
     // relatorio: evento que nao casa nao ensina o algoritmo, e a entrega piora.
     phone?: string | null;
     name?: string | null;
+    // Cookies do pixel, vindos do pedido. NAO levam hash: a Meta espera os dois
+    // em texto puro, ao contrario de e-mail, telefone e nome. Mandar com hash
+    // faz o evento ser aceito e nunca casar — falha silenciosa, a pior de todas.
+    fbp?: string | null;
+    fbc?: string | null;
     items: Array<{
         productId: string | null;
         productName: string;
@@ -104,6 +109,8 @@ async function sendMeta(input: PurchaseInput): Promise<void> {
         if (fn) userData.fn = [fn];
         if (ln) userData.ln = [ln];
     }
+    if (input.fbp) userData.fbp = input.fbp;
+    if (input.fbc) userData.fbc = input.fbc;
 
     await postJson(
         `https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${encodeURIComponent(metaToken)}`,

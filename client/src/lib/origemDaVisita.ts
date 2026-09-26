@@ -19,6 +19,10 @@ export type OrigemDaVisita = {
     utmTerm?: string;
     landingPage?: string;
     referrer?: string;
+    // Cookies do pixel da Meta, lidos no checkout (ver cookiesDaMeta abaixo).
+    // Não são guardados aqui — os cookies já duram sozinhos.
+    fbp?: string;
+    fbc?: string;
     em?: number;
 };
 
@@ -77,10 +81,35 @@ export function registrarOrigem() {
     }
 }
 
+/**
+ * Os dois cookies que o pixel da Meta cria: `_fbp` identifica o navegador e
+ * `_fbc` guarda o clique no anúncio (nasce do `fbclid` que vem na URL).
+ *
+ * São o sinal que mais casa a venda com quem viu o anúncio na API de Conversões.
+ * Mandando só o e-mail, a Meta reconheceu 4 das 5 vendas reais dos últimos 7
+ * dias (medido 26/09) — e evento que não casa com ninguém não ensina o
+ * algoritmo: a entrega piora e o resultado fica mais caro.
+ *
+ * Lidos na hora, não guardados: os próprios cookies já duram (o `_fbp` vive 90
+ * dias). Guardar cópia criaria uma segunda verdade para desencontrar da primeira.
+ */
+function cookiesDaMeta(): { fbp?: string; fbc?: string } {
+    if (typeof document === "undefined") return {};
+    const achar = (nome: string) =>
+        document.cookie
+            .split("; ")
+            .find((parte) => parte.startsWith(`${nome}=`))
+            ?.slice(nome.length + 1) || undefined;
+    return { fbp: achar("_fbp"), fbc: achar("_fbc") };
+}
+
 // Usada no checkout, para mandar junto com o pedido.
 export function origemDaVisita(): OrigemDaVisita {
+    const cookies = cookiesDaMeta();
     const o = ler();
-    if (!o) return {};
+    // Sem origem guardada os cookies ainda valem: quem chegou sem utm mas com
+    // clique de anúncio continua sendo reconhecido pela Meta.
+    if (!o) return cookies;
     const { em: _em, ...resto } = o;
-    return resto;
+    return { ...resto, ...cookies };
 }

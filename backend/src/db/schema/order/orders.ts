@@ -58,6 +58,13 @@ export const orders = pgTable('orders', {
     landingPage: text('landing_page'),
     referrer: text('referrer'),
 
+    // Cookies do pixel da Meta, capturados no checkout. Ficam no pedido porque
+    // a compra so e reportada a Meta na CONFIRMACAO do pagamento, quando o
+    // navegador que tinha os cookies ja nao esta mais na jogada.
+    // `_fbp` identifica o navegador; `_fbc`, o clique no anuncio.
+    fbp: text('fbp'),
+    fbc: text('fbc'),
+
     // Afiliada que trouxe este pedido, quando veio de ?ref=CODIGO.
     // Sem FK de proposito: apagar uma afiliada nao pode apagar nem alterar
     // pedido — pedido e documento, e o historico de comissao fica de pe.

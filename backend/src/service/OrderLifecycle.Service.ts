@@ -79,6 +79,10 @@ async function reportPurchaseConversion(order: {
     orderNumber: string;
     total: string;
     customerId: string | null;
+    // Capturados no checkout e guardados no pedido: aqui, na confirmacao do
+    // pagamento, o navegador que tinha os cookies ja nao esta mais na jogada.
+    fbp?: string | null;
+    fbc?: string | null;
 }) {
     const items = await OrdeRepository.findItemsByOrderId(order.id);
     const customer = order.customerId
@@ -96,6 +100,8 @@ async function reportPurchaseConversion(order: {
         // contou 4 das 5 vendas reais dos ultimos 7 dias (medido 26/09).
         phone: customer?.phone ?? null,
         name: customer?.name ?? null,
+        fbp: order.fbp ?? null,
+        fbc: order.fbc ?? null,
         items: items.map((i) => ({
             productId: i.productId,
             productName: i.productName,

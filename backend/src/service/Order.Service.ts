@@ -580,5 +580,7 @@ function limitarOrigem(o: unknown) {
         utmTerm: texto(origem.utmTerm),
         landingPage: texto(origem.landingPage),
         referrer: texto(origem.referrer),
+        fbp: texto(origem.fbp),
+        fbc: texto(origem.fbc),
     };
 }
