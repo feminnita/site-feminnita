@@ -96,7 +96,11 @@ export function findCustomerById(id: string) {
         columns: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            // Vai junto para a API de Conversoes: o telefone e o identificador
+            // que mais casa a compra com quem viu o anuncio. Nao sai daqui em
+            // claro — o servico manda com hash.
+            phone: true,
         },
     });
 }

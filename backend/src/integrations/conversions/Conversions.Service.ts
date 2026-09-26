@@ -17,6 +17,12 @@ type PurchaseInput = {
     value: number;          // total pago (R$)
     currency: string;       // 'BRL'
     email?: string | null;
+    // Telefone e nome entram porque a correspondencia e o que decide se a Meta
+    // reconhece a venda. Medido em 26/09: ela contou 4 das 5 compras reais dos
+    // ultimos 7 dias — mandando so o e-mail, uma em cada cinco some. E nao e so
+    // relatorio: evento que nao casa nao ensina o algoritmo, e a entrega piora.
+    phone?: string | null;
+    name?: string | null;
     items: Array<{
         productId: string | null;
         productName: string;
@@ -29,6 +35,26 @@ const TIMEOUT_MS = 5000;
 
 function sha256(value: string): string {
     return createHash('sha256').update(value.trim().toLowerCase()).digest('hex');
+}
+
+/**
+ * A Meta so casa o dado se ele chegar normalizado do jeito dela: minusculo, sem
+ * espaco, e telefone SO com digitos incluindo o codigo do pais. Hash de um texto
+ * fora do padrao nao bate com nada — e falha em silencio, que e o pior tipo.
+ */
+function telefoneHash(bruto: string): string | null {
+    let digitos = bruto.replace(/\D/g, '');
+    if (digitos.length < 10) return null;               // nao e telefone
+    if (!digitos.startsWith('55')) digitos = `55${digitos}`;
+    return createHash('sha256').update(digitos).digest('hex');
+}
+
+/** Primeiro e ultimo nome, separados — a Meta casa `fn` e `ln`, nao o nome inteiro. */
+function partesDoNome(bruto: string): { fn?: string; ln?: string } {
+    const partes = bruto.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (partes.length === 0) return {};
+    if (partes.length === 1) return { fn: sha256(partes[0]) };
+    return { fn: sha256(partes[0]), ln: sha256(partes[partes.length - 1]) };
 }
 
 async function postJson(url: string, body: unknown, headers?: Record<string, string>) {
@@ -65,8 +91,19 @@ async function sendMeta(input: PurchaseInput): Promise<void> {
     const { pixelId, metaToken } = env.conversions.meta;
     if (!pixelId || !metaToken) return;
 
+    // Cada identificador a mais aumenta a chance de a Meta reconhecer a compra.
+    // Todos vao com hash — a Meta nunca recebe o dado da cliente em claro.
     const userData: Record<string, unknown> = {};
     if (input.email) userData.em = [sha256(input.email)];
+    if (input.phone) {
+        const ph = telefoneHash(input.phone);
+        if (ph) userData.ph = [ph];
+    }
+    if (input.name) {
+        const { fn, ln } = partesDoNome(input.name);
+        if (fn) userData.fn = [fn];
+        if (ln) userData.ln = [ln];
+    }
 
     await postJson(
         `https://graph.facebook.com/v19.0/${pixelId}/events?access_token=${encodeURIComponent(metaToken)}`,

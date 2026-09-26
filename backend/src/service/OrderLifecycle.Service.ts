@@ -91,6 +91,11 @@ async function reportPurchaseConversion(order: {
         value: Number(order.total),
         currency: 'BRL',
         email: customer?.email ?? null,
+        // Telefone e nome ja estao carregados aqui e nao custam consulta nova.
+        // Sao o que faltava para a Meta reconhecer a compra: so com e-mail ela
+        // contou 4 das 5 vendas reais dos ultimos 7 dias (medido 26/09).
+        phone: customer?.phone ?? null,
+        name: customer?.name ?? null,
         items: items.map((i) => ({
             productId: i.productId,
             productName: i.productName,
