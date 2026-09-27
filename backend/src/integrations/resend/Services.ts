@@ -7,8 +7,13 @@ function formatBRL(value: string): string {
     return `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
 }
 
-function escapeHtml(value: string): string {
-    return value
+// Aceita nulo de proposito. Em 27/09/2026 um item de carrinho sem `size`
+// derrubou o e-mail inteiro com "Cannot read properties of undefined", e o job
+// so marca como enviado quando o envio da certo — entao a cliente ficava presa
+// na fila, selecionada de hora em hora, sem nunca receber nada. Campo faltando
+// tem que virar texto vazio, nao excecao: o pior e-mail e o que nao sai.
+function escapeHtml(value: string | null | undefined): string {
+    return String(value ?? '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')

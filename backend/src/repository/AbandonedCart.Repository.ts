@@ -27,7 +27,23 @@ export async function encontrarAbandonados(horas: number, limite: number) {
         select c.customer_id  as "customerId",
                cl.name        as "name",
                cl.email       as "email",
-               c.items        as "items",
+               -- Carrinho de VISITANTE gravado antes de 27/09/2026 guardou o
+               -- produto cru: o tamanho vem como "selectedSize" e a cor como
+               -- "selectedColor". O e-mail monta a linha com escapeHtml(i.size)
+               -- e quebrava nesses — duas clientes ficaram presas na fila,
+               -- selecionadas de hora em hora, sem nunca receber o lembrete.
+               -- Ler dos dois nomes faz o que ja esta gravado voltar a
+               -- funcionar, sem reescrever nada. E devolve so os quatro campos
+               -- que o e-mail usa, em vez do produto inteiro.
+               (
+                 select coalesce(jsonb_agg(jsonb_build_object(
+                          'name',     i->>'name',
+                          'size',     coalesce(i->>'size',  i->>'selectedSize',  ''),
+                          'color',    coalesce(i->>'color', i->>'selectedColor'),
+                          'quantity', coalesce((i->>'quantity')::int, 1)
+                        )), '[]'::jsonb)
+                 from jsonb_array_elements(c.items) i
+               )              as "items",
                c.updated_at   as "updatedAt"
         from carts c
         join customers cl on cl.id = c.customer_id

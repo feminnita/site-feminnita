@@ -21,6 +21,39 @@ import type { CartItem } from '../db/schema';
 
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * O carrinho da cliente LOGADA e convertido para o formato enxuto antes de
+ * subir. Esta rota recebia o objeto do navegador CRU — o produto inteiro, com
+ * descricao em HTML, todas as imagens e o preco do dia. Duas consequencias
+ * reais, medidas em 27/09/2026:
+ *
+ * 1. O tamanho chega como `selectedSize`, nao `size`. O e-mail de carrinho
+ *    abandonado monta a linha com `escapeHtml(i.size)` e quebrava em "Cannot
+ *    read properties of undefined". Duas clientes estavam presas na fila,
+ *    selecionadas de hora em hora, sem nunca receber o lembrete — que e
+ *    exatamente o que esta rota foi criada para permitir.
+ * 2. Um carrinho de 11 itens ocupava 56 KB, metade da tabela inteira, e esse
+ *    peso vai e volta do banco a cada gravacao.
+ */
+function enxugar(items: unknown[]): CartItem[] {
+    const texto = (v: unknown) => (typeof v === 'string' ? v : '');
+
+    return items
+        .map((bruto) => {
+            const i = (bruto ?? {}) as Record<string, unknown>;
+            return {
+                productId: texto(i.productId) || texto(i.id),
+                name: texto(i.name),
+                size: texto(i.size) || texto(i.selectedSize),
+                color: texto(i.color) || texto(i.selectedColor) || undefined,
+                quantity: Number(i.quantity) || 1,
+                selected: i.selected !== false,
+            };
+        })
+        // Item sem produto nao serve para lembrar nem para recompor o carrinho.
+        .filter((i) => i.productId !== '');
+}
+
 export async function guardarCarrinhoDeVisitante(input: {
     email: string;
     name?: string | null;
@@ -48,7 +81,10 @@ export async function guardarCarrinhoDeVisitante(input: {
         await AuthRepository.fillCustomerContact(existente.id, { phone: input.phone });
     }
 
-    await CartRepository.upsert(cliente.id, input.items);
+    const itens = enxugar(input.items);
+    if (itens.length === 0) return { guardado: false };
+
+    await CartRepository.upsert(cliente.id, itens);
 
     return { guardado: true };
 }
