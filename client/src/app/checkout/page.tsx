@@ -5,6 +5,7 @@ import { Header } from "../../components/layout/Header";
 import { useAuth } from "../../hooks/count/useAuth";
 import { useCart } from "../../hooks/cart/useCart";
 import { useCep } from "../../hooks/count/useCep";
+import { useCnpj } from "../../hooks/count/useCnpj";
 import { fetchProfile, updateProfile } from "../../services/accountService";
 import { fetchAddresses } from "../../services/addressesService";
 import {
@@ -24,7 +25,7 @@ import {
     trackAddShippingInfo,
     trackBeginCheckout,
 } from "../../utils/analytics";
-import { isValidateCpfCnpj } from "../../utils/checkout";
+import { isValidateCnpj, isValidateCpfCnpj } from "../../utils/checkout";
 import { PIX_DISCOUNT_RATE } from "../../utils/pricing";
 import type { AccountCustomer } from "../../types/account/account";
 import type { ShippingOption } from "../../types/checkout/checkout";
@@ -132,6 +133,7 @@ export default function CheckoutPage() {
     const { customer, loading: authLoading } = useAuth();
     const { selectedItems, ready, removeSelected } = useCart();
     const { lookup, loading: cepLoading } = useCep();
+    const { lookup: lookupCnpj, loading: cnpjLoading } = useCnpj();
 
     const [profile, setProfile] = useState<AccountCustomer | null>(null);
     const [paymentMethod, setPaymentMethod] = useState<"pix" | "boleto" | "card">("pix");
@@ -140,6 +142,9 @@ export default function CheckoutPage() {
     // quando o termo mudou desde o último aceite do cliente.
     const [reacceptVersion, setReacceptVersion] = useState<number | null>(null);
     const [reacceptChecked, setReacceptChecked] = useState(false);
+    // Avisa, na tela, que o endereço veio da Receita — para a cliente conferir
+    // se é mesmo ali que ela quer receber, e não descobrir na hora da entrega.
+    const [preenchidoPeloCnpj, setPreenchidoPeloCnpj] = useState(false);
     const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
     const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
     // Retirada escolhida de proposito ainda passa por uma pergunta: ela nao e um
@@ -281,6 +286,43 @@ export default function CheckoutPage() {
             }));
         }
         calculateShipping(cep);
+    };
+
+    /**
+     * Quem compra pelo CNPJ já digitou esses dados na Receita. Buscar lá e
+     * preencher tira uns dez campos do caminho — e é onde a lojista desiste,
+     * porque o checkout é a única parte da compra que dá trabalho.
+     *
+     * Só preenche campo VAZIO. O que a cliente digitou é dela e não é
+     * sobrescrito por nada: o endereço da Receita é a sede da empresa, e muita
+     * revendedora recebe em outro lugar.
+     */
+    const handleCnpjBlur = async () => {
+        const digitos = form.cpf.replace(/\D/g, "");
+        if (digitos.length !== 14 || !isValidateCnpj(digitos)) return;
+
+        const empresa = await lookupCnpj(digitos);
+        if (!empresa) return;
+
+        setForm((f) => ({
+            ...f,
+            name: f.name || empresa.razaoSocial,
+            cep: f.cep || empresa.cep,
+            street: f.street || empresa.logradouro,
+            number: f.number || empresa.numero,
+            complement: f.complement || empresa.complemento,
+            neighborhood: f.neighborhood || empresa.bairro,
+            city: f.city || empresa.cidade,
+            state: f.state || empresa.uf,
+        }));
+        setPreenchidoPeloCnpj(true);
+
+        // O frete não recalcula sozinho: o useEffect abaixo tem trava de uma vez
+        // só. Sem esta linha, quem chega com o CEP em branco vê o endereço
+        // aparecer e nenhuma opção de entrega.
+        if (!form.cep.replace(/\D/g, "") && empresa.cep.length === 8) {
+            calculateShipping(empresa.cep);
+        }
     };
 
     useEffect(() => {
@@ -758,9 +800,23 @@ export default function CheckoutPage() {
                                         onChange={(e) =>
                                             set("cpf", e.target.value.replace(/\D/g, "").slice(0, 14))
                                         }
+                                        onBlur={handleCnpjBlur}
                                         className={inputClass}
                                         inputMode="numeric"
                                     />
+                                    {/* O container é grid de 2 colunas: o aviso ocupa a linha
+                                        inteira, senão rouba a metade do campo seguinte. */}
+                                    {cnpjLoading && (
+                                        <p className="text-sm text-gray-500 sm:col-span-2">
+                                            Buscando os dados do CNPJ...
+                                        </p>
+                                    )}
+                                    {preenchidoPeloCnpj && !cnpjLoading && (
+                                        <p className="text-sm text-gray-600 sm:col-span-2">
+                                            Preenchemos com os dados do CNPJ. Confira o endereço —
+                                            se você recebe em outro lugar, é só trocar.
+                                        </p>
+                                    )}
                                     <input
                                         name="phone"
                                         type="tel"
