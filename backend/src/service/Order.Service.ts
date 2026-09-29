@@ -13,10 +13,18 @@ import type { CreateOrderInput } from '../types/order';
 
 /**
  * Teto de parcelas no cartão — o mesmo MAX_PARCELAS de client/src/lib/parcelamento.ts.
- * No Asaas 2x a 6x custam a mesma taxa (3,49%, cobrada uma vez); de 7x em diante
- * sobe. Se mudar lá, muda aqui: a tela promete o número e é este que vai ao Asaas.
+ *
+ * Este é o número que chega ao Asaas. A tela promete; é AQUI que a cobrança
+ * nasce. Em 29/09/2026 a tela foi para três e esta constante ficou em seis por
+ * algumas horas — nesse intervalo qualquer chamada pedindo 6x teria sido aceita,
+ * porque o clamp abaixo usa este valor. Mudar um lado sem o outro é o erro.
+ *
+ * Voltou para três por CAIXA, não por taxa: o "receba em 32 dias" do Asaas vale
+ * por PARCELA, então numa venda em 6x a última entra sete meses depois. A taxa
+ * não muda nessa faixa — 2x a 6x custam os mesmos 3,49%, cobrados uma vez; de
+ * 7x em diante sobe.
  */
-export const MAX_PARCELAS = 6;
+export const MAX_PARCELAS = 3;
 
 
 export async function createOrder(input: CreateOrderInput) {
