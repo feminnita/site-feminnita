@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { TEXTO_PARCELAMENTO } from "@/src/lib/parcelamento";
 
 export const metadata: Metadata = {
   title: "Central de Ajuda",
@@ -42,7 +43,7 @@ const faq = [
   },
   {
     q: "Quais formas de pagamento vocês aceitam?",
-    a: "Pix, boleto bancário e cartão de crédito em até 6x sem juros.",
+    a: `Pix, boleto bancário e cartão de crédito ${TEXTO_PARCELAMENTO}.`,
   },
   {
     q: "Como é calculado o frete?",

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { TEXTO_PARCELAMENTO } from "@/src/lib/parcelamento";
 
 export const metadata: Metadata = {
   title: "Como Comprar",
@@ -48,7 +49,7 @@ export default function ComoComprarPage() {
               <li>
                 <strong>Escolha o pagamento.</strong> Você paga com{" "}
                 <strong>Pix</strong>, <strong>boleto bancário</strong> ou{" "}
-                <strong>cartão de crédito em até 6x sem juros</strong>.
+                <strong>cartão de crédito {TEXTO_PARCELAMENTO}</strong>.
               </li>
               <li>
                 <strong>Finalize a compra.</strong> Após a confirmação do
