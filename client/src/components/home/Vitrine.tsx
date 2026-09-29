@@ -23,15 +23,18 @@ function otimizado(url: string) {
  * da seção (#E9E4DF) ocupando a tela inteira. Foi assim que a home apareceu
  * em 29/09/2026.
  *
- * Agora são dois arquivos fixos, o segundo 3 de cada vídeo, hospedados no R2.
- * São dois porque o enquadramento difere — o desktop é 16:9 e o mobile 4:5 —
- * e o atributo `poster` não aceita media query, então a escolha é feita no
+ * As capas certas existiam desde 26/08/2026, na mesma pasta em que o vídeo foi
+ * entregue — 1920x1080 e 1080x1350, exatamente as medidas de cada vídeo. Nunca
+ * foram usadas: o código preferiu depender da Cloudinary gerar uma sozinha.
+ *
+ * São duas porque o enquadramento difere — o desktop é 16:9 e o mobile 4:5 — e
+ * o atributo `poster` não aceita media query, então a escolha é feita no
  * cliente, depois de montar.
  */
 const CAPA_DESKTOP =
-    "https://pub-3c261fc069aa46e795f1276f1f25ed51.r2.dev/vitrine/capa-desktop.jpg";
+    "https://pub-3c261fc069aa46e795f1276f1f25ed51.r2.dev/vitrine/capa-desktop.webp";
 const CAPA_MOBILE =
-    "https://pub-3c261fc069aa46e795f1276f1f25ed51.r2.dev/vitrine/capa-mobile.jpg";
+    "https://pub-3c261fc069aa46e795f1276f1f25ed51.r2.dev/vitrine/capa-mobile.webp";
 
 type VitrineProps = {
     videoSection: VideoSection;
@@ -64,6 +67,16 @@ export function Vitrine({ videoSection }: VitrineProps) {
             if (!carregou) {
                 v.load();
                 carregou = true;
+            }
+
+            // Só toca quando o navegador diz que tem o que tocar à frente
+            // (HAVE_FUTURE_DATA). Dar play com o buffer vazio faz o vídeo
+            // engasgar nos primeiros segundos — e agora que existe capa,
+            // esperar não custa nada: a cliente vê a imagem enquanto carrega,
+            // em vez de um vídeo tropeçando.
+            if (v.readyState < 3) {
+                v.addEventListener("canplay", tocar, { once: true });
+                return;
             }
 
             v.play().catch((erro: unknown) => {
@@ -101,6 +114,7 @@ export function Vitrine({ videoSection }: VitrineProps) {
             document.removeEventListener("visibilitychange", aoTrocarAba);
             document.removeEventListener("pointerdown", tocar);
             document.removeEventListener("scroll", tocar);
+            v.removeEventListener("canplay", tocar);
         };
     }, []);
 
