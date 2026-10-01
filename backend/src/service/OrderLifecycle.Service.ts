@@ -188,8 +188,26 @@ export async function updateOrderStatus(
     return order;
 }
 
+/**
+ * Por quanto tempo o pedido nao pago segura o estoque antes de ser cancelado.
+ *
+ * O Pix era 60 minutos, e era ele que estava matando a venda. Medido em
+ * 01/10/2026, nos 90 dias anteriores:
+ *   - 19 pedidos Pix nao pagos morreram com media de 41 min e MAXIMO de 61 min.
+ *     Nenhum passou disso, porque o cancelamento vinha antes;
+ *   - dos 6 Pix que foram pagos, 5 so pagaram DEPOIS DE 3 HORAS.
+ * Ou seja: a cliente nao desistia, ela era cancelada antes de conseguir pagar.
+ * Eram R$ 4.348 em 60 dias.
+ *
+ * Faz sentido para quem compra aqui: e revendedora, pedido de atacado, precisa
+ * organizar o dinheiro. Uma hora e prazo de delivery. E o boleto ja tinha 3
+ * dias, entao o Pix com 1 hora era a incoerencia, nao as 24h.
+ *
+ * O preco e reserva de estoque parada por mais tempo. Com milhares de unidades
+ * por produto, o risco de faltar por isso e menor que a venda perdida.
+ */
 const RESERVATION_TTL_MINUTES: Record<string, number> = {
-    pix: 60,
+    pix: 24 * 60,
     card: 60,
     boleto: 3 * 24 * 60,
 };
