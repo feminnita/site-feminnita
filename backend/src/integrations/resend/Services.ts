@@ -2,6 +2,36 @@ import * as EmailClient from '../resend/Clients';
 import { emailLayout } from './layout';
 import { env } from '../../config/env';
 import type { OrderEmailData } from './types';
+import * as SiteSettingsRepository from '../../repository/SiteSettings.Repository';
+
+/**
+ * Convite do Grupo VIP, para quem JA comprou.
+ *
+ * Ate 06/10/2026 o convite ficava no popup que abre 12s depois da cliente
+ * chegar, com o titulo "As promocoes saem no grupo antes do site" — tirava do
+ * site quem ainda estava escolhendo. Depois de pago, o convite nao custa venda
+ * e traz a cliente de volta. O link e o mesmo do site_settings (grupo_vip):
+ * venceu, troca la e vale aqui tambem. Se a leitura falhar, o e-mail sai sem o
+ * bloco — nunca deixa de sair por causa dele.
+ */
+async function blocoGrupoVip(): Promise<string> {
+    try {
+        const row = await SiteSettingsRepository.findByKey('grupo_vip');
+        const url = String((row?.value as { url?: string } | undefined)?.url ?? '');
+        if (!/^https:\/\/chat\.whatsapp\.com\//.test(url)) return '';
+        return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                   style="margin:20px 0 0;background:#EEF9F2;border-radius:12px">
+              <tr><td style="padding:16px 18px;font-size:14px;color:#18181b">
+                <strong>Grupo VIP de revendedoras 💚</strong><br>
+                <span style="color:#52525b">Novidades e promoções de atacado no nosso grupo do WhatsApp.</span><br>
+                <a href="${escapeHtml(url)}" style="display:inline-block;margin-top:10px;color:#128C4A;font-weight:bold;text-decoration:none">Entrar no Grupo VIP →</a>
+              </td></tr>
+            </table>`;
+    } catch (error) {
+        console.error('Grupo VIP fora do e-mail (falha ao ler site_settings):', error);
+        return '';
+    }
+}
 
 function formatBRL(value: string): string {
     return `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
@@ -61,6 +91,7 @@ export async function sendOrderReceived(data: OrderEmailData) {
 
 export async function sendPaymentConfirmed(data: OrderEmailData) {
     try {
+        const grupoVip = await blocoGrupoVip();
         await EmailClient.sendEmail({
             to: data.customerEmail,
             subject: `✅ Pagamento confirmado — ${data.orderNumber}`,
@@ -73,7 +104,8 @@ export async function sendPaymentConfirmed(data: OrderEmailData) {
       ${resumoDoPedido(data.orderNumber, data.total)}
       <p style="margin:0;font-size:14px;color:#71717a">
         📦 Assim que despachar, você recebe o código de rastreio por aqui.
-      </p>`,
+      </p>
+      ${grupoVip}`,
                 botao: { texto: 'Acompanhar pedido', url: `${env.clientUrl}/minha-conta` },
             }),
         });

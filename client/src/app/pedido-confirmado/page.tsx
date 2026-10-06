@@ -3,6 +3,7 @@
 import { Header } from "@/src/components/layout/Header";
 import { MAX_PARCELAS } from "@/src/lib/parcelamento";
 import { apiGet } from "@/src/services/api";
+import { fetchSettings } from "@/src/services/settingsService";
 import { changePaymentMethod } from "@/src/services/checkoutService";
 import type { OrderPaymentResult } from "@/src/types/checkout/checkout";
 import {
@@ -27,7 +28,22 @@ function OrderConfirmedContent() {
     const [loaded, setLoaded] = useState(false);
     const [paid, setPaid] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [grupoVipUrl, setGrupoVipUrl] = useState("");
     const firedRef = useRef(false);
+
+    // Convite do Grupo VIP so DEPOIS de pago: antes disso a cliente ainda tem
+    // um PIX ou boleto para pagar, e o WhatsApp seria distracao. Ate 06/10/2026
+    // o convite ficava no pop-up de entrada e tirava do site quem estava
+    // escolhendo. O link vem do site_settings (grupo_vip), o mesmo do e-mail.
+    useEffect(() => {
+        if (!paid || grupoVipUrl) return;
+        fetchSettings()
+            .then((s) => {
+                const url = String((s?.grupo_vip as { url?: string } | undefined)?.url ?? "");
+                if (/^https:\/\/chat\.whatsapp\.com\//.test(url)) setGrupoVipUrl(url);
+            })
+            .catch(() => {});
+    }, [paid, grupoVipUrl]);
 
     // sessionStorage só existe no navegador — lê depois de montar
     useEffect(() => {
@@ -429,6 +445,23 @@ function OrderConfirmedContent() {
                             ))}
                         </ol>
                     </div>
+
+                    {paid && grupoVipUrl && (
+                        <div className="mb-6 rounded-xl border border-[#25D366]/30 bg-[#25D366]/5 p-6 text-center">
+                            <h3 className="font-semibold text-gray-900">Grupo VIP de revendedoras 💚</h3>
+                            <p className="mt-1 text-sm text-gray-600">
+                                Novidades e promoções de atacado no nosso grupo do WhatsApp.
+                            </p>
+                            <a
+                                href={grupoVipUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-4 inline-flex items-center justify-center rounded-lg bg-[#25D366] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1fb457]"
+                            >
+                                Entrar no Grupo VIP
+                            </a>
+                        </div>
+                    )}
 
                     {/* Actions */}
                     <div className="flex gap-3">

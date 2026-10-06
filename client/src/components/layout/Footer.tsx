@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { enderecoEmLinha, razaoSocialComCnpj } from "@/src/lib/empresa";
 import { TEXTO_PARCELAMENTO } from "@/src/lib/parcelamento";
+import { GrupoVipLink } from "@/src/components/common/GrupoVipLink";
 
 // Rodapé GLOBAL — renderizado no ClientBody, aparece em todas as páginas uma
 // única vez. Dados de contato reais da Feminnita. Formas de pagamento em texto
@@ -73,6 +74,7 @@ export function Footer() {
                   WhatsApp: (22) 99281-0707
                 </a>
               </li>
+              <GrupoVipLink />
               <li>
                 <a
                   href="mailto:feminnita@gmail.com"
