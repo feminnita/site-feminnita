@@ -141,7 +141,26 @@ export async function findOrderWithItemsByNumber(orderNumber: string) {
     const items = await db.query.orderItems.findMany({
         where: eq(orderItems.orderId, order.id),
     });
-    return { order, items };
+
+    // O codigo do SKU (ex: 50700FROGG) e o que a revendedora usa para saber de
+    // que peca se trata — so o nome nao basta. A coluna `reference` existe no
+    // banco mas nao no schema desta API, entao vem por SQL direto.
+    const skuIds = items.map((i) => i.skuId).filter((id): id is string => Boolean(id));
+    const referencias = new Map<string, string>();
+    if (skuIds.length > 0) {
+        const { rows } = await db.execute(sql`
+            SELECT id, reference FROM products_skus
+            WHERE id IN (${sql.join(skuIds.map((id) => sql`${id}::uuid`), sql`, `)})
+        `);
+        for (const r of rows as { id: string; reference: string | null }[]) {
+            if (r.reference) referencias.set(r.id, r.reference);
+        }
+    }
+
+    return {
+        order,
+        items: items.map((i) => ({ ...i, reference: i.skuId ? referencias.get(i.skuId) ?? null : null })),
+    };
 }
 
 export async function findItemsByOrderIds(orderIds: string[]) {

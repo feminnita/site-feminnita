@@ -21,10 +21,28 @@ export async function romaneio(orderNumber: string): Promise<string> {
         if (!achado || achado.items.length === 0) return '';
         const { order, items } = achado;
         const celula = 'padding:8px 6px;border-bottom:1px solid #eeeeee;font-size:13px;color:#18181b;vertical-align:top';
+        // Foto pelo otimizador do site: o original no R2 tem ~2 MB, e 24 itens
+        // dariam ~47 MB de e-mail. Reduzida a 128px fica com ~4 KB e sai em JPEG
+        // para quem nao aceita webp (Outlook). So nome nao basta para a
+        // revendedora reconhecer a peca — por isso foto e codigo do SKU.
+        const foto = (url: string | null) =>
+            url && /^https:\/\//.test(url)
+                ? `<img src="${escapeHtml(`${env.clientUrl}/_next/image?url=${encodeURIComponent(url)}&w=128&q=75`)}" width="56" height="56" alt="" style="display:block;width:56px;height:56px;object-fit:cover;border-radius:8px;border:0">`
+                : '';
         const linhas = items.map((i) => {
             const variacao = [i.color, i.size ? `Tam. ${i.size}` : ''].filter(Boolean).join(' · ');
+            const img = foto(i.productImage);
             return `<tr>
-                <td style="${celula}">${escapeHtml(i.productName)}${variacao ? `<br><span style="color:#71717a;font-size:12px">${escapeHtml(variacao)}</span>` : ''}</td>
+                <td style="${celula}">
+                  <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                    ${img ? `<td style="padding:0 10px 0 0;vertical-align:top">${img}</td>` : ''}
+                    <td style="vertical-align:top;font-size:13px;color:#18181b">
+                      ${escapeHtml(i.productName)}
+                      ${i.reference ? `<br><span style="font-family:monospace;font-size:12px;font-weight:bold;color:#8C2F39">Ref: ${escapeHtml(i.reference)}</span>` : ''}
+                      ${variacao ? `<br><span style="color:#71717a;font-size:12px">${escapeHtml(variacao)}</span>` : ''}
+                    </td>
+                  </tr></table>
+                </td>
                 <td style="${celula};text-align:center">${i.quantity}</td>
                 <td style="${celula};text-align:right;white-space:nowrap">${formatBRL(i.unitPrice)}</td>
                 <td style="${celula};text-align:right;white-space:nowrap">${formatBRL(i.totalPrice)}</td>
