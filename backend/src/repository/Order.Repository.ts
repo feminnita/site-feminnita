@@ -132,6 +132,18 @@ export function findItemsByOrderID(orderId: string) {
     });
 }
 
+/** Pedido + itens pelo numero (FEM-1234). Usado pelo romaneio dos e-mails. */
+export async function findOrderWithItemsByNumber(orderNumber: string) {
+    const order = await db.query.orders.findFirst({
+        where: eq(orders.orderNumber, orderNumber),
+    });
+    if (!order) return null;
+    const items = await db.query.orderItems.findMany({
+        where: eq(orderItems.orderId, order.id),
+    });
+    return { order, items };
+}
+
 export async function findItemsByOrderIds(orderIds: string[]) {
     if (orderIds.length === 0) return [];
     return db.query.orderItems.findMany({

@@ -3,6 +3,57 @@ import { emailLayout } from './layout';
 import { env } from '../../config/env';
 import type { OrderEmailData } from './types';
 import * as SiteSettingsRepository from '../../repository/SiteSettings.Repository';
+import * as OrderRepository from '../../repository/Order.Repository';
+
+/**
+ * Romaneio: a copia do que a cliente comprou, item a item.
+ *
+ * As revendedoras usam isto para saber o preco de cada peca na hora de cobrar
+ * a cliente delas. Ate 06/10/2026 os e-mails so traziam numero e total, e elas
+ * pediam o romaneio a Chris por WhatsApp. Vai no "Recebemos seu pedido" (PIX e
+ * boleto, na hora da compra) e no "Pagamento confirmado" (todo mundo, inclusive
+ * cartao, que nao recebe o primeiro). Se a leitura falhar, o e-mail sai sem a
+ * tabela — o pior e-mail e o que nao sai.
+ */
+export async function romaneio(orderNumber: string): Promise<string> {
+    try {
+        const achado = await OrderRepository.findOrderWithItemsByNumber(orderNumber);
+        if (!achado || achado.items.length === 0) return '';
+        const { order, items } = achado;
+        const celula = 'padding:8px 6px;border-bottom:1px solid #eeeeee;font-size:13px;color:#18181b;vertical-align:top';
+        const linhas = items.map((i) => {
+            const variacao = [i.color, i.size ? `Tam. ${i.size}` : ''].filter(Boolean).join(' · ');
+            return `<tr>
+                <td style="${celula}">${escapeHtml(i.productName)}${variacao ? `<br><span style="color:#71717a;font-size:12px">${escapeHtml(variacao)}</span>` : ''}</td>
+                <td style="${celula};text-align:center">${i.quantity}</td>
+                <td style="${celula};text-align:right;white-space:nowrap">${formatBRL(i.unitPrice)}</td>
+                <td style="${celula};text-align:right;white-space:nowrap">${formatBRL(i.totalPrice)}</td>
+            </tr>`;
+        }).join('');
+        const pecas = items.reduce((s, i) => s + i.quantity, 0);
+        const desconto = Number(order.discount ?? 0);
+        const linhaTotal = (rotulo: string, valor: string, forte = false) =>
+            `<tr><td colspan="3" style="padding:6px;font-size:13px;color:${forte ? '#18181b' : '#71717a'};text-align:right;${forte ? 'font-weight:bold' : ''}">${rotulo}</td>
+                 <td style="padding:6px;font-size:13px;text-align:right;white-space:nowrap;${forte ? 'font-weight:bold;color:#8C2F39' : 'color:#18181b'}">${valor}</td></tr>`;
+        return `<p style="margin:24px 0 8px;font-size:15px;font-weight:bold;color:#18181b">Romaneio do pedido ${escapeHtml(order.orderNumber)}</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+              <tr>
+                <th style="padding:6px;font-size:12px;color:#71717a;text-align:left;border-bottom:2px solid #e4e4e7">Produto</th>
+                <th style="padding:6px;font-size:12px;color:#71717a;text-align:center;border-bottom:2px solid #e4e4e7">Qtd</th>
+                <th style="padding:6px;font-size:12px;color:#71717a;text-align:right;border-bottom:2px solid #e4e4e7">Unit.</th>
+                <th style="padding:6px;font-size:12px;color:#71717a;text-align:right;border-bottom:2px solid #e4e4e7">Total</th>
+              </tr>
+              ${linhas}
+              ${linhaTotal(`Subtotal (${pecas} ${pecas === 1 ? 'peça' : 'peças'})`, formatBRL(order.subtotal))}
+              ${desconto > 0 ? linhaTotal('Desconto', `− ${formatBRL(String(desconto))}`) : ''}
+              ${linhaTotal(`Frete${order.shippingMethod ? ` (${escapeHtml(order.shippingMethod)})` : ''}`, formatBRL(String(order.shippingCost ?? 0)))}
+              ${linhaTotal('Total', formatBRL(order.total), true)}
+            </table>`;
+    } catch (error) {
+        console.error(`Romaneio fora do e-mail (${orderNumber}):`, error);
+        return '';
+    }
+}
 
 /**
  * Convite do Grupo VIP, para quem JA comprou.
@@ -68,6 +119,7 @@ function resumoDoPedido(numero: string, total: string): string {
 
 export async function sendOrderReceived(data: OrderEmailData) {
     try {
+        const tabela = await romaneio(data.orderNumber);
         await EmailClient.sendEmail({
             to: data.customerEmail,
             subject: `🧾 Recebemos seu pedido ${data.orderNumber}`,
@@ -80,7 +132,8 @@ export async function sendOrderReceived(data: OrderEmailData) {
       ${resumoDoPedido(data.orderNumber, data.total)}
       <p style="margin:0;font-size:14px;color:#71717a">
         Assim que o pagamento cair, a gente te avisa por aqui. ✅
-      </p>`,
+      </p>
+      ${tabela}`,
                 botao: { texto: 'Ver meu pedido', url: `${env.clientUrl}/minha-conta` },
             }),
         })
@@ -91,6 +144,7 @@ export async function sendOrderReceived(data: OrderEmailData) {
 
 export async function sendPaymentConfirmed(data: OrderEmailData) {
     try {
+        const tabela = await romaneio(data.orderNumber);
         const grupoVip = await blocoGrupoVip();
         await EmailClient.sendEmail({
             to: data.customerEmail,
@@ -105,6 +159,7 @@ export async function sendPaymentConfirmed(data: OrderEmailData) {
       <p style="margin:0;font-size:14px;color:#71717a">
         📦 Assim que despachar, você recebe o código de rastreio por aqui.
       </p>
+      ${tabela}
       ${grupoVip}`,
                 botao: { texto: 'Acompanhar pedido', url: `${env.clientUrl}/minha-conta` },
             }),
