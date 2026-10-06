@@ -20,7 +20,12 @@ export function WhatsAppButton() {
   const [message, setMessage] = useState(
     "Olá! Vim pelo site e quero saber mais sobre os produtos.",
   );
-  const [enabled, setEnabled] = useState(true);
+  // Nasce DESLIGADO e so aparece se a configuracao mandar ligar. Nascia ligado
+  // e sumia depois de ler a configuracao: no celular com internet lenta o botao
+  // ficava segundos na tela, e cliente continuava chegando no WhatsApp com
+  // "Vim pelo site" mesmo com ele desligado (06/10/2026). Sem configuracao ou
+  // se a leitura falhar, fica desligado — a Chris quer a cliente comprando no site.
+  const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
     fetchSettings().then((map) => {
@@ -28,11 +33,7 @@ export function WhatsAppButton() {
       if (map.whatsapp_number) setPhone(asText(map.whatsapp_number));
       if (map.whatsapp_chat_message)
         setMessage(asText(map.whatsapp_chat_message));
-      if (
-        map.whatsapp_chat_enabled !== undefined &&
-        asText(map.whatsapp_chat_enabled) === "false"
-      )
-        setEnabled(false);
+      setEnabled(asText(map.whatsapp_chat_enabled) === "true");
     });
   }, []);
 
