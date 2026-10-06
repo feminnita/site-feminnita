@@ -16,18 +16,20 @@
 export const EMPRESA = {
     razaoSocial: "FNT CONFECÇÕES LTDA",
     cnpj: "62.893.101/0001-96",
+    // A empresa mudou para a Av. Hamburgo em 2026. O endereco da Mal. Rondon
+    // ficou aqui depois da mudanca, mostrando o lugar antigo no rodape.
     endereco: {
-        logradouro: "Rua Marechal Rondon, 669 A",
-        bairro: "Cônego",
+        logradouro: "Avenida Hamburgo, 323",
+        bairro: "Mury",
         cidade: "Nova Friburgo",
         uf: "RJ",
-        cep: "28621-130",
+        cep: "28615-230",
     },
     email: "feminnita@gmail.com",
     whatsapp: "(22) 99281-0707",
 } as const;
 
-/** Uma linha: "Rua X, 669 A — Cônego — Nova Friburgo/RJ — CEP 28621-130" */
+/** Uma linha: "Avenida Hamburgo, 323 — Mury — Nova Friburgo/RJ — CEP 28615-230" */
 export function enderecoEmLinha(): string {
     const e = EMPRESA.endereco;
     return `${e.logradouro} — ${e.bairro} — ${e.cidade}/${e.uf} — CEP ${e.cep}`;
