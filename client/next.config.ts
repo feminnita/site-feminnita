@@ -1,6 +1,16 @@
 import type { NextConfig } from "next";
+import { REDIRECIONAMENTOS_TRAY } from "./redirecionamentos-tray";
 
 const nextConfig: NextConfig = {
+  // Enderecos da loja antiga (Tray) que o Google ainda mostrava, levando para a
+  // pagina equivalente. 301 permanente: o Google transfere a posicao.
+  async redirects() {
+    return REDIRECIONAMENTOS_TRAY.map(([source, destination]) => ({
+      source,
+      destination,
+      permanent: true,
+    }));
+  },
   images: {
     // Conta Vercel em PRO (sem teto de transformações; otimização ~US$0,03). Então
     // priorizamos QUALIDADE: avif (menor download) + webp de fallback, e larguras
