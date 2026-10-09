@@ -42,9 +42,12 @@ export function createCustomer(input: {
     cpfCnpj: string;
     phone?: string
 }) {
+    // Sem notificacao do Asaas: quem avisa a cliente sobre o pedido e o pagamento
+    // e a loja, pelos e-mails dela. O aviso de cobranca do Asaas chegava junto e
+    // em nome do Asaas — uma segunda mensagem, com outra cara, sobre a mesma compra.
     return request<AsaasCustomer>('/customers', {
         method: 'POST',
-        body: input
+        body: { ...input, notificationDisabled: true }
     });
 }
 
