@@ -1,7 +1,12 @@
 import * as AsaasClient from '../asass/Client';
 import type { CustomerForCharge, OrderForCharge } from './types';
 
-export async function ensureAsaasCustomer(customer: CustomerForCharge): Promise<string> {
+// onCreated: o chamador grava o id NA HORA em que o cliente nasce no Asaas, e nao
+// so depois da cobranca aprovada. Antes, cartao recusado = id perdido, e cada nova
+// tentativa da cliente criava OUTRO cliente no Asaas (4 tentativas, 4 clientes).
+type OnCustomerCreated = (asaasCustomerId: string) => Promise<unknown>;
+
+export async function ensureAsaasCustomer(customer: CustomerForCharge, onCreated?: OnCustomerCreated): Promise<string> {
     if (customer.asaasCustomerId) return customer.asaasCustomerId;
 
     const created = await AsaasClient.createCustomer({
@@ -10,6 +15,7 @@ export async function ensureAsaasCustomer(customer: CustomerForCharge): Promise<
         cpfCnpj: customer.cpf,
         phone: customer.phone ?? undefined,
     });
+    await onCreated?.(created.id);
 
     return created.id;
 }
@@ -23,8 +29,8 @@ function isInvalidCustomer(err: unknown): boolean {
 // invalid_customer, recria o cliente e tenta UMA vez — em vez de derrubar o
 // pedido e deixar essa cliente permanentemente impedida de comprar. Retorna o id
 // efetivo para o chamador persistir.
-export async function createChargeWithCustomer(order: OrderForCharge, customer: CustomerForCharge) {
-    let asaasCustomerId = await ensureAsaasCustomer(customer);
+export async function createChargeWithCustomer(order: OrderForCharge, customer: CustomerForCharge, onCustomerCreated?: OnCustomerCreated) {
+    let asaasCustomerId = await ensureAsaasCustomer(customer, onCustomerCreated);
     try {
         const result = await createChargeForOrder(order, asaasCustomerId);
         return { ...result, asaasCustomerId };
@@ -37,6 +43,7 @@ export async function createChargeWithCustomer(order: OrderForCharge, customer: 
             phone: customer.phone ?? undefined,
         });
         asaasCustomerId = recreated.id;
+        await onCustomerCreated?.(asaasCustomerId);
         const result = await createChargeForOrder(order, asaasCustomerId);
         return { ...result, asaasCustomerId };
     }
