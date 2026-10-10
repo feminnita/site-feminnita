@@ -280,6 +280,7 @@ export async function createOrder(input: CreateOrderInput) {
                 remoteIp: input.remoteIp,
             },
             { ...customer, cpf: customer.cpf },
+            (novoId) => OrderRepository.saveCustomerAsaasId(customer.id, novoId),
         );
 
         // Persiste o id efetivo do cliente Asaas (novo, ou recriado no retry de invalid_customer).
@@ -311,7 +312,16 @@ export async function createOrder(input: CreateOrderInput) {
         };
     } catch (error) {
         console.error(`Falha ao criar cobrança do pedido ${order.orderNumber}: `, error);
-        await OrderRepository.cancelOrdeAndReleaseStock(order.id);
+        // O motivo do Asaas fica GRAVADO no pedido (o log do Render some em poucos dias
+        // e era o unico lugar onde ele existia).
+        const motivo = error instanceof Error ? error.message : String(error);
+        await OrderRepository.cancelOrdeAndReleaseStock(order.id, `Cobranca falhou: ${motivo}`.slice(0, 1000));
+        // Asaas respondeu 400 numa cobranca de cartao = o cartao nao passou (recusa do
+        // banco/antifraude ou dado do cartao invalido). A cliente precisa SABER disso e
+        // ver a saida pelo Pix — "tente de novo" a fazia insistir no mesmo cartao.
+        if (input.paymentMethod === 'card' && motivo.startsWith('ASASS_ERROR 400')) {
+            throw new Error('CARD_DECLINED');
+        }
         throw new Error('PAYMENT_CREATION_FAILED');
     }
 }
@@ -524,6 +534,7 @@ export async function changePaymentMethod(
             total: OrderDomain.fromCents(totalCents),
         } as never,
         { ...customer, cpf: customer.cpf ?? '' } as never,
+        (novoId) => OrderRepository.saveCustomerAsaasId(customer.id, novoId),
     );
 
     if (customer.asaasCustomerId !== asaasCustomerId) {

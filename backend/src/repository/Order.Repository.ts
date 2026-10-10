@@ -205,7 +205,7 @@ export function findCouponById(couponId: string) {
     return db.query.coupons.findFirst({ where: eq(coupons.id, couponId) });
 }
 
-export async function cancelOrdeAndReleaseStock(orderId: string) {
+export async function cancelOrdeAndReleaseStock(orderId: string, motivo?: string) {
     const items = await db.query.orderItems.findMany({ where: eq(orderItems.orderId, orderId) });
     await db
         .update(orders).set({
@@ -213,6 +213,7 @@ export async function cancelOrdeAndReleaseStock(orderId: string) {
             // falha na criação da cobrança: payment_status vai para 'failed' para
             // não aparecer como "Pendente" na fila de trabalho do painel.
             paymentStatus: 'failed',
+            ...(motivo && { notes: motivo }),
             updatedAt: new Date()
         })
         .where(eq(orders.id, orderId));

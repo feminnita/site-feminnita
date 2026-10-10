@@ -186,6 +186,10 @@ const ERROR_MESSAGES: [string, string][] = [
         "A opção de frete escolhida não está mais disponível. Recalcule o frete.",
     ],
     [
+        "CARD_DECLINED",
+        "Seu cartão não foi aprovado pelo banco. Confira os dados do cartão ou pague com Pix, que é aprovado na hora e ainda tem desconto.",
+    ],
+    [
         "PAYMENT_CREATION_FAILED",
         "Não conseguimos gerar o pagamento agora. Tente de novo em instantes.",
     ],

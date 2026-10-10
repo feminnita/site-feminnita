@@ -156,6 +156,9 @@ export default function CheckoutPage() {
     const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
     const [couponLoading, setCouponLoading] = useState(false);
     const [error, setError] = useState("");
+    // Cartao recusado: a mensagem ganha o atalho "Pagar com Pix" (em vez de a
+    // cliente insistir no mesmo cartao 3x seguidas).
+    const [cardDeclined, setCardDeclined] = useState(false);
     const [summaryOpen, setSummaryOpen] = useState(false);
     const beginTracked = useRef(false);
     const autoShippingDone = useRef(false);
@@ -533,6 +536,7 @@ export default function CheckoutPage() {
         }
 
         setError("");
+        setCardDeclined(false);
         setIsProcessing(true);
 
         try {
@@ -611,6 +615,7 @@ export default function CheckoutPage() {
                 setReacceptChecked(false);
                 setError("");
             } else {
+                setCardDeclined(err instanceof ApiError && err.message.includes("CARD_DECLINED"));
                 setError(
                     err instanceof ApiError
                         ? mapOrderError(err.message)
@@ -672,9 +677,24 @@ export default function CheckoutPage() {
                 </h1>
 
                 {error && (
-                    <div className="mb-6 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                        <AlertCircle size={16} />
-                        <p>{error}</p>
+                    <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                        <div className="flex items-center gap-2">
+                            <AlertCircle size={16} className="shrink-0" />
+                            <p>{error}</p>
+                        </div>
+                        {cardDeclined && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setPaymentMethod("pix");
+                                    setCardDeclined(false);
+                                    setError("");
+                                }}
+                                className="mt-3 w-full rounded-xl bg-[#8C2F39] px-4 py-3 font-semibold text-white"
+                            >
+                                Pagar com Pix
+                            </button>
+                        )}
                     </div>
                 )}
 
