@@ -13,7 +13,16 @@ export function Footer() {
         <div className="mb-8 grid gap-8 md:grid-cols-4">
           {/* Marca + blurb */}
           <div>
-            <h3 className="mb-4 text-xl font-bold">Feminnita</h3>
+            <h3 className="mb-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo-armmis.png"
+                alt="Armmis"
+                width={980}
+                height={219}
+                className="h-6 w-auto"
+              />
+            </h3>
             <p className="text-sm text-gray-600">
               Pijamas e moda íntima feminina — atacado direto da fábrica,
               pedido mínimo R$ 199.

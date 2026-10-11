@@ -105,8 +105,15 @@ export function Header() {
               href="/"
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:static lg:translate-x-0 lg:translate-y-0"
             >
-              <h1 className="text-xl font-light tracking-wider text-[#000000] sm:text-2xl">
-                Feminnita
+              <h1 className="m-0 leading-none">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/logo-armmis.png"
+                  alt="Armmis"
+                  width={980}
+                  height={219}
+                  className="h-6 w-auto sm:h-7"
+                />
               </h1>
             </Link>
 
