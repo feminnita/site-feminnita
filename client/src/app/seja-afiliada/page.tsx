@@ -93,7 +93,7 @@ export default function SejaAfiliadaPage() {
                                 ["Ganha por venda", "Toda compra feita por ele fica registrada para você, com a sua porcentagem."],
                             ].map(([titulo, texto], i) => (
                                 <li key={titulo} className="flex gap-4">
-                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#8C2F39] text-sm text-white">
+                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#000000] text-sm text-white">
                                         {i + 1}
                                     </span>
                                     <div>
@@ -122,7 +122,7 @@ export default function SejaAfiliadaPage() {
                                 required
                                 value={nome}
                                 onChange={(e) => setNome(e.target.value)}
-                                className="w-full rounded-lg border px-4 py-3 focus:border-[#8C2F39] focus:outline-none"
+                                className="w-full rounded-lg border px-4 py-3 focus:border-[#000000] focus:outline-none"
                             />
                         </label>
 
@@ -133,7 +133,7 @@ export default function SejaAfiliadaPage() {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full rounded-lg border px-4 py-3 focus:border-[#8C2F39] focus:outline-none"
+                                className="w-full rounded-lg border px-4 py-3 focus:border-[#000000] focus:outline-none"
                             />
                             <span className="mt-1 block text-xs text-gray-400">
                                 É por aqui que a gente responde.
@@ -146,7 +146,7 @@ export default function SejaAfiliadaPage() {
                                 value={telefone}
                                 onChange={(e) => setTelefone(e.target.value)}
                                 placeholder="(22) 99999-9999"
-                                className="w-full rounded-lg border px-4 py-3 focus:border-[#8C2F39] focus:outline-none"
+                                className="w-full rounded-lg border px-4 py-3 focus:border-[#000000] focus:outline-none"
                             />
                         </label>
 
@@ -161,7 +161,7 @@ export default function SejaAfiliadaPage() {
                                     value={instagram}
                                     onChange={(e) => setInstagram(e.target.value)}
                                     placeholder="@seuperfil"
-                                    className="w-full rounded-lg border py-3 pl-9 pr-4 focus:border-[#8C2F39] focus:outline-none"
+                                    className="w-full rounded-lg border py-3 pl-9 pr-4 focus:border-[#000000] focus:outline-none"
                                 />
                             </span>
                             <span className="mt-1 block text-xs text-gray-400">
@@ -178,7 +178,7 @@ export default function SejaAfiliadaPage() {
                         <button
                             type="submit"
                             disabled={enviando}
-                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#8C2F39] py-3 font-medium text-white transition-colors hover:bg-[#7a2832] disabled:opacity-60"
+                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#000000] py-3 font-medium text-white transition-colors hover:bg-[#262626] disabled:opacity-60"
                         >
                             {enviando && <Loader2 size={16} className="animate-spin" />}
                             {enviando ? "Enviando…" : "Quero meu link"}

@@ -15,7 +15,7 @@ export function SearchBar({ query, onChange }: PropsSearchBar) {
                 value={query}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder='Busca inteligente — ex: "legging preta M" ou "conjunto rose"'
-                className="w-full rounded-xl border bg-[#FAF6F2] py-3.5 pl-11 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C2F39]/30"
+                className="w-full rounded-xl border bg-[#F5F5F5] py-3.5 pl-11 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#000000]/30"
             />
             {query && (
                 <button

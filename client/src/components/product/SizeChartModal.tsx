@@ -58,7 +58,7 @@ export function SizeChartModal({ chart, selectedSize, onClose }: Props) {
         : -1;
 
     const colClass = (i: number) =>
-        i === selIdx ? "bg-[#F3EEE9] font-semibold text-[#8C2F39]" : "";
+        i === selIdx ? "bg-[#EEEEEE] font-semibold text-[#000000]" : "";
 
     return (
         <div
@@ -87,7 +87,7 @@ export function SizeChartModal({ chart, selectedSize, onClose }: Props) {
                                     aria-pressed={unit === u}
                                     className={`px-3 py-1 font-medium transition-colors ${
                                         unit === u
-                                            ? "bg-[#8C2F39] text-white"
+                                            ? "bg-[#000000] text-white"
                                             : "text-gray-500 hover:bg-gray-50"
                                     }`}
                                 >
@@ -124,7 +124,7 @@ export function SizeChartModal({ chart, selectedSize, onClose }: Props) {
                         <div className="overflow-x-auto">
                             <table className="w-full border-collapse text-[15px] leading-relaxed">
                                 <thead>
-                                    <tr className="border-b-2 border-[#8C2F39]">
+                                    <tr className="border-b-2 border-[#000000]">
                                         <th className="px-3 py-2 text-left font-semibold text-gray-900">
                                             Medida
                                         </th>

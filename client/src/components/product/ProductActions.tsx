@@ -19,7 +19,7 @@ export function ProductActions({
                     onClick={onAddToCart}
                     disabled={disabled}
                     title={disabled ? "Selecione um tamanho" : undefined}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#8C2F39] py-4 font-semibold text-[#FAF6F2] transition-colors hover:bg-[#7a2832] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 disabled:hover:bg-gray-300"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#000000] py-4 font-semibold text-[#F5F5F5] transition-colors hover:bg-[#262626] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 disabled:hover:bg-gray-300"
                 >
                     <ShoppingCart size={20} />
                     {disabled ? "Selecione um tamanho" : "Adicionar ao Carrinho"}
@@ -36,7 +36,7 @@ export function ProductActions({
             </div>
 
             {/* <Link href={`/provador?produto=${productId}`}>
-                <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-[#8C2F39] py-4 font-semibold text-[#8C2F39] transition-all hover:bg-[#8C2F39] hover:text-[#FAF6F2]">
+                <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-[#000000] py-4 font-semibold text-[#000000] transition-all hover:bg-[#000000] hover:text-[#F5F5F5]">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="20"

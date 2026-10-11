@@ -53,7 +53,7 @@ export default function ProductPageClient({ id }: { id: string }) {
             <div className="min-h-screen">
                 <Header />
                 <div className="flex items-center justify-center py-32">
-                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#8C2F39] border-t-transparent" />
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#000000] border-t-transparent" />
                 </div>
             </div>
         );
@@ -147,9 +147,9 @@ export default function ProductPageClient({ id }: { id: string }) {
                         {soldOut ? (
                             <div
                                 ref={mainCTARef}
-                                className="rounded-lg border border-[#8C2F39]/20 bg-[#F3EEE9] px-4 py-6 text-center"
+                                className="rounded-lg border border-[#000000]/20 bg-[#EEEEEE] px-4 py-6 text-center"
                             >
-                                <p className="text-lg font-semibold uppercase tracking-wide text-[#8C2F39]">
+                                <p className="text-lg font-semibold uppercase tracking-wide text-[#000000]">
                                     Esgotado
                                 </p>
                                 <p className="mt-1 text-sm text-gray-600">

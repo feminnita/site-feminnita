@@ -62,7 +62,7 @@ export function ProductRowCarousel({ products }: { products: StoreProduct[] }) {
     const seta =
         "absolute top-1/3 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center " +
         "rounded-full border border-gray-200 bg-white/95 text-gray-700 shadow-md transition-colors " +
-        "hover:border-[#8C2F39] hover:text-[#8C2F39] disabled:cursor-not-allowed disabled:opacity-0 md:flex";
+        "hover:border-[#000000] hover:text-[#000000] disabled:cursor-not-allowed disabled:opacity-0 md:flex";
 
     return (
         <div className="relative">

@@ -229,7 +229,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
                             {slide.cta && (
                                 <a
                                     href={slide.cta.href}
-                                    className="mt-4 inline-block max-w-full whitespace-normal rounded-md bg-[#8C2F39] px-4 py-3 text-center text-sm font-semibold tracking-widest text-white shadow-md transition-colors duration-300 hover:bg-[#7a2832] sm:px-8"
+                                    className="mt-4 inline-block max-w-full whitespace-normal rounded-md bg-[#000000] px-4 py-3 text-center text-sm font-semibold tracking-widest text-white shadow-md transition-colors duration-300 hover:bg-[#262626] sm:px-8"
                                 >
                                     {slide.cta.text}
                                 </a>

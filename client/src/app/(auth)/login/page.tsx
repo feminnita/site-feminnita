@@ -50,7 +50,7 @@ function LoginContent() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#FAF6F2] p-4">
+    <div className="flex min-h-screen items-center justify-center bg-[#F5F5F5] p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/">
@@ -104,7 +104,7 @@ function LoginContent() {
                   setForm((p) => ({ ...p, email: e.target.value }))
                 }
                 required
-                className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-[#8C2F39]"
+                className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:border-transparent focus:ring-2 focus:ring-[#000000]"
                 placeholder="seu@email.com"
               />
             </div>
@@ -121,7 +121,7 @@ function LoginContent() {
                     setForm((p) => ({ ...p, password: e.target.value }))
                   }
                   required
-                  className="w-full rounded-lg border border-gray-200 px-4 py-3 pr-12 focus:border-transparent focus:ring-2 focus:ring-[#8C2F39]"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-3 pr-12 focus:border-transparent focus:ring-2 focus:ring-[#000000]"
                   placeholder="••••••••"
                 />
                 <button
@@ -137,7 +137,7 @@ function LoginContent() {
             <div className="flex justify-end">
               <Link
                 href="/esqueci-senha"
-                className="text-sm text-[#8C2F39] hover:underline"
+                className="text-sm text-[#000000] hover:underline"
               >
                 Esqueci minha senha
               </Link>
@@ -146,7 +146,7 @@ function LoginContent() {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#8C2F39] py-3 font-semibold text-white transition-colors hover:bg-[#7a2832] disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#000000] py-3 font-semibold text-white transition-colors hover:bg-[#262626] disabled:opacity-50"
             >
               {loading ? <Loader2 size={18} className="animate-spin" /> : null}
               {loading ? "Entrando..." : "Entrar"}
@@ -158,7 +158,7 @@ function LoginContent() {
               Não tem conta?{" "}
               <Link
                 href="/cadastro"
-                className="font-medium text-[#8C2F39] hover:underline"
+                className="font-medium text-[#000000] hover:underline"
               >
                 Criar conta grátis
               </Link>
@@ -181,7 +181,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8C2F39] border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#000000] border-t-transparent" />
         </div>
       }
     >

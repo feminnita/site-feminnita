@@ -80,7 +80,7 @@ export function ProductCarousel({ title, products }: Props) {
                         aria-label="Anterior"
                         onClick={() => scrollByCards(-1)}
                         disabled={!canLeft}
-                        className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-colors hover:border-[#8C2F39] hover:text-[#8C2F39] disabled:cursor-not-allowed disabled:opacity-30"
+                        className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-colors hover:border-[#000000] hover:text-[#000000] disabled:cursor-not-allowed disabled:opacity-30"
                     >
                         <ChevronLeft size={20} />
                     </button>
@@ -89,7 +89,7 @@ export function ProductCarousel({ title, products }: Props) {
                         aria-label="Próximo"
                         onClick={() => scrollByCards(1)}
                         disabled={!canRight}
-                        className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-colors hover:border-[#8C2F39] hover:text-[#8C2F39] disabled:cursor-not-allowed disabled:opacity-30"
+                        className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-gray-700 transition-colors hover:border-[#000000] hover:text-[#000000] disabled:cursor-not-allowed disabled:opacity-30"
                     >
                         <ChevronRight size={20} />
                     </button>

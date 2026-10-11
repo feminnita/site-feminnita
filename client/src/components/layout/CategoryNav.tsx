@@ -26,7 +26,7 @@ export function CategoryDropdown({ tree }: { tree: CategoryNode[] }) {
                     <div key={root.id} className="min-w-[8rem]">
                         <Link
                             href={catHref(root.slug)}
-                            className="mb-2 block text-sm font-semibold uppercase tracking-wide text-[#8C2F39]"
+                            className="mb-2 block text-sm font-semibold uppercase tracking-wide text-[#000000]"
                         >
                             {root.name}
                         </Link>
@@ -35,7 +35,7 @@ export function CategoryDropdown({ tree }: { tree: CategoryNode[] }) {
                                 <li key={child.id}>
                                     <Link
                                         href={catHref(child.slug)}
-                                        className="text-sm text-gray-700 hover:text-[#8C2F39] hover:underline"
+                                        className="text-sm text-gray-700 hover:text-[#000000] hover:underline"
                                     >
                                         {child.name}
                                     </Link>
@@ -45,7 +45,7 @@ export function CategoryDropdown({ tree }: { tree: CategoryNode[] }) {
                                                 <li key={leaf.id}>
                                                     <Link
                                                         href={catHref(leaf.slug)}
-                                                        className="text-xs text-gray-500 hover:text-[#8C2F39] hover:underline"
+                                                        className="text-xs text-gray-500 hover:text-[#000000] hover:underline"
                                                     >
                                                         {leaf.name}
                                                     </Link>
@@ -66,7 +66,7 @@ export function CategoryDropdown({ tree }: { tree: CategoryNode[] }) {
                         <Link
                             key={root.id}
                             href={catHref(root.slug)}
-                            className="text-sm font-semibold uppercase tracking-wide text-[#8C2F39] hover:underline"
+                            className="text-sm font-semibold uppercase tracking-wide text-[#000000] hover:underline"
                         >
                             {root.name}
                         </Link>
@@ -98,7 +98,7 @@ function MobileBranch({
                 <Link
                     href={catHref(node.slug)}
                     onClick={onNavigate}
-                    className="flex-1 py-2 text-sm text-gray-700 hover:text-[#8C2F39]"
+                    className="flex-1 py-2 text-sm text-gray-700 hover:text-[#000000]"
                     style={{ paddingLeft: depth * 12 }}
                 >
                     {node.name}

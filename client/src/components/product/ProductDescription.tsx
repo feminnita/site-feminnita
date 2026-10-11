@@ -49,7 +49,7 @@ export function ProductDescription({
                 <button
                     type="button"
                     onClick={() => setExpanded((v) => !v)}
-                    className="mt-3 flex items-center gap-1 text-sm font-semibold text-[#8C2F39] hover:underline"
+                    className="mt-3 flex items-center gap-1 text-sm font-semibold text-[#000000] hover:underline"
                 >
                     {expanded ? "Ver menos" : "Saiba mais"}
                     {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}

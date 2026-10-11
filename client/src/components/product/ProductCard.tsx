@@ -149,15 +149,15 @@ export function ProductCard({
                         </div>
                     ) : (
                         // Placeholder neutro com o NOME do produto — nunca quadrado quebrado.
-                        <div className="flex h-full w-full items-center justify-center bg-[#F3EEE9] p-4">
-                            <span className="line-clamp-4 text-center text-sm font-light tracking-wide text-[#8C2F39]/60">
+                        <div className="flex h-full w-full items-center justify-center bg-[#EEEEEE] p-4">
+                            <span className="line-clamp-4 text-center text-sm font-light tracking-wide text-[#000000]/60">
                                 {product.name}
                             </span>
                         </div>
                     )}
 
                     {onSale && (
-                        <span className="absolute left-3 top-3 rounded-full bg-[#8C2F39] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+                        <span className="absolute left-3 top-3 rounded-full bg-[#000000] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
                             Oferta
                         </span>
                     )}
@@ -175,7 +175,7 @@ export function ProductCard({
                         >
                             <Heart
                                 size={18}
-                                className={isFavorite ? "fill-[#8C2F39] text-[#8C2F39]" : "text-gray-700"}
+                                className={isFavorite ? "fill-[#000000] text-[#000000]" : "text-gray-700"}
                             />
                         </button>
                     </div>
@@ -190,7 +190,7 @@ export function ProductCard({
                     </p>
                 )}
                 <Link href={href}>
-                    <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-medium text-gray-900 transition-colors hover:text-[#8C2F39]">
+                    <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-medium text-gray-900 transition-colors hover:text-[#000000]">
                         {product.name}
                     </h3>
                 </Link>
@@ -219,8 +219,8 @@ export function ProductCard({
                                     }}
                                     className={`relative h-6 w-6 shrink-0 overflow-hidden rounded-full border transition ${
                                         active
-                                            ? "border-[#8C2F39] ring-2 ring-[#8C2F39]/40"
-                                            : "border-gray-300 hover:border-[#8C2F39]"
+                                            ? "border-[#000000] ring-2 ring-[#000000]/40"
+                                            : "border-gray-300 hover:border-[#000000]"
                                     }`}
                                 >
                                     {thumb ? (
@@ -275,7 +275,7 @@ export function ProductCard({
                         e.stopPropagation();
                         setOpen(true);
                     }}
-                    className="mt-2 w-full rounded-full bg-[#8C2F39] py-3 text-sm font-semibold uppercase tracking-wide text-[#FAF6F2] transition-colors hover:bg-[#7a2832]"
+                    className="mt-2 w-full rounded-full bg-[#000000] py-3 text-sm font-semibold uppercase tracking-wide text-[#F5F5F5] transition-colors hover:bg-[#262626]"
                 >
                     Comprar
                 </button>

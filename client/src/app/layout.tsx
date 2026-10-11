@@ -85,7 +85,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#76222A",
+  themeColor: "#000000",
 };
 
 const GA4_ID = process.env.NEXT_PUBLIC_GA4_ID;

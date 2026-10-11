@@ -12,7 +12,7 @@ export function SuggestionChips({ visible, onSelect }: PropsSuggestionsChips) {
                 <button
                     key={s}
                     onClick={() => onSelect(s)}
-                    className="rounded-full bg-gray-100 px-3 py-1.5 text-xs transition-colors hover:bg-[#FAF6F2] hover:text-[#8C2F39]"
+                    className="rounded-full bg-gray-100 px-3 py-1.5 text-xs transition-colors hover:bg-[#F5F5F5] hover:text-[#000000]"
                 >
                     {s}
                 </button>

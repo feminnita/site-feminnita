@@ -62,8 +62,8 @@ function Countdown({ target }: { target: Date }) {
 }
 
 const themeHero: Record<Theme, string> = {
-    promo: "bg-gradient-to-br from-red-700 to-red-900",
-    launch: "bg-gradient-to-br from-[#8C2F39] to-[#3d1218]",
+    promo: "bg-gradient-to-br from-neutral-800 to-black",
+    launch: "bg-gradient-to-br from-[#000000] to-[#262626]",
     "black-friday": "bg-black",
 };
 

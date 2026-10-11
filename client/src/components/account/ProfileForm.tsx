@@ -50,7 +50,7 @@ export function ProfileForm({
                         value={form.name}
                         onChange={(e) => set("name", e.target.value)}
                         required
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-[#8C2F39]"
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-[#000000]"
                     />
                 </div>
                 <div>
@@ -66,7 +66,7 @@ export function ProfileForm({
                     <input
                         value={form.phone ?? ""}
                         onChange={(e) => set("phone", e.target.value)}
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-[#8C2F39]"
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-[#000000]"
                     />
                 </div>
                 <div>
@@ -74,7 +74,7 @@ export function ProfileForm({
                     <input
                         value={form.cpf ?? ""}
                         onChange={(e) => set("cpf", e.target.value)}
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-[#8C2F39]"
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-[#000000]"
                     />
                 </div>
                 <div>
@@ -83,7 +83,7 @@ export function ProfileForm({
                         type="date"
                         value={form.birthDate ?? ""}
                         onChange={(e) => set("birthDate", e.target.value)}
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-[#8C2F39]"
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-[#000000]"
                     />
                 </div>
             </div>
@@ -91,7 +91,7 @@ export function ProfileForm({
                 <button
                     type="submit"
                     disabled={saving}
-                    className="rounded-lg bg-[#8C2F39] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#7a2832] disabled:opacity-50"
+                    className="rounded-lg bg-[#000000] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#262626] disabled:opacity-50"
                 >
                     {saving ? "Salvando..." : "Salvar alterações"}
                 </button>

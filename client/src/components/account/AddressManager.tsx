@@ -103,7 +103,7 @@ export function AddressManager({
     };
 
     const input =
-        "w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-[#8C2F39]";
+        "w-full rounded-lg border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-[#000000]";
 
     return (
         <div>
@@ -117,10 +117,10 @@ export function AddressManager({
                         >
                             <div className="mb-3 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <MapPin size={16} className="text-[#8C2F39]" />
+                                    <MapPin size={16} className="text-[#000000]" />
                                     <span className="text-sm font-medium">{addr.label}</span>
                                     {addr.isDefault && (
-                                        <span className="rounded-full bg-[#8C2F39]/10 px-2 py-0.5 text-xs text-[#8C2F39]">
+                                        <span className="rounded-full bg-[#000000]/10 px-2 py-0.5 text-xs text-[#000000]">
                                             Principal
                                         </span>
                                     )}
@@ -231,7 +231,7 @@ export function AddressManager({
                             type="checkbox"
                             checked={form.isDefault}
                             onChange={(e) => set("isDefault", e.target.checked)}
-                            className="accent-[#8C2F39]"
+                            className="accent-[#000000]"
                         />
                         Usar como endereço principal
                     </label>
@@ -239,7 +239,7 @@ export function AddressManager({
                         <button
                             type="submit"
                             disabled={saving}
-                            className="rounded-lg bg-[#8C2F39] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#7a2832] disabled:opacity-50"
+                            className="rounded-lg bg-[#000000] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#262626] disabled:opacity-50"
                         >
                             {saving ? "Salvando..." : "Salvar"}
                         </button>
@@ -256,7 +256,7 @@ export function AddressManager({
                 <button
                     type="button"
                     onClick={openNew}
-                    className="flex items-center gap-2 rounded-lg bg-[#8C2F39] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#7a2832]"
+                    className="flex items-center gap-2 rounded-lg bg-[#000000] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#262626]"
                 >
                     <Plus size={16} /> Adicionar endereço
                 </button>

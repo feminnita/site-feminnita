@@ -23,7 +23,7 @@ export function SizeChartTrigger({
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-[#8C2F39] underline underline-offset-4 transition-opacity hover:opacity-80"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-[#000000] underline underline-offset-4 transition-opacity hover:opacity-80"
             >
                 <Ruler size={16} />
                 Tabela de medidas

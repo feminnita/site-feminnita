@@ -23,7 +23,7 @@ export function FilterPanel({
                 {activeCount > 0 && (
                     <button
                         onClick={onClearAll}
-                        className="text-xs text-[#8C2F39] hover:underline"
+                        className="text-xs text-[#000000] hover:underline"
                     >
                         Limpar tudo
                     </button>
@@ -38,7 +38,7 @@ export function FilterPanel({
                     <button
                         onClick={() => onCategoryChange("all")}
                         className={`mb-1 w-full rounded-lg px-2 py-2 text-left text-sm transition-colors ${category === "all"
-                                ? "bg-[#8C2F39] text-white"
+                                ? "bg-[#000000] text-white"
                                 : "hover:bg-gray-100"
                             }`}
                     >
@@ -63,8 +63,8 @@ export function FilterPanel({
                                 key={s}
                                 onClick={() => onToggleSize(s)}
                                 className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${sizes.includes(s)
-                                        ? "border-[#8C2F39] bg-[#8C2F39] text-white"
-                                        : "border-gray-300 hover:border-[#8C2F39]"
+                                        ? "border-[#000000] bg-[#000000] text-white"
+                                        : "border-gray-300 hover:border-[#000000]"
                                     }`}
                             >
                                 {s}
@@ -85,7 +85,7 @@ export function FilterPanel({
                     step={10}
                     value={maxPrice}
                     onChange={(e) => onMaxPriceChange(Number(e.target.value))}
-                    className="w-full accent-[#8C2F39]"
+                    className="w-full accent-[#000000]"
                 />
                 <div className="mt-1 flex justify-between text-xs text-gray-400">
                     <span>R$ 50</span>

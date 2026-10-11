@@ -198,9 +198,9 @@ export function QuickBuyPanel({
     const chip = (label: string, selected: boolean, available: boolean) =>
         `min-h-[44px] min-w-[52px] rounded-full border px-4 py-2 text-sm font-medium transition-all ${
             selected
-                ? "border-[#8C2F39] bg-[#8C2F39] text-white"
+                ? "border-[#000000] bg-[#000000] text-white"
                 : available
-                  ? "border-gray-300 text-gray-800 hover:border-[#8C2F39]"
+                  ? "border-gray-300 text-gray-800 hover:border-[#000000]"
                   : "cursor-not-allowed border-gray-200 text-gray-300 line-through"
         }`;
 
@@ -246,7 +246,7 @@ export function QuickBuyPanel({
 
             {loading ? (
                 <div className="flex items-center justify-center py-10">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8C2F39] border-t-transparent" />
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#000000] border-t-transparent" />
                 </div>
             ) : (
                 <>
@@ -265,7 +265,7 @@ export function QuickBuyPanel({
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     placeholder={`Buscar entre ${availableColors.length} estampas…`}
-                                    className="mb-3 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-[#8C2F39] focus:outline-none"
+                                    className="mb-3 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-[#000000] focus:outline-none"
                                 />
                             )}
 
@@ -348,11 +348,11 @@ export function QuickBuyPanel({
 
                     {/* Já adicionados nesta sessão do painel */}
                     {added.length > 0 && (
-                        <ul className="mb-4 space-y-1 rounded-lg bg-[#F3EEE9] p-3">
+                        <ul className="mb-4 space-y-1 rounded-lg bg-[#EEEEEE] p-3">
                             {added.map((a) => (
                                 <li
                                     key={a.id}
-                                    className="flex items-center gap-2 text-sm text-[#6b4a2f]"
+                                    className="flex items-center gap-2 text-sm text-[#404040]"
                                 >
                                     <Check size={16} className="shrink-0 text-green-600" />
                                     <span>{a.label} · adicionado</span>
@@ -368,7 +368,7 @@ export function QuickBuyPanel({
                         onClick={handleAdd}
                         className={`w-full rounded-full py-4 text-base font-semibold uppercase tracking-wide transition-colors ${
                             canAdd
-                                ? "bg-[#8C2F39] text-white hover:bg-[#7a2832]"
+                                ? "bg-[#000000] text-white hover:bg-[#262626]"
                                 : "cursor-not-allowed bg-gray-200 text-gray-400"
                         }`}
                     >

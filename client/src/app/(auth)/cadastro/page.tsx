@@ -65,7 +65,7 @@ export default function CadastroPage() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-[#FAF6F2] p-4">
+        <div className="flex min-h-screen items-center justify-center bg-[#F5F5F5] p-4">
             <div className="w-full max-w-md">
                 <div className="mb-8 text-center">
                     <Link href="/">
@@ -125,7 +125,7 @@ export default function CadastroPage() {
                                     setForm((p) => ({ ...p, name: e.target.value }))
                                 }
                                 required
-                                className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-[#8C2F39]"
+                                className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-[#000000]"
                                 placeholder="Seu nome completo"
                             />
                         </div>
@@ -141,7 +141,7 @@ export default function CadastroPage() {
                                     setForm((p) => ({ ...p, email: e.target.value }))
                                 }
                                 required
-                                className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-[#8C2F39]"
+                                className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-[#000000]"
                                 placeholder="seu@email.com"
                             />
                         </div>
@@ -156,7 +156,7 @@ export default function CadastroPage() {
                                 onChange={(e) =>
                                     setForm((p) => ({ ...p, cnpj: e.target.value }))
                                 }
-                                className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-[#8C2F39]"
+                                className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-[#000000]"
                                 placeholder="Se você tem CNPJ (não obrigatório)"
                             />
                         </div>
@@ -173,7 +173,7 @@ export default function CadastroPage() {
                                         setForm((p) => ({ ...p, password: e.target.value }))
                                     }
                                     required
-                                    className="w-full rounded-lg border border-gray-200 px-4 py-3 pr-12 focus:ring-2 focus:ring-[#8C2F39]"
+                                    className="w-full rounded-lg border border-gray-200 px-4 py-3 pr-12 focus:ring-2 focus:ring-[#000000]"
                                     placeholder="Mínimo 8 caracteres"
                                 />
                                 <button
@@ -197,7 +197,7 @@ export default function CadastroPage() {
                                     setForm((p) => ({ ...p, confirm: e.target.value }))
                                 }
                                 required
-                                className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-[#8C2F39]"
+                                className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-[#000000]"
                                 placeholder="Repita a senha"
                             />
                         </div>
@@ -209,14 +209,14 @@ export default function CadastroPage() {
                                     checked={acceptedTerm}
                                     onChange={(e) => setAcceptedTerm(e.target.checked)}
                                     required
-                                    className="mt-0.5 h-4 w-4 accent-[#8C2F39]"
+                                    className="mt-0.5 h-4 w-4 accent-[#000000]"
                                 />
                                 <span>
                                     Li e aceito o{" "}
                                     <Link
                                         href="/termo-de-revenda"
                                         target="_blank"
-                                        className="font-medium text-[#8C2F39] hover:underline"
+                                        className="font-medium text-[#000000] hover:underline"
                                     >
                                         Termo de Revenda
                                         {termVersion ? ` (v${termVersion})` : ""}
@@ -228,7 +228,7 @@ export default function CadastroPage() {
                         <button
                             type="submit"
                             disabled={loading || (termActive && !acceptedTerm)}
-                            className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-[#8C2F39] py-3 font-semibold text-white transition-colors hover:bg-[#7a2832] disabled:opacity-50"
+                            className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-[#000000] py-3 font-semibold text-white transition-colors hover:bg-[#262626] disabled:opacity-50"
                         >
                             {loading ? <Loader2 size={18} className="animate-spin" /> : null}
                             {loading ? "Criando conta..." : "Criar conta"}
@@ -240,7 +240,7 @@ export default function CadastroPage() {
                             Já tem conta?{" "}
                             <Link
                                 href="/login"
-                                className="font-medium text-[#8C2F39] hover:underline"
+                                className="font-medium text-[#000000] hover:underline"
                             >
                                 Entrar
                             </Link>

@@ -56,7 +56,7 @@ function ProdutosContent() {
                         </p>
                         <button
                             onClick={vm.clearAll}
-                            className="rounded-xl bg-[#8C2F39] px-6 py-2.5 text-sm text-white transition-colors hover:bg-[#7a2832]"
+                            className="rounded-xl bg-[#000000] px-6 py-2.5 text-sm text-white transition-colors hover:bg-[#262626]"
                         >
                             Ver todos os produtos
                         </button>

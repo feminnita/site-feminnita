@@ -67,7 +67,7 @@ export function MarkerListing({
       <div className="min-h-screen">
         <Header />
         <div className="flex items-center justify-center py-32">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#8C2F39] border-t-transparent" />
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#000000] border-t-transparent" />
         </div>
       </div>
     );

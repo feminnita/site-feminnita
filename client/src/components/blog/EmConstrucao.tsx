@@ -9,11 +9,11 @@ import { Header } from "../layout/Header";
 // Para religar: BLOG_NO_AR = true em src/lib/blog.ts. Nada foi apagado.
 export function BlogEmConstrucao() {
     return (
-        <div className="min-h-screen bg-[#FAF6F2]">
+        <div className="min-h-screen bg-[#F5F5F5]">
             <Header />
 
             <div className="container mx-auto px-4 py-24 text-center">
-                <p className="text-xs uppercase tracking-[0.25em] text-[#8C2F39]/70">
+                <p className="text-xs uppercase tracking-[0.25em] text-[#000000]/70">
                     Em breve
                 </p>
                 <h1 className="mt-4 text-3xl font-light text-gray-900 md:text-4xl">
@@ -28,7 +28,7 @@ export function BlogEmConstrucao() {
                 <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
                     <Link
                         href="/produtos"
-                        className="rounded-xl bg-[#8C2F39] px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#7a2832]"
+                        className="rounded-xl bg-[#000000] px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#262626]"
                     >
                         Ver o catálogo
                     </Link>

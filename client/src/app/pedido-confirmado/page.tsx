@@ -176,7 +176,7 @@ function OrderConfirmedContent() {
     if (!loaded) {
         return (
             <div className="flex min-h-screen items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8C2F39] border-t-transparent" />
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#000000] border-t-transparent" />
             </div>
         );
     }
@@ -189,7 +189,7 @@ function OrderConfirmedContent() {
                     <p className="text-gray-500">Pedido não encontrado.</p>
                     <Link
                         href="/minha-conta"
-                        className="mt-4 inline-block text-[#8C2F39] underline"
+                        className="mt-4 inline-block text-[#000000] underline"
                     >
                         Ver meus pedidos
                     </Link>
@@ -312,7 +312,7 @@ function OrderConfirmedContent() {
                                         forma.id === "card" ? (
                                             <div
                                                 key="card"
-                                                className="flex flex-col items-center gap-1 rounded-lg border border-[#8C2F39] px-4 py-2"
+                                                className="flex flex-col items-center gap-1 rounded-lg border border-[#000000] px-4 py-2"
                                             >
                                                 <select
                                                     id="parcelas-troca"
@@ -328,7 +328,7 @@ function OrderConfirmedContent() {
                                                     type="button"
                                                     disabled={trocando !== null}
                                                     onClick={() => trocarForma("card")}
-                                                    className="text-sm font-medium text-[#8C2F39] disabled:opacity-50"
+                                                    className="text-sm font-medium text-[#000000] disabled:opacity-50"
                                                 >
                                                     {trocando === "card" ? "Trocando..." : "Pagar com Cartão"}
                                                 </button>
@@ -339,7 +339,7 @@ function OrderConfirmedContent() {
                                             type="button"
                                             disabled={trocando !== null}
                                             onClick={() => trocarForma(forma.id)}
-                                            className="flex flex-col items-center rounded-lg border border-[#8C2F39] px-4 py-2 text-sm font-medium text-[#8C2F39] transition-colors hover:bg-rose-50 disabled:opacity-50"
+                                            className="flex flex-col items-center rounded-lg border border-[#000000] px-4 py-2 text-sm font-medium text-[#000000] transition-colors hover:bg-neutral-100 disabled:opacity-50"
                                         >
                                             <span>
                                                 {trocando === forma.id
@@ -437,7 +437,7 @@ function OrderConfirmedContent() {
                                 },
                             ].map(({ n, text }) => (
                                 <li key={n} className="flex items-center gap-3">
-                                    <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#8C2F39] text-sm font-bold text-white">
+                                    <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#000000] text-sm font-bold text-white">
                                         {n}
                                     </span>
                                     <span className="text-sm text-gray-700">{text}</span>
@@ -471,7 +471,7 @@ function OrderConfirmedContent() {
                             </button>
                         </Link>
                         <Link href="/minha-conta" className="flex-1">
-                            <button className="w-full rounded-lg bg-[#8C2F39] py-3 font-medium text-white transition-colors hover:bg-[#7a2832]">
+                            <button className="w-full rounded-lg bg-[#000000] py-3 font-medium text-white transition-colors hover:bg-[#262626]">
                                 Ver meus pedidos
                             </button>
                         </Link>

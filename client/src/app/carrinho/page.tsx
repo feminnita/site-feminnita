@@ -102,7 +102,7 @@ export default function CartPage() {
             <div className="min-h-screen bg-gray-50">
                 <header className="border-b bg-white py-4">
                     <div className="container mx-auto px-4">
-                        <Link href="/" className="text-xl font-light text-[#8C2F39]">
+                        <Link href="/" className="text-xl font-light text-[#000000]">
                             feminnita
                         </Link>
                     </div>
@@ -128,7 +128,7 @@ export default function CartPage() {
         <div className="min-h-screen bg-gray-50">
             <header className="border-b bg-white py-4">
                 <div className="container mx-auto px-4">
-                    <Link href="/" className="text-xl font-light text-[#8C2F39]">
+                    <Link href="/" className="text-xl font-light text-[#000000]">
                         feminnita
                     </Link>
                 </div>
@@ -145,7 +145,7 @@ export default function CartPage() {
                                 type="checkbox"
                                 checked={allSelected}
                                 onChange={(e) => setAllSelected(e.target.checked)}
-                                className="h-5 w-5 accent-[#8C2F39]"
+                                className="h-5 w-5 accent-[#000000]"
                             />
                             <span className="text-sm font-medium">
                                 Selecionar todos os itens
@@ -166,7 +166,7 @@ export default function CartPage() {
                                             type="checkbox"
                                             checked={isSelected(item)}
                                             onChange={() => toggleSelected(index)}
-                                            className="h-5 w-5 accent-[#8C2F39]"
+                                            className="h-5 w-5 accent-[#000000]"
                                             aria-label={`Selecionar ${item.name}`}
                                         />
                                     </div>

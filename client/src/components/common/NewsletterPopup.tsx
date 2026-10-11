@@ -166,11 +166,11 @@ export function NewsletterPopup() {
                         {/* O cupom prometido, entregue. Em destaque e selecionável:
                             a pessoa precisa copiar isto para usar no checkout. */}
                         {popup.cupom && (
-                            <div className="mt-5 rounded-xl border border-dashed border-[#8C2F39]/40 bg-[#8C2F39]/5 px-4 py-3">
+                            <div className="mt-5 rounded-xl border border-dashed border-[#000000]/40 bg-[#000000]/5 px-4 py-3">
                                 <p className="text-xs text-gray-600">
                                     {popup.cupomTexto || "Seu cupom"}
                                 </p>
-                                <p className="mt-1 select-all font-mono text-xl font-bold tracking-wider text-[#8C2F39]">
+                                <p className="mt-1 select-all font-mono text-xl font-bold tracking-wider text-[#000000]">
                                     {popup.cupom}
                                 </p>
                                 <p className="mt-1 text-xs text-gray-500">
@@ -181,7 +181,7 @@ export function NewsletterPopup() {
                         <button
                             type="button"
                             onClick={() => setAberto(false)}
-                            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#8C2F39] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#7a2832]"
+                            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#000000] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#262626]"
                         >
                             Continuar comprando
                         </button>
@@ -217,7 +217,7 @@ export function NewsletterPopup() {
                     {/* O cupom e o motivo concreto de deixar o e-mail. Aparece
                         como promessa aqui e vira codigo na tela seguinte. */}
                     {popup.cupomTexto && (
-                        <p className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#8C2F39]/10 px-3 py-2 text-sm font-semibold text-[#8C2F39]">
+                        <p className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#000000]/10 px-3 py-2 text-sm font-semibold text-[#000000]">
                             🎁 {popup.cupomTexto}
                         </p>
                     )}
@@ -233,12 +233,12 @@ export function NewsletterPopup() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="Seu e-mail"
-                            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition-colors focus:border-[#8C2F39]"
+                            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none transition-colors focus:border-[#000000]"
                         />
                         <button
                             type="submit"
                             disabled={enviando}
-                            className="mt-3 w-full rounded-xl bg-[#8C2F39] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#7a2832] disabled:opacity-60"
+                            className="mt-3 w-full rounded-xl bg-[#000000] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#262626] disabled:opacity-60"
                         >
                             {enviando ? "Enviando..." : "Inscreva-se"}
                         </button>

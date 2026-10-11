@@ -52,7 +52,7 @@ export default async function ArtigoPage({
     if (!artigo) notFound();
 
     return (
-        <div className="min-h-screen bg-[#FAF6F2]">
+        <div className="min-h-screen bg-[#F5F5F5]">
             <Header />
 
             {/* Dados estruturados no servidor, para o Google receber junto com o
@@ -73,10 +73,10 @@ export default async function ArtigoPage({
             />
 
             <article className="container mx-auto px-4 py-12">
-                <div className="mx-auto max-w-3xl rounded-2xl bg-white p-7 shadow-[0_2px_16px_rgba(140,47,57,0.08)] md:p-12">
+                <div className="mx-auto max-w-3xl rounded-2xl bg-white p-7 shadow-[0_2px_16px_rgba(0,0,0,0.08)] md:p-12">
                     <Link
                         href="/blog"
-                        className="mb-8 inline-block text-sm text-gray-500 transition-colors hover:text-[#8C2F39]"
+                        className="mb-8 inline-block text-sm text-gray-500 transition-colors hover:text-[#000000]"
                     >
                         ← Voltar para o blog
                     </Link>
@@ -113,7 +113,7 @@ export default async function ArtigoPage({
                         dangerouslySetInnerHTML={{ __html: artigo.body }}
                     />
 
-                    <div className="mt-14 rounded-2xl bg-[#FAF6F2] p-8 text-center">
+                    <div className="mt-14 rounded-2xl bg-[#F5F5F5] p-8 text-center">
                         <p className="mb-2 text-lg font-medium text-gray-900">
                             Quer comprar para revender?
                         </p>
@@ -122,7 +122,7 @@ export default async function ArtigoPage({
                         </p>
                         <Link
                             href="/produtos"
-                            className="inline-block rounded-xl bg-[#8C2F39] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#7a2832]"
+                            className="inline-block rounded-xl bg-[#000000] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#262626]"
                         >
                             Ver produtos
                         </Link>

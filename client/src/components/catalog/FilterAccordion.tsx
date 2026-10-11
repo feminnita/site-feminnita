@@ -34,7 +34,7 @@ export function CategoryFilterAccordion({
               }
               className={`flex w-full items-center gap-1.5 rounded-lg px-2 py-2 text-left text-sm transition-colors ${
                 isLeaf && selectedCategory === item.name
-                  ? "bg-[#8C2F39] text-white"
+                  ? "bg-[#000000] text-white"
                   : "hover:bg-gray-100"
               }`}
             >

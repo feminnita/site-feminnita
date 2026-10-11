@@ -105,7 +105,7 @@ export function Header() {
               href="/"
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:static lg:translate-x-0 lg:translate-y-0"
             >
-              <h1 className="text-xl font-light tracking-wider text-[#8C2F39] sm:text-2xl">
+              <h1 className="text-xl font-light tracking-wider text-[#000000] sm:text-2xl">
                 Feminnita
               </h1>
             </Link>
@@ -134,7 +134,7 @@ export function Header() {
           {/* Busca aberta (desktop) */}
           <form
             onSubmit={handleSearch}
-            className="mx-6 hidden max-w-md flex-1 items-center rounded-full border border-gray-300 bg-white pl-4 pr-1 focus-within:border-[#8C2F39] md:flex"
+            className="mx-6 hidden max-w-md flex-1 items-center rounded-full border border-gray-300 bg-white pl-4 pr-1 focus-within:border-[#000000] md:flex"
           >
             <input
               value={search}
@@ -146,7 +146,7 @@ export function Header() {
             <button
               type="submit"
               aria-label="Buscar"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#8C2F39] text-white transition-colors hover:bg-[#7a2832]"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#000000] text-white transition-colors hover:bg-[#262626]"
             >
               <Search size={16} />
             </button>
@@ -217,7 +217,7 @@ export function Header() {
         {/* Busca aberta (mobile) — campo visível, não ícone */}
         <form
           onSubmit={handleSearch}
-          className="mt-3 flex items-center rounded-full border border-gray-300 bg-white pl-4 pr-1 focus-within:border-[#8C2F39] md:hidden"
+          className="mt-3 flex items-center rounded-full border border-gray-300 bg-white pl-4 pr-1 focus-within:border-[#000000] md:hidden"
         >
           <input
             value={search}
@@ -229,7 +229,7 @@ export function Header() {
           <button
             type="submit"
             aria-label="Buscar"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#8C2F39] text-white transition-colors hover:bg-[#7a2832]"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#000000] text-white transition-colors hover:bg-[#262626]"
           >
             <Search size={16} />
           </button>
@@ -240,7 +240,7 @@ export function Header() {
             <Link
               href="/produtos"
               onClick={() => setMenuOpen(false)}
-              className="py-2 text-sm font-semibold uppercase tracking-wide text-[#8C2F39]"
+              className="py-2 text-sm font-semibold uppercase tracking-wide text-[#000000]"
             >
               Produtos
             </Link>
@@ -256,7 +256,7 @@ export function Header() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMenuOpen(false)}
-                  className="block py-2 text-sm font-semibold uppercase tracking-wide text-[#8C2F39] hover:underline"
+                  className="block py-2 text-sm font-semibold uppercase tracking-wide text-[#000000] hover:underline"
                 >
                   {link.label}
                 </Link>
@@ -267,7 +267,7 @@ export function Header() {
               <Link
                 href={customer ? "/minha-conta" : "/login"}
                 onClick={() => setMenuOpen(false)}
-                className="flex flex-1 items-center gap-2 rounded-lg py-2 text-sm font-medium text-gray-700 hover:text-[#8C2F39]"
+                className="flex flex-1 items-center gap-2 rounded-lg py-2 text-sm font-medium text-gray-700 hover:text-[#000000]"
               >
                 <User size={18} />
                 {customer ? `Olá, ${firstName}` : "Entrar / Criar conta"}
@@ -275,7 +275,7 @@ export function Header() {
               <Link
                 href="/favoritos"
                 onClick={() => setMenuOpen(false)}
-                className="flex flex-1 items-center gap-2 rounded-lg py-2 text-sm font-medium text-gray-700 hover:text-[#8C2F39]"
+                className="flex flex-1 items-center gap-2 rounded-lg py-2 text-sm font-medium text-gray-700 hover:text-[#000000]"
               >
                 <Heart size={18} />
                 Favoritos
@@ -300,13 +300,13 @@ export function Header() {
       {/* Faixa dos MARCADORES — segunda barra própria, largura total, centralizada e
           destacada dos menus de categoria. Só no desktop (mobile usa o menu lateral).
           Vitrines por marcador (não categorias): fixas, sempre visíveis. */}
-      <div className="hidden border-t border-gray-200 bg-[#8C2F39]/[0.06] lg:block">
+      <div className="hidden border-t border-gray-200 bg-[#000000]/[0.06] lg:block">
         <nav className="container mx-auto flex items-center justify-center gap-10 px-4 py-2.5 text-xs font-semibold uppercase tracking-widest">
           {MARKER_TABS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-[#8C2F39] transition-colors hover:text-[#7a2832] hover:underline"
+              className="text-[#000000] transition-colors hover:text-[#262626] hover:underline"
             >
               {link.label}
             </Link>

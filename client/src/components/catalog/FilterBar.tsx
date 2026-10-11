@@ -45,8 +45,8 @@ function Dropdown({
             <summary
                 className={`flex cursor-pointer list-none items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors ${
                     active
-                        ? "border-[#8C2F39] text-[#8C2F39]"
-                        : "border-gray-300 hover:border-[#8C2F39]"
+                        ? "border-[#000000] text-[#000000]"
+                        : "border-gray-300 hover:border-[#000000]"
                 }`}
             >
                 {label}
@@ -76,8 +76,8 @@ function SizeOptions({
                     onClick={() => onToggleSize(s)}
                     className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                         sizes.includes(s)
-                            ? "border-[#8C2F39] bg-[#8C2F39] text-white"
-                            : "border-gray-300 hover:border-[#8C2F39]"
+                            ? "border-[#000000] bg-[#000000] text-white"
+                            : "border-gray-300 hover:border-[#000000]"
                     }`}
                 >
                     {s}
@@ -102,7 +102,7 @@ function PriceOptions({
                 step={10}
                 value={maxPrice}
                 onChange={(e) => onMaxPriceChange(Number(e.target.value))}
-                className="w-full accent-[#8C2F39]"
+                className="w-full accent-[#000000]"
             />
             <div className="mt-1 flex justify-between text-xs text-gray-400">
                 <span>R$ 50</span>
@@ -125,7 +125,7 @@ function SortOptions({
                     onClick={() => onSortChange(o.value)}
                     className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                         sort === o.value
-                            ? "bg-[#8C2F39] text-white"
+                            ? "bg-[#000000] text-white"
                             : "hover:bg-gray-100"
                     }`}
                 >
@@ -186,7 +186,7 @@ export function FilterBar(props: FilterBarProps) {
                             <button
                                 type="button"
                                 onClick={onClearAll}
-                                className="text-xs text-[#8C2F39] hover:underline"
+                                className="text-xs text-[#000000] hover:underline"
                             >
                                 Limpar
                             </button>
@@ -202,7 +202,7 @@ export function FilterBar(props: FilterBarProps) {
                         <SlidersHorizontal size={16} />
                         Filtrar
                         {activeCount > 0 && (
-                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#8C2F39] text-[10px] text-white">
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#000000] text-[10px] text-white">
                                 {activeCount}
                             </span>
                         )}
@@ -229,7 +229,7 @@ export function FilterBar(props: FilterBarProps) {
                             <button
                                 type="button"
                                 onClick={onClearAll}
-                                className="text-xs text-[#8C2F39] hover:underline"
+                                className="text-xs text-[#000000] hover:underline"
                             >
                                 Limpar tudo
                             </button>

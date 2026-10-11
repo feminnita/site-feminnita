@@ -51,7 +51,7 @@ export function MinOrderStatus({
                     <span className="font-medium">Seu pedido: {formatBRL(subtotal)}</span>
                     <span className="text-gray-600">
                         {" "}· faltam{" "}
-                        <span className="font-semibold text-[#8C2F39]">
+                        <span className="font-semibold text-[#000000]">
                             {formatBRL(remaining)}
                         </span>{" "}
                         para o mínimo de {formatBRL(MIN_ORDER)}
@@ -61,7 +61,7 @@ export function MinOrderStatus({
 
             <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
                 <div
-                    className={`h-full rounded-full transition-all duration-300 ${reached ? "bg-green-600" : "bg-[#8C2F39]"
+                    className={`h-full rounded-full transition-all duration-300 ${reached ? "bg-green-600" : "bg-[#000000]"
                         }`}
                     style={{ width: `${pct}%` }}
                 />
@@ -89,7 +89,7 @@ export function MinOrderBar() {
                 {reached && (
                     <Link
                         href="/carrinho"
-                        className="shrink-0 rounded-lg bg-[#8C2F39] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#7a2832] active:scale-95"
+                        className="shrink-0 rounded-lg bg-[#000000] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#262626] active:scale-95"
                     >
                         Finalizar pedido
                     </Link>

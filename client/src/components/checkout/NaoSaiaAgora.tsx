@@ -84,8 +84,8 @@ export function NaoSaiaAgora({ podeOferecer, onAceitar }: Props) {
                     <X size={20} />
                 </button>
 
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#8C2F39]/10">
-                    <Gift size={26} className="text-[#8C2F39]" />
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#000000]/10">
+                    <Gift size={26} className="text-[#000000]" />
                 </div>
 
                 <h2 id="titulo-nao-saia" className="mb-3 text-2xl font-semibold text-gray-900">
@@ -95,7 +95,7 @@ export function NaoSaiaAgora({ podeOferecer, onAceitar }: Props) {
                 <p className="mb-2 text-gray-600">
                     Estamos disponibilizando o seu cupom de primeira compra —
                     e, para você finalizar agora, acaba de ganhar{" "}
-                    <strong className="text-[#8C2F39]">mais 3%</strong>.
+                    <strong className="text-[#000000]">mais 3%</strong>.
                 </p>
 
                 <p className="mb-6 text-sm text-gray-500">
@@ -108,7 +108,7 @@ export function NaoSaiaAgora({ podeOferecer, onAceitar }: Props) {
                         onAceitar();
                         setAberto(false);
                     }}
-                    className="w-full rounded-xl bg-[#8C2F39] py-4 font-semibold text-white transition-colors hover:bg-[#7a2832]"
+                    className="w-full rounded-xl bg-[#000000] py-4 font-semibold text-white transition-colors hover:bg-[#262626]"
                 >
                     Concluir a compra
                 </button>

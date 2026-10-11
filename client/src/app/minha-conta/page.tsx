@@ -43,7 +43,7 @@ function MinhaContaContent() {
             <div className="min-h-screen">
                 <Header />
                 <div className="flex justify-center py-24">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8C2F39] border-t-transparent" />
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#000000] border-t-transparent" />
                 </div>
             </div>
         );
@@ -94,7 +94,7 @@ function MinhaContaContent() {
                             key={id}
                             onClick={() => setTab(id)}
                             className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${tab === id
-                                ? "bg-[#8C2F39] text-white"
+                                ? "bg-[#000000] text-white"
                                 : "text-gray-600 hover:bg-gray-50"
                                 }`}
                         >
@@ -114,7 +114,7 @@ function MinhaContaContent() {
                                     Você ainda não fez nenhum pedido
                                 </p>
                                 <Link href="/produtos">
-                                    <button className="rounded-lg bg-[#8C2F39] px-6 py-2 font-medium text-white hover:bg-[#7a2832]">
+                                    <button className="rounded-lg bg-[#000000] px-6 py-2 font-medium text-white hover:bg-[#262626]">
                                         Ver produtos
                                     </button>
                                 </Link>
@@ -145,7 +145,7 @@ function MinhaContaContent() {
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="font-bold text-[#8C2F39]">
+                                                <p className="font-bold text-[#000000]">
                                                     R${" "}
                                                     {order.total.toLocaleString("pt-BR", {
                                                         minimumFractionDigits: 2,
@@ -208,7 +208,7 @@ export default function MinhaContaPage() {
         <Suspense
             fallback={
                 <div className="flex min-h-screen items-center justify-center">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8C2F39] border-t-transparent" />
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#000000] border-t-transparent" />
                 </div>
             }
         >

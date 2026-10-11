@@ -31,7 +31,7 @@ export function MobileFilterSheet({
                 <div className="border-t px-5 pb-6 pt-3">
                     <button
                         onClick={onClose}
-                        className="w-full rounded-xl bg-[#8C2F39] py-3 font-medium text-white transition-colors hover:bg-[#7a2832]"
+                        className="w-full rounded-xl bg-[#000000] py-3 font-medium text-white transition-colors hover:bg-[#262626]"
                     >
                         Ver {resultCount} produto{resultCount !== 1 ? "s" : ""}
                     </button>

@@ -51,7 +51,7 @@ function ResetPasswordContent() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-[#FAF6F2] p-4">
+        <div className="flex min-h-screen items-center justify-center bg-[#F5F5F5] p-4">
             <div className="w-full max-w-md">
                 <div className="mb-8 text-center">
                     <Link href="/">
@@ -93,7 +93,7 @@ function ResetPasswordContent() {
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             required
-                                            className="w-full rounded-lg border border-gray-200 px-4 py-3 pr-12 focus:ring-2 focus:ring-[#8C2F39]"
+                                            className="w-full rounded-lg border border-gray-200 px-4 py-3 pr-12 focus:ring-2 focus:ring-[#000000]"
                                             placeholder="Mínimo 8 caracteres"
                                         />
                                         <button
@@ -115,7 +115,7 @@ function ResetPasswordContent() {
                                         value={confirm}
                                         onChange={(e) => setConfirm(e.target.value)}
                                         required
-                                        className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-[#8C2F39]"
+                                        className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-[#000000]"
                                         placeholder="Repita a senha"
                                     />
                                 </div>
@@ -123,7 +123,7 @@ function ResetPasswordContent() {
                                 <button
                                     type="submit"
                                     disabled={loading || !token}
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#8C2F39] py-3 font-semibold text-white transition-colors hover:bg-[#7a2832] disabled:opacity-50"
+                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#000000] py-3 font-semibold text-white transition-colors hover:bg-[#262626] disabled:opacity-50"
                                 >
                                     {loading ? (
                                         <Loader2 size={18} className="animate-spin" />
@@ -144,7 +144,7 @@ export default function ResetPasswordPage() {
         <Suspense
             fallback={
                 <div className="flex min-h-screen items-center justify-center">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8C2F39] border-t-transparent" />
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#000000] border-t-transparent" />
                 </div>
             }
         >

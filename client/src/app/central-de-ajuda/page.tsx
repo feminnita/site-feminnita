@@ -57,7 +57,7 @@ const faq = [
 
 export default function CentralDeAjudaPage() {
   return (
-    <div className="min-h-screen bg-[#FAF6F2] px-4 py-12">
+    <div className="min-h-screen bg-[#F5F5F5] px-4 py-12">
       <div className="mx-auto max-w-3xl">
         <div className="mb-8 text-center">
           <Link href="/">
@@ -82,7 +82,7 @@ export default function CentralDeAjudaPage() {
                   <li key={l.href}>
                     <Link
                       href={l.href}
-                      className="block rounded-lg border border-gray-100 p-4 transition-colors hover:border-[#8C2F39]/40 hover:bg-[#FAF6F2]"
+                      className="block rounded-lg border border-gray-100 p-4 transition-colors hover:border-[#000000]/40 hover:bg-[#F5F5F5]"
                     >
                       <span className="block font-semibold text-[#1A1A1A]">
                         {l.title}
@@ -121,7 +121,7 @@ export default function CentralDeAjudaPage() {
                     href="https://wa.me/5522992810707"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#8C2F39] hover:underline"
+                    className="text-[#000000] hover:underline"
                   >
                     (22) 99281-0707
                   </a>
@@ -130,7 +130,7 @@ export default function CentralDeAjudaPage() {
                   E-mail:{" "}
                   <a
                     href="mailto:feminnita@gmail.com"
-                    className="text-[#8C2F39] hover:underline"
+                    className="text-[#000000] hover:underline"
                   >
                     feminnita@gmail.com
                   </a>

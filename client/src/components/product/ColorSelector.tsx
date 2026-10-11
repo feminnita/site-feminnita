@@ -42,7 +42,7 @@ function EstampaThumb({ color, photo, isSelected, onSelect }: ThumbProps) {
                 aria-label={`Estampa ${color}`}
                 title={color}
                 className={`flex min-h-[40px] min-w-[72px] max-w-[160px] items-center justify-center rounded-full border px-4 py-2 text-center text-[12px] leading-tight transition-all ${isSelected
-                        ? "border-[#8C2F39] bg-[#8C2F39]/5 font-semibold text-[#8C2F39] ring-1 ring-[#8C2F39]"
+                        ? "border-[#000000] bg-[#000000]/5 font-semibold text-[#000000] ring-1 ring-[#000000]"
                         : "border-gray-300 text-gray-700 hover:border-gray-500"
                     }`}
             >
@@ -62,7 +62,7 @@ function EstampaThumb({ color, photo, isSelected, onSelect }: ThumbProps) {
         >
             <span
                 className={`relative block h-[72px] w-[72px] overflow-hidden rounded-md border-2 bg-gray-50 transition-all ${isSelected
-                        ? "border-[#8C2F39] ring-2 ring-[#8C2F39] ring-offset-1"
+                        ? "border-[#000000] ring-2 ring-[#000000] ring-offset-1"
                         : "border-gray-200 group-hover:border-gray-400"
                     }`}
             >
@@ -74,7 +74,7 @@ function EstampaThumb({ color, photo, isSelected, onSelect }: ThumbProps) {
                 />
             </span>
             <span
-                className={`line-clamp-2 w-full text-[11px] leading-tight ${isSelected ? "font-semibold text-[#8C2F39]" : "text-gray-600"
+                className={`line-clamp-2 w-full text-[11px] leading-tight ${isSelected ? "font-semibold text-[#000000]" : "text-gray-600"
                     }`}
             >
                 {color}
@@ -155,7 +155,7 @@ export function ColorSelector({
                 <button
                     type="button"
                     onClick={openAll}
-                    className="mt-3 w-full rounded-md border border-gray-300 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-[#8C2F39] hover:text-[#8C2F39]"
+                    className="mt-3 w-full rounded-md border border-gray-300 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-[#000000] hover:text-[#000000]"
                 >
                     Ver todas as estampas ({colors.length})
                 </button>
@@ -165,7 +165,7 @@ export function ColorSelector({
                 <button
                     type="button"
                     onClick={() => setExpanded(false)}
-                    className="mt-3 w-full rounded-md border border-gray-300 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-[#8C2F39] hover:text-[#8C2F39]"
+                    className="mt-3 w-full rounded-md border border-gray-300 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-[#000000] hover:text-[#000000]"
                 >
                     Ver menos
                 </button>

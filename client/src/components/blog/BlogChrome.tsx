@@ -5,7 +5,7 @@ import Link from "next/link";
 // Era isso que dava ao blog antigo cara de site: ele não era uma seção da loja
 // pendurada no cabeçalho dela, era uma publicação com identidade sua. Repor o
 // logo "Feminnita BLOG" e o rodapé é o que separa "site" de "página interna".
-const BORGONHA = "#8C2F39";
+const BORGONHA = "#000000";
 
 export function BlogHeader() {
     return (
@@ -24,18 +24,18 @@ export function BlogHeader() {
                 </Link>
 
                 <nav className="hidden items-center gap-7 md:flex">
-                    <Link href="/blog" className="text-sm text-gray-600 transition-colors hover:text-[#8C2F39]">
+                    <Link href="/blog" className="text-sm text-gray-600 transition-colors hover:text-[#000000]">
                         Início
                     </Link>
                     <Link
                         href="/blog?categoria=Treinamento"
-                        className="text-sm text-gray-600 transition-colors hover:text-[#8C2F39]"
+                        className="text-sm text-gray-600 transition-colors hover:text-[#000000]"
                     >
                         Treinamento
                     </Link>
                     <Link
                         href="/blog?categoria=Tecidos%20%26%20Produtos"
-                        className="text-sm text-gray-600 transition-colors hover:text-[#8C2F39]"
+                        className="text-sm text-gray-600 transition-colors hover:text-[#000000]"
                     >
                         Tecidos
                     </Link>

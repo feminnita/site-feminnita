@@ -6,13 +6,13 @@
 // que a Chris já tinha aprovado.
 export const COR_DA_CATEGORIA: Record<string, string> = {
     Treinamento: "#D4A956",
-    "Tecidos & Produtos": "#8C2F39",
+    "Tecidos & Produtos": "#000000",
     "Bem-Estar & Sono": "#4A7C59",
     Comunidade: "#7B5EA7",
     "Datas Especiais": "#C0503A",
 };
 
-export const COR_PADRAO = "#8C2F39";
+export const COR_PADRAO = "#000000";
 
 export const corDaCategoria = (c?: string | null) =>
     (c && COR_DA_CATEGORIA[c]) || COR_PADRAO;

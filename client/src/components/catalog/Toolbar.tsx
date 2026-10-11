@@ -19,7 +19,7 @@ export function Toolbar({
                 <SlidersHorizontal size={16} />
                 Filtros
                 {activeCount > 0 && (
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#8C2F39] text-[10px] text-white">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#000000] text-[10px] text-white">
                         {activeCount}
                     </span>
                 )}
@@ -34,7 +34,7 @@ export function Toolbar({
             <select
                 value={sort}
                 onChange={(e) => onSortChange(e.target.value as SortOption)}
-                className="rounded-xl border bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#8C2F39]/30"
+                className="rounded-xl border bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#000000]/30"
             >
                 <option value="relevance">Relevância</option>
                 <option value="price-asc">Menor preço</option>

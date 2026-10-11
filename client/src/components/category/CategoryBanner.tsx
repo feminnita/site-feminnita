@@ -75,7 +75,7 @@ export function CategoryBanner({ banner }: { banner: CategoryBannerType }) {
                     </p>
                 )}
                 {banner.href && (
-                    <span className="mt-1 inline-block rounded-full bg-[#8C2F39] px-6 py-2 text-sm font-medium text-white shadow-md">
+                    <span className="mt-1 inline-block rounded-full bg-[#000000] px-6 py-2 text-sm font-medium text-white shadow-md">
                         Ver produtos
                     </span>
                 )}

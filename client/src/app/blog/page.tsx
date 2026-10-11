@@ -43,7 +43,7 @@ export default async function BlogPage({
     );
 
     return (
-        <div className="min-h-screen bg-[#FAF6F2]">
+        <div className="min-h-screen bg-[#F5F5F5]">
             <BlogHeader />
             <Filtros ativa={categoria} categorias={comArtigo} />
 
@@ -85,8 +85,8 @@ function Filtros({ ativa, categorias }: { ativa?: string; categorias: string[] }
                         href={i.href}
                         className={`shrink-0 whitespace-nowrap border-b-2 px-4 py-4 text-sm transition-colors ${
                             i.ativo
-                                ? "border-[#8C2F39] font-semibold text-[#8C2F39]"
-                                : "border-transparent text-gray-500 hover:text-[#8C2F39]"
+                                ? "border-[#000000] font-semibold text-[#000000]"
+                                : "border-transparent text-gray-500 hover:text-[#000000]"
                         }`}
                     >
                         {i.nome}

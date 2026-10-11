@@ -16,7 +16,7 @@ export default function TermoDeRevendaPage() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#FAF6F2] px-4 py-12">
+        <div className="min-h-screen bg-[#F5F5F5] px-4 py-12">
             <div className="mx-auto max-w-3xl">
                 <div className="mb-8 text-center">
                     <Link href="/">
@@ -40,7 +40,7 @@ export default function TermoDeRevendaPage() {
 
                     {loading ? (
                         <div className="flex justify-center py-16">
-                            <Loader2 className="animate-spin text-[#8C2F39]" size={40} />
+                            <Loader2 className="animate-spin text-[#000000]" size={40} />
                         </div>
                     ) : term && term.content.trim() ? (
                         <div

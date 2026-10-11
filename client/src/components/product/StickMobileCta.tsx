@@ -19,7 +19,7 @@ export function StickyMobileCta({
             <div className="flex items-center gap-3">
                 <div className="min-w-0 flex-1">
                     <p className="truncate text-xs text-gray-500">{productName}</p>
-                    <p className="font-bold text-[#8C2F39]">
+                    <p className="font-bold text-[#000000]">
                         R$ {price.toFixed(2).replace(".", ",")}
                     </p>
                 </div>
@@ -27,7 +27,7 @@ export function StickyMobileCta({
                     onClick={onAddToCart}
                     disabled={disabled}
                     title={disabled ? "Selecione um tamanho" : undefined}
-                    className="flex items-center gap-2 rounded-xl bg-[#8C2F39] px-5 py-3 text-sm font-semibold text-white transition-transform active:scale-95 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 disabled:active:scale-100"
+                    className="flex items-center gap-2 rounded-xl bg-[#000000] px-5 py-3 text-sm font-semibold text-white transition-transform active:scale-95 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 disabled:active:scale-100"
                 >
                     <ShoppingCart size={18} />
                     {disabled ? "Escolha o tamanho" : "Adicionar"}

@@ -20,7 +20,7 @@ function otimizado(url: string) {
  * foram para o R2 em 22/09/2026, esse caminho deixou de existir e a função
  * passou a devolver `undefined` — em silêncio. O elemento ficou SEM poster, e
  * como vídeo sem quadro carregado não pinta nada, a cliente via o fundo creme
- * da seção (#E9E4DF) ocupando a tela inteira. Foi assim que a home apareceu
+ * da seção (#E5E5E5) ocupando a tela inteira. Foi assim que a home apareceu
  * em 29/09/2026.
  *
  * As capas certas existiam desde 26/08/2026, na mesma pasta em que o vídeo foi
@@ -145,7 +145,7 @@ export function Vitrine({ videoSection }: VitrineProps) {
     return (
         <section
             aria-label="Vitrine Feminnita"
-            className="relative w-full overflow-hidden bg-[#E9E4DF]"
+            className="relative w-full overflow-hidden bg-[#E5E5E5]"
         >
             {href ? (
                 <Link href={href} className="block cursor-pointer">

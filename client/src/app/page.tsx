@@ -119,7 +119,7 @@ export default async function Home() {
                 {intermediateBanner.subtitle ||
                   "Atacado direto da fábrica · pedido mínimo R$ 199"}
               </p>
-              <span className="mt-1 inline-block rounded-full bg-[#8C2F39] px-8 py-3 text-sm font-semibold text-white shadow-lg transition-colors group-hover:bg-[#7a2832] md:text-base">
+              <span className="mt-1 inline-block rounded-full bg-[#000000] px-8 py-3 text-sm font-semibold text-white shadow-lg transition-colors group-hover:bg-[#262626] md:text-base">
                 {intermediateBanner.ctaText || "VER BLUSAS →"}
               </span>
             </div>

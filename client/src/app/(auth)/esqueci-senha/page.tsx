@@ -27,7 +27,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#FAF6F2] p-4">
+    <div className="flex min-h-screen items-center justify-center bg-[#F5F5F5] p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/">
@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-[#8C2F39]"
+                    className="w-full rounded-lg border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-[#000000]"
                     placeholder="seu@email.com"
                   />
                 </div>
@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#8C2F39] py-3 font-semibold text-white transition-colors hover:bg-[#7a2832] disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#000000] py-3 font-semibold text-white transition-colors hover:bg-[#262626] disabled:opacity-50"
                 >
                   {loading ? (
                     <Loader2 size={18} className="animate-spin" />
@@ -96,7 +96,7 @@ export default function ForgotPasswordPage() {
           <div className="mt-6 text-center">
             <Link
               href="/login"
-              className="inline-flex items-center gap-1 text-sm text-[#8C2F39] hover:underline"
+              className="inline-flex items-center gap-1 text-sm text-[#000000] hover:underline"
             >
               <ArrowLeft size={14} /> Voltar para o login
             </Link>

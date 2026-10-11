@@ -9,11 +9,11 @@ import Link from "next/link";
 // se descobre quem quer acesso.
 export function SalaDeArquivos() {
     return (
-        <section className="py-16" style={{ background: "#F5E6D3" }}>
+        <section className="py-16" style={{ background: "#F5F5F5" }}>
             <div className="container mx-auto max-w-2xl px-4 text-center">
                 <div
                     className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full"
-                    style={{ background: "#8C2F39" }}
+                    style={{ background: "#000000" }}
                 >
                     <svg
                         viewBox="0 0 24 24"
@@ -28,7 +28,7 @@ export function SalaDeArquivos() {
                     </svg>
                 </div>
 
-                <h2 className="mb-3 font-serif text-3xl" style={{ color: "#8C2F39" }}>
+                <h2 className="mb-3 font-serif text-3xl" style={{ color: "#000000" }}>
                     Acesse a Sala de Arquivos
                 </h2>
 
@@ -42,14 +42,14 @@ export function SalaDeArquivos() {
                     <Link
                         href="/portal/solicitar-acesso"
                         className="rounded-sm px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                        style={{ background: "#8C2F39" }}
+                        style={{ background: "#000000" }}
                     >
                         Solicitar acesso
                     </Link>
                     <Link
                         href="/portal/login"
-                        className="rounded-sm border px-6 py-3 text-sm font-semibold transition-colors hover:bg-[#8C2F39] hover:text-white"
-                        style={{ borderColor: "#8C2F39", color: "#8C2F39" }}
+                        className="rounded-sm border px-6 py-3 text-sm font-semibold transition-colors hover:bg-[#000000] hover:text-white"
+                        style={{ borderColor: "#000000", color: "#000000" }}
                     >
                         Já tenho acesso
                     </Link>

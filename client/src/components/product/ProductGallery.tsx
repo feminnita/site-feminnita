@@ -138,7 +138,7 @@ export function ProductGallery({
                             key={index}
                             onClick={() => onSelectImage(index)}
                             className={`relative aspect-[2/3] min-w-[3.5rem] max-w-[7rem] flex-1 basis-0 md:w-full md:max-w-none md:flex-none overflow-hidden rounded-md border-2 bg-gray-100 ${!showVideo && selectedImage === index
-                                    ? "border-[#8C2F39]"
+                                    ? "border-[#000000]"
                                     : "border-transparent hover:border-gray-300"
                                 }`}
                         >
@@ -155,7 +155,7 @@ export function ProductGallery({
                         <button
                             onClick={onShowVideo}
                             className={`relative flex aspect-[2/3] min-w-[3.5rem] max-w-[7rem] flex-1 basis-0 md:w-full md:max-w-none md:flex-none items-center justify-center overflow-hidden rounded-md border-2 bg-black ${showVideo
-                                    ? "border-[#8C2F39]"
+                                    ? "border-[#000000]"
                                     : "border-transparent hover:border-gray-300"
                                 }`}
                             title="Vídeo do produto"

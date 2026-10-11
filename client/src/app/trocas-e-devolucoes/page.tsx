@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function TrocasEDevolucoesPage() {
   return (
-    <div className="min-h-screen bg-[#FAF6F2] px-4 py-12">
+    <div className="min-h-screen bg-[#F5F5F5] px-4 py-12">
       <div className="mx-auto max-w-3xl">
         <div className="mb-8 text-center">
           <Link href="/">
@@ -83,14 +83,14 @@ export default function TrocasEDevolucoesPage() {
                   href="https://wa.me/5522992810707"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[#8C2F39] hover:underline"
+                  className="text-[#000000] hover:underline"
                 >
                   (22) 99281-0707
                 </a>{" "}
                 ou pelo e-mail{" "}
                 <a
                   href="mailto:feminnita@gmail.com"
-                  className="text-[#8C2F39] hover:underline"
+                  className="text-[#000000] hover:underline"
                 >
                   feminnita@gmail.com
                 </a>

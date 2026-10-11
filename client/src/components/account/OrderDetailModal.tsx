@@ -155,7 +155,7 @@ export function OrderDetailModal({
             >
                 {loading ? (
                     <div className="flex justify-center py-20">
-                        <Loader2 size={32} className="animate-spin text-[#8C2F39]" />
+                        <Loader2 size={32} className="animate-spin text-[#000000]" />
                     </div>
                 ) : !order ? (
                     <div className="p-8 text-center">
@@ -223,7 +223,7 @@ export function OrderDetailModal({
                                                             String(pagamento.pixCopyPaste),
                                                         )
                                                     }
-                                                    className="mt-2 text-xs text-[#8C2F39] underline"
+                                                    className="mt-2 text-xs text-[#000000] underline"
                                                 >
                                                     Copiar código PIX
                                                 </button>
@@ -236,7 +236,7 @@ export function OrderDetailModal({
                                             href={pagamento.bankSlipUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-block rounded-lg bg-[#8C2F39] px-4 py-2 text-sm font-semibold text-white"
+                                            className="inline-block rounded-lg bg-[#000000] px-4 py-2 text-sm font-semibold text-white"
                                         >
                                             Ver boleto
                                         </a>
@@ -246,7 +246,7 @@ export function OrderDetailModal({
                                                 href={pagamento.invoiceUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-block rounded-lg bg-[#8C2F39] px-4 py-2 text-sm font-semibold text-white"
+                                                className="inline-block rounded-lg bg-[#000000] px-4 py-2 text-sm font-semibold text-white"
                                             >
                                                 Pagar agora
                                             </a>
@@ -265,7 +265,7 @@ export function OrderDetailModal({
                                                 type="button"
                                                 disabled={trocando !== null}
                                                 onClick={() => trocarForma(forma.id)}
-                                                className="rounded-lg border border-[#8C2F39] px-3 py-1.5 text-xs font-medium text-[#8C2F39] hover:bg-rose-50 disabled:opacity-50"
+                                                className="rounded-lg border border-[#000000] px-3 py-1.5 text-xs font-medium text-[#000000] hover:bg-neutral-100 disabled:opacity-50"
                                             >
                                                 {trocando === forma.id
                                                     ? "Trocando..."
@@ -341,7 +341,7 @@ export function OrderDetailModal({
                                             href={order.trackingUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-[#8C2F39] hover:underline"
+                                            className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-[#000000] hover:underline"
                                         >
                                             Rastrear: {order.trackingCode}
                                             <ExternalLink size={13} />
@@ -391,7 +391,7 @@ export function OrderDetailModal({
                                     )}
                                     <div className="flex justify-between border-t pt-2 font-bold">
                                         <span>Total</span>
-                                        <span className="text-[#8C2F39]">{money(order.total)}</span>
+                                        <span className="text-[#000000]">{money(order.total)}</span>
                                     </div>
                                 </div>
                             </div>

@@ -94,7 +94,7 @@ function CouponBox({
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                     placeholder="CUPOM"
-                    className="w-full rounded-lg border px-3 py-2 font-mono text-sm uppercase focus:ring-2 focus:ring-[#8C2F39]"
+                    className="w-full rounded-lg border px-3 py-2 font-mono text-sm uppercase focus:ring-2 focus:ring-[#000000]"
                 />
                 <button
                     type="button"
@@ -628,12 +628,12 @@ export default function CheckoutPage() {
     };
 
     const inputClass =
-        "w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#8C2F39] focus:border-transparent text-base";
+        "w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-[#000000] focus:border-transparent text-base";
 
     if (authLoading || !ready || selectedItems.length === 0) {
         return (
             <div className="flex min-h-screen items-center justify-center">
-                <Loader2 className="animate-spin text-[#8C2F39]" size={50} />
+                <Loader2 className="animate-spin text-[#000000]" size={50} />
             </div>
         );
     }
@@ -659,7 +659,7 @@ export default function CheckoutPage() {
             />
 
             {/* Trust bar */}
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-[#8C2F39] px-4 py-2 text-center text-xs text-white">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-[#000000] px-4 py-2 text-center text-xs text-white">
                 <span className="flex items-center gap-1">
                     <ShieldCheck size={13} /> Compra 100% segura
                 </span>
@@ -690,7 +690,7 @@ export default function CheckoutPage() {
                                     setCardDeclined(false);
                                     setError("");
                                 }}
-                                className="mt-3 w-full rounded-xl bg-[#8C2F39] px-4 py-3 font-semibold text-white"
+                                className="mt-3 w-full rounded-xl bg-[#000000] px-4 py-3 font-semibold text-white"
                             >
                                 Pagar com Pix
                             </button>
@@ -735,7 +735,7 @@ export default function CheckoutPage() {
                             {selectedItems.length === 1 ? "item" : "itens"})
                         </span>
                         <div className="flex items-center gap-2">
-                            <span className="font-bold text-[#8C2F39]">
+                            <span className="font-bold text-[#000000]">
                                 R$ {total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                             </span>
                             {summaryOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -930,7 +930,7 @@ export default function CheckoutPage() {
                                             <label
                                                 key={opt.id}
                                                 className={`flex cursor-pointer items-center justify-between rounded-xl border-2 p-3 transition-all ${selectedShipping?.id === opt.id
-                                                    ? "border-[#8C2F39] bg-rose-50"
+                                                    ? "border-[#000000] bg-neutral-100"
                                                     : "border-gray-200"
                                                     }`}
                                             >
@@ -944,7 +944,7 @@ export default function CheckoutPage() {
                                                                 ? setConfirmandoRetirada(opt)
                                                                 : setSelectedShipping(opt)
                                                         }
-                                                        className="accent-[#8C2F39]"
+                                                        className="accent-[#000000]"
                                                     />
                                                     <div>
                                                         <p className="text-sm font-medium">
@@ -960,7 +960,7 @@ export default function CheckoutPage() {
                                                                     </p>
                                                                 )}
                                                                 {opt.note && (
-                                                                    <p className="mt-0.5 text-[#8C2F39]">
+                                                                    <p className="mt-0.5 text-[#000000]">
                                                                         {opt.note}
                                                                     </p>
                                                                 )}
@@ -977,7 +977,7 @@ export default function CheckoutPage() {
                                                         )}
                                                     </div>
                                                 </div>
-                                                <p className="text-sm font-semibold text-[#8C2F39]">
+                                                <p className="text-sm font-semibold text-[#000000]">
                                                     {opt.price === 0
                                                         ? "Grátis"
                                                         : `R$ ${opt.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
@@ -1053,7 +1053,7 @@ export default function CheckoutPage() {
                                     <label
                                         key={id}
                                         className={`mb-3 flex cursor-pointer items-center gap-4 rounded-xl border-2 p-4 transition-all ${paymentMethod === id
-                                            ? "border-[#8C2F39] bg-rose-50"
+                                            ? "border-[#000000] bg-neutral-100"
                                             : "border-gray-200"
                                             }`}
                                     >
@@ -1063,12 +1063,12 @@ export default function CheckoutPage() {
                                             value={id}
                                             checked={paymentMethod === id}
                                             onChange={() => selectPayment(id)}
-                                            className="accent-[#8C2F39]"
+                                            className="accent-[#000000]"
                                         />
                                         <Icon
                                             size={22}
                                             className={
-                                                paymentMethod === id ? "text-[#8C2F39]" : "text-gray-400"
+                                                paymentMethod === id ? "text-[#000000]" : "text-gray-400"
                                             }
                                         />
                                         <div>
@@ -1233,7 +1233,7 @@ export default function CheckoutPage() {
                                     )}
                                     <div className="flex justify-between border-t pt-2 text-lg font-bold">
                                         <span>Total</span>
-                                        <span className="text-[#8C2F39]">
+                                        <span className="text-[#000000]">
                                             R${" "}
                                             {total.toLocaleString("pt-BR", {
                                                 minimumFractionDigits: 2,
@@ -1245,7 +1245,7 @@ export default function CheckoutPage() {
                                 <button
                                     type="submit"
                                     disabled={isProcessing || !selectedShipping || subtotal < MIN_ORDER}
-                                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#8C2F39] py-4 font-semibold text-white transition-colors hover:bg-[#7a2832] disabled:opacity-50"
+                                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#000000] py-4 font-semibold text-white transition-colors hover:bg-[#262626] disabled:opacity-50"
                                 >
                                     {isProcessing ? (
                                         <>
@@ -1273,7 +1273,7 @@ export default function CheckoutPage() {
                         <button
                             type="submit"
                             disabled={isProcessing || !selectedShipping || subtotal < MIN_ORDER}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#8C2F39] py-4 font-semibold text-white transition-transform active:scale-[0.98] disabled:opacity-50"
+                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#000000] py-4 font-semibold text-white transition-transform active:scale-[0.98] disabled:opacity-50"
                         >
                             {isProcessing ? (
                                 <>
@@ -1341,7 +1341,7 @@ export default function CheckoutPage() {
                                     setSelectedShipping(confirmandoRetirada);
                                     setConfirmandoRetirada(null);
                                 }}
-                                className="rounded-xl bg-[#8C2F39] py-3 font-semibold text-white hover:bg-[#7a2832]"
+                                className="rounded-xl bg-[#000000] py-3 font-semibold text-white hover:bg-[#262626]"
                             >
                                 Sim, eu vou buscar na fábrica
                             </button>
