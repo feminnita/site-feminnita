@@ -130,14 +130,14 @@ export function Footer() {
           <p className="text-sm text-gray-700">{razaoSocialComCnpj()}</p>
           <p className="mt-1 text-sm text-gray-600">{enderecoEmLinha()}</p>
           <p className="mt-4 text-sm text-gray-600">
-            © 2026 Feminnita. Todos os direitos reservados.
+            © 2026 Armmís. Todos os direitos reservados.
           </p>
           <div className="mt-4 flex justify-center gap-6">
             <a
               href="https://www.facebook.com/feminnita/"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Facebook da Feminnita"
+              aria-label="Facebook da Armmís"
               className="text-gray-400 hover:text-gray-600"
             >
               <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -148,7 +148,7 @@ export function Footer() {
               href="https://www.instagram.com/feminnita/"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Instagram da Feminnita"
+              aria-label="Instagram da Armmís"
               className="text-gray-400 hover:text-gray-600"
             >
               <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">

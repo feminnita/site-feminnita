@@ -35,7 +35,7 @@ export function SalaDeArquivos() {
                 <p className="mb-8 leading-relaxed text-gray-600">
                     Fotos profissionais dos produtos, banners prontos, lookbook da coleção,
                     planilha de precificação e scripts de venda — tudo que você precisa para
-                    trabalhar com a Feminnita.
+                    trabalhar com a Armmís.
                 </p>
 
                 <div className="flex flex-wrap justify-center gap-3">

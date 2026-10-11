@@ -5,7 +5,7 @@ import { TEXTO_PARCELAMENTO } from "@/src/lib/parcelamento";
 export const metadata: Metadata = {
   title: "Como Comprar",
   description:
-    "Passo a passo para revendedoras comprarem no atacado da Feminnita — pedido mínimo R$ 199.",
+    "Passo a passo para revendedoras comprarem no atacado da Armmís — pedido mínimo R$ 199.",
 };
 
 export default function ComoComprarPage() {
@@ -27,7 +27,7 @@ export default function ComoComprarPage() {
 
           <div className="space-y-6 text-base leading-relaxed text-gray-700">
             <p>
-              A Feminnita vende no atacado, para revendedoras e lojistas.
+              A Armmís vende no atacado, para revendedoras e lojistas.
               Comprar é simples:
             </p>
 

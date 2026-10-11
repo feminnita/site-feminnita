@@ -11,12 +11,12 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
     title: "Todos os Produtos",
     description:
-        "Toda a coleção Feminnita: pijamas, camisolas, short doll e moda íntima no atacado. Direto da fábrica, pedido mínimo R$ 199.",
+        "Toda a coleção Armmís: pijamas, camisolas, short doll e moda íntima no atacado. Direto da fábrica, pedido mínimo R$ 199.",
     alternates: { canonical: "/produtos" },
     openGraph: {
-        title: "Todos os Produtos | Feminnita",
+        title: "Todos os Produtos | Armmís",
         description:
-            "Toda a coleção Feminnita no atacado: pijamas, camisolas e short doll direto da fábrica.",
+            "Toda a coleção Armmís no atacado: pijamas, camisolas e short doll direto da fábrica.",
         // images precisa ser repetido aqui: quando um segmento declara openGraph,
         // o Next NAO herda os campos que faltam do layout pai — ele troca o objeto
         // inteiro. Sem esta linha, /produtos volta a ser compartilhada sem imagem.

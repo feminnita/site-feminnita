@@ -59,10 +59,10 @@ export function productSchema(product: {
         name: product.name,
         description:
             product.description ||
-            `${product.name} — pijamas e moda de dormir Feminnita`,
+            `${product.name} — pijamas e moda de dormir Armmís`,
         image: product.images,
         sku: String(product.code ?? product.id),
-        brand: { "@type": "Brand", name: "Feminnita" },
+        brand: { "@type": "Brand", name: "Armmís" },
         offers: {
             "@type": "Offer",
             priceCurrency: "BRL",
@@ -72,7 +72,7 @@ export function productSchema(product: {
                 product.inStock === false
                     ? "https://schema.org/OutOfStock"
                     : "https://schema.org/InStock",
-            seller: { "@type": "Organization", name: "Feminnita" },
+            seller: { "@type": "Organization", name: "Armmís" },
         },
     };
 }
@@ -92,7 +92,7 @@ export function organizationSchema(base: string) {
     return {
         "@context": "https://schema.org",
         "@type": "Organization",
-        name: "Feminnita",
+        name: "Armmís",
         url: base,
         logo: `${base}/favicon-512.png`,
         description:
@@ -119,7 +119,7 @@ export function webSiteSchema(base: string) {
     return {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        name: "Feminnita",
+        name: "Armmís",
         url: base,
         inLanguage: "pt-BR",
         potentialAction: {

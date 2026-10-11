@@ -69,7 +69,7 @@ function item(p: StoreProduct): string {
         `<description>${esc(textoLimpo(p.description || p.name, 5000))}</description>`,
         `<link>${esc(url)}</link>`,
         `<g:condition>new</g:condition>`,
-        `<g:brand>Feminnita</g:brand>`,
+        `<g:brand>Armmís</g:brand>`,
         // Sem codigo de barras global: dizer isso explicitamente evita o aviso de
         // "identificador faltando" em todo o catalogo.
         `<g:identifier_exists>no</g:identifier_exists>`,
@@ -104,9 +104,9 @@ export async function GET() {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
   <channel>
-    <title>Feminnita — Pijamas e Moda Íntima no Atacado</title>
+    <title>Armmís — Pijamas e Moda Íntima no Atacado</title>
     <link>${esc(SITE)}</link>
-    <description>Catálogo Feminnita: pijamas, camisolas e moda íntima no atacado, direto da fábrica.</description>
+    <description>Catálogo Armmís: pijamas, camisolas e moda íntima no atacado, direto da fábrica.</description>
 ${vendaveis.map(item).join("\n")}
   </channel>
 </rss>`;

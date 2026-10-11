@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Envio e Entrega",
   description:
-    "Como funciona o envio e a entrega dos pedidos Feminnita — frete por CEP, Correios e transportadora.",
+    "Como funciona o envio e a entrega dos pedidos Armmís — frete por CEP, Correios e transportadora.",
 };
 
 export default function EnvioEEntregaPage() {

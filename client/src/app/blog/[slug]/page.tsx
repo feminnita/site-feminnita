@@ -66,8 +66,8 @@ export default async function ArtigoPage({
                     description: artigo.excerpt || undefined,
                     image: artigo.coverUrl ? [`${SITE}${artigo.coverUrl}`] : undefined,
                     datePublished: artigo.publishedAt || undefined,
-                    author: { "@type": "Organization", name: artigo.authorName || "Feminnita" },
-                    publisher: { "@type": "Organization", name: "Feminnita" },
+                    author: { "@type": "Organization", name: artigo.authorName || "Armmís" },
+                    publisher: { "@type": "Organization", name: "Armmís" },
                     mainEntityOfPage: `${SITE}/blog/${artigo.slug}`,
                 }}
             />
@@ -97,7 +97,7 @@ export default async function ArtigoPage({
                         {artigo.title}
                     </h1>
                     <p className="mb-8 text-sm text-gray-400">
-                        {artigo.authorName || "Feminnita"} · {data(artigo.publishedAt)}
+                        {artigo.authorName || "Armmís"} · {data(artigo.publishedAt)}
                     </p>
 
                     {artigo.coverUrl && (

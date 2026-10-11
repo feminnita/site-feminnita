@@ -144,7 +144,7 @@ export function Vitrine({ videoSection }: VitrineProps) {
 
     return (
         <section
-            aria-label="Vitrine Feminnita"
+            aria-label="Vitrine Armmís"
             className="relative w-full overflow-hidden bg-[#E5E5E5]"
         >
             {href ? (

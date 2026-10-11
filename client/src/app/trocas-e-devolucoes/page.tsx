@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Trocas e Devoluções",
   description:
-    "Política de trocas e devoluções da Feminnita — venda no atacado para revendedoras.",
+    "Política de trocas e devoluções da Armmís — venda no atacado para revendedoras.",
 };
 
 export default function TrocasEDevolucoesPage() {
@@ -26,7 +26,7 @@ export default function TrocasEDevolucoesPage() {
 
           <div className="space-y-6 text-base leading-relaxed text-gray-700">
             <p>
-              A Feminnita comercializa <strong>no atacado</strong>, para
+              A Armmís comercializa <strong>no atacado</strong>, para
               revendedoras e lojistas. Por não se tratar de venda no varejo ao
               consumidor final, <strong>não há direito de arrependimento</strong>{" "}
               e <strong>não é oferecida a devolução</strong> de mercadoria que

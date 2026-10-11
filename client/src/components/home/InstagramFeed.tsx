@@ -25,7 +25,7 @@ function mapFeed(value: any): FeedInstagram | null {
         .map((p: any) => ({
             src: p.src,
             href: p.href || undefined,
-            alt: p.alt || "Publicação da Feminnita no Instagram",
+            alt: p.alt || "Publicação da Armmís no Instagram",
         }));
 
     if (!posts.length) return null;

@@ -90,7 +90,7 @@ export function BlogFooter() {
                 </div>
 
                 <div>
-                    <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-white">Feminnita</h4>
+                    <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-white">Armmís</h4>
                     <ul className="space-y-2 text-sm">
                         <li><Link href="/produtos" className="hover:text-white">Comprar no atacado</Link></li>
                         <li><Link href="/como-comprar" className="hover:text-white">Como comprar</Link></li>
@@ -101,7 +101,7 @@ export function BlogFooter() {
 
             <div className="container mx-auto mt-10 border-t border-white/10 px-4 pt-6">
                 <p className="text-xs">
-                    © {new Date().getFullYear()} Feminnita · Nova Friburgo, RJ
+                    © {new Date().getFullYear()} Armmís · Nova Friburgo, RJ
                 </p>
             </div>
         </footer>

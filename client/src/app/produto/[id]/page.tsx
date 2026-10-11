@@ -7,7 +7,7 @@ import {
 } from "@/src/components/common/JsonLd";
 import ProductPageClient from "./ProductPageClient";
 
-const SITE_NAME = "Feminnita";
+const SITE_NAME = "Armmís";
 const TITLE_SUFFIX = ` | ${SITE_NAME}`;
 const TITLE_MAX = 60;
 const DESC_MAX = 155;
@@ -76,7 +76,7 @@ export async function generateMetadata({
         firstMeaningfulParagraph(product.description || "");
     const description = descSource
         ? truncateAtWord(descSource, DESC_MAX, true)
-        : `${product.name} — Feminnita: pijamas e moda íntima no atacado, direto da fábrica.`;
+        : `${product.name} — Armmís: pijamas e moda íntima no atacado, direto da fábrica.`;
 
     // og:image / twitter:image = FOTO DE CAPA do produto (aparece ao compartilhar o
     // link no WhatsApp). Sem foto de capa, OMITE — nunca cai pro logo da loja.

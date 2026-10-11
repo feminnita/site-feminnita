@@ -5,7 +5,7 @@ import { enderecoEmLinha, razaoSocialComCnpj } from "@/src/lib/empresa";
 export const metadata: Metadata = {
   title: "Política de Privacidade",
   description:
-    "Política de Privacidade da Feminnita — como coletamos, usamos e protegemos os seus dados (LGPD).",
+    "Política de Privacidade da Armmís — como coletamos, usamos e protegemos os seus dados (LGPD).",
 };
 
 export default function PoliticaDePrivacidadePage() {
@@ -27,7 +27,7 @@ export default function PoliticaDePrivacidadePage() {
 
           <div className="space-y-6 text-base leading-relaxed text-gray-700">
             <p>
-              Esta Política descreve como a Feminnita coleta, utiliza,
+              Esta Política descreve como a Armmís coleta, utiliza,
               compartilha e protege os dados pessoais dos seus clientes, em
               conformidade com a Lei Geral de Proteção de Dados (Lei nº
               13.709/2018 — LGPD).
@@ -44,7 +44,7 @@ export default function PoliticaDePrivacidadePage() {
                 <li>Endereço de entrega</li>
                 <li>
                   Dados de pagamento — enviados ao gateway{" "}
-                  <strong>Asaas</strong>, que processa a cobrança. A Feminnita
+                  <strong>Asaas</strong>, que processa a cobrança. A Armmís
                   não armazena os dados do cartão.
                 </li>
               </ul>

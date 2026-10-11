@@ -5,7 +5,7 @@ import { TEXTO_PARCELAMENTO } from "@/src/lib/parcelamento";
 export const metadata: Metadata = {
   title: "Central de Ajuda",
   description:
-    "Central de Ajuda da Feminnita — dúvidas frequentes, contato e links úteis.",
+    "Central de Ajuda da Armmís — dúvidas frequentes, contato e links úteis.",
 };
 
 const links = [

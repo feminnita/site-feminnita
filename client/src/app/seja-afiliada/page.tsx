@@ -79,7 +79,7 @@ export default function SejaAfiliadaPage() {
                 <div className="grid gap-12 md:grid-cols-2">
                     <div>
                         <h1 className="mb-4 text-4xl font-light leading-tight">
-                            Divulgue a Feminnita<br />e ganhe por venda
+                            Divulgue a Armmís<br />e ganhe por venda
                         </h1>
                         <p className="mb-8 text-gray-600">
                             Você recebe um link só seu. Quem comprar por ele, você ganha uma

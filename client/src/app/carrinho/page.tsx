@@ -102,8 +102,9 @@ export default function CartPage() {
             <div className="min-h-screen bg-gray-50">
                 <header className="border-b bg-white py-4">
                     <div className="container mx-auto px-4">
-                        <Link href="/" className="text-xl font-light text-[#000000]">
-                            feminnita
+                        <Link href="/" aria-label="Armmís">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/logo-armmis.png" alt="Armmís" width={980} height={219} className="h-6 w-auto" />
                         </Link>
                     </div>
                 </header>
@@ -128,9 +129,10 @@ export default function CartPage() {
         <div className="min-h-screen bg-gray-50">
             <header className="border-b bg-white py-4">
                 <div className="container mx-auto px-4">
-                    <Link href="/" className="text-xl font-light text-[#000000]">
-                        feminnita
-                    </Link>
+                    <Link href="/" aria-label="Armmís">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/logo-armmis.png" alt="Armmís" width={980} height={219} className="h-6 w-auto" />
+                        </Link>
                 </div>
             </header>
 

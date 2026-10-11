@@ -22,7 +22,7 @@ function ProdutosContent() {
                         {vm.query ? `Resultados para "${vm.query}"` : "Produtos"}
                     </h1>
                     {!vm.query && (
-                        <p className="text-sm text-gray-500">Toda a coleção Feminnita</p>
+                        <p className="text-sm text-gray-500">Toda a coleção Armmís</p>
                     )}
                 </div>
 

@@ -66,7 +66,7 @@ function MinhaContaContent() {
             <div className="container mx-auto max-w-4xl px-4 py-10">
                 {cadastroOK && (
                     <div className="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">
-                        ✅ Conta criada com sucesso! Bem-vinda à Feminnita,{" "}
+                        ✅ Conta criada com sucesso! Bem-vinda à Armmís,{" "}
                         {customer?.name?.split(" ")[0] || ""}!
                     </div>
                 )}

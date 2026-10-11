@@ -69,7 +69,7 @@ export function CartaoEditorial({ post }: { post: PostResumo }) {
                 <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-white/55">
                     <span>{dataCurta(post.publishedAt)}</span>
                     <span>·</span>
-                    <span>{post.authorName || "Feminnita"}</span>
+                    <span>{post.authorName || "Armmís"}</span>
                     <span>·</span>
                     <span>5 min</span>
                 </div>

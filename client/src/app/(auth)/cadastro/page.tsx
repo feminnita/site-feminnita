@@ -81,7 +81,7 @@ export default function CadastroPage() {
                         // Cliente da Tray tentando se cadastrar de novo: a conta
                         // dele já veio junto, com o histórico. Só falta a senha.
                         <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                            Você já tem conta na Feminnita — trouxemos seu cadastro. Só falta
+                            Você já tem conta na Armmís — trouxemos seu cadastro. Só falta
                             criar a senha desta loja nova.{" "}
                             <Link href="/esqueci-senha" className="font-semibold underline">
                                 Criar minha senha
