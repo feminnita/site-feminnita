@@ -25,7 +25,7 @@ export const EMPRESA = {
         uf: "RJ",
         cep: "28615-230",
     },
-    email: "feminnita@gmail.com",
+    email: "armmismoda@gmail.com",
     whatsapp: "(22) 99281-0707",
 } as const;
 

@@ -86,10 +86,10 @@ export function Footer() {
               <GrupoVipLink />
               <li>
                 <a
-                  href="mailto:feminnita@gmail.com"
+                  href="mailto:armmismoda@gmail.com"
                   className="hover:underline"
                 >
-                  Email: feminnita@gmail.com
+                  Email: armmismoda@gmail.com
                 </a>
               </li>
               <li>Seg a Qui: 8h às 17h</li>

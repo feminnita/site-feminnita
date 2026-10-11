@@ -129,10 +129,10 @@ export default function CentralDeAjudaPage() {
                 <li>
                   E-mail:{" "}
                   <a
-                    href="mailto:feminnita@gmail.com"
+                    href="mailto:armmismoda@gmail.com"
                     className="text-[#000000] hover:underline"
                   >
-                    feminnita@gmail.com
+                    armmismoda@gmail.com
                   </a>
                 </li>
                 <li>Segunda a quinta: 8h às 17h · Sexta: 8h às 16h</li>

@@ -89,10 +89,10 @@ export default function TrocasEDevolucoesPage() {
                 </a>{" "}
                 ou pelo e-mail{" "}
                 <a
-                  href="mailto:feminnita@gmail.com"
+                  href="mailto:armmismoda@gmail.com"
                   className="text-[#000000] hover:underline"
                 >
-                  feminnita@gmail.com
+                  armmismoda@gmail.com
                 </a>
                 . Atendimento de segunda a quinta, das 8h às 17h, e sexta, das 8h
                 às 16h.

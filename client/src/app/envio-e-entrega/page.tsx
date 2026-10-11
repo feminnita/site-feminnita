@@ -93,10 +93,10 @@ export default function EnvioEEntregaPage() {
                 </a>{" "}
                 ou pelo e-mail{" "}
                 <a
-                  href="mailto:feminnita@gmail.com"
+                  href="mailto:armmismoda@gmail.com"
                   className="text-[#000000] hover:underline"
                 >
-                  feminnita@gmail.com
+                  armmismoda@gmail.com
                 </a>
                 .
               </p>
