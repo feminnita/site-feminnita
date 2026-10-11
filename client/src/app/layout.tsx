@@ -25,8 +25,8 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL || "https://site-feminnita-alpha.vercel.app",
   ),
   title: {
-    default: "Feminnita | Pijamas e Moda Íntima no Atacado",
-    template: "%s | Feminnita",
+    default: "Armmís | Pijamas e Moda Íntima no Atacado",
+    template: "%s | Armmís",
   },
   description:
     "Pijamas e moda íntima feminina no atacado, direto da fábrica. Pedido mínimo R$ 199. Para revendedoras e lojistas, com entrega para todo o Brasil.",
@@ -38,37 +38,37 @@ export const metadata: Metadata = {
     "pijama direto da fábrica",
     "atacado para revenda",
   ],
-  authors: [{ name: "Feminnita" }],
+  authors: [{ name: "Armmís" }],
   // A home é o endereço oficial dela mesma. Sem isto só a página de produto tinha
   // canonical, e a home ficava sujeita a ser indexada por variações de URL
   // (utm de campanha, barra final, www x sem www).
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Feminnita | Pijamas e Moda Íntima no Atacado",
+    title: "Armmís | Pijamas e Moda Íntima no Atacado",
     description:
       "Pijamas e moda íntima feminina, atacado direto da fábrica. Pedido mínimo R$ 199.",
     type: "website",
     locale: "pt_BR",
-    siteName: "Feminnita",
+    siteName: "Armmís",
     // O link da loja vai por WhatsApp pra revendedora o dia inteiro. Sem imagem,
     // chega como uma caixinha de texto cinza. A página de PRODUTO já manda a foto
     // do produto (generateMetadata em produto/[id]); esta é a capa de tudo que não
     // é produto: home, listagens, coleções. metadataBase resolve o caminho absoluto.
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/og-armmis.png",
         width: 1200,
         height: 630,
-        alt: "Feminnita — pijamas e moda íntima no atacado, direto da fábrica",
+        alt: "Armmís — pijamas e moda íntima no atacado, direto da fábrica",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Feminnita | Pijamas e Moda Íntima no Atacado",
+    title: "Armmís | Pijamas e Moda Íntima no Atacado",
     description:
       "Pijamas e moda íntima feminina, atacado direto da fábrica. Pedido mínimo R$ 199.",
-    images: ["/og-image.jpg"],
+    images: ["/og-armmis.png"],
   },
   robots: { index: true, follow: true },
   icons: {
