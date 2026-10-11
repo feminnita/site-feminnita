@@ -32,7 +32,8 @@ export default function ForgotPasswordPage() {
         <div className="mb-8 text-center">
           <Link href="/">
             <h1 className="text-3xl font-bold tracking-widest text-[#1A1A1A]">
-              FEMINNITA
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo-armmis.png" alt="Armmís" width={980} height={219} className="mx-auto h-8 w-auto" />
             </h1>
           </Link>
           <p className="mt-2 text-gray-500">Recuperar senha</p>
