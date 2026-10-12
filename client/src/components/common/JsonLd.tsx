@@ -105,8 +105,8 @@ export function organizationSchema(base: string) {
             availableLanguage: "Portuguese",
         },
         sameAs: [
-            "https://www.instagram.com/feminnita/",
-            "https://www.facebook.com/feminnita/",
+            "https://www.instagram.com/armmis.moda/",
+            "https://www.facebook.com/armmis.moda/",
         ],
     };
 }

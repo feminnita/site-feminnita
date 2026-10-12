@@ -134,7 +134,7 @@ export function Footer() {
           </p>
           <div className="mt-4 flex justify-center gap-6">
             <a
-              href="https://www.facebook.com/feminnita/"
+              href="https://www.facebook.com/armmis.moda/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook da Armmís"
@@ -145,7 +145,7 @@ export function Footer() {
               </svg>
             </a>
             <a
-              href="https://www.instagram.com/feminnita/"
+              href="https://www.instagram.com/armmis.moda/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram da Armmís"

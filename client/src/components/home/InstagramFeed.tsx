@@ -30,7 +30,7 @@ function mapFeed(value: any): FeedInstagram | null {
 
     if (!posts.length) return null;
 
-    const handle = String(value?.handle || "feminnita").replace(/^@/, "");
+    const handle = String(value?.handle || "armmis.moda").replace(/^@/, "");
     return {
         handle,
         titulo: value?.titulo || `@${handle}`,
