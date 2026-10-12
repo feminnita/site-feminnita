@@ -22,6 +22,8 @@ app.use((req, res, next) => {
 
 const envOrigins = (process.env.ALLOWED_ORIGINS ?? '').split(',').map(s => s.trim()).filter(Boolean);
 const allowedOrigins = [
+    'https://armmis.com.br',
+    'https://www.armmis.com.br',
     'https://feminnita.com.br',
     'https://www.feminnita.com.br',
     'https://site-feminnita.vercel.app',

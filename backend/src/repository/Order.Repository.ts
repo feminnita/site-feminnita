@@ -103,7 +103,7 @@ export async function insertOrderWithItems(
         }
 
         const seqResult = await tx.execute(sql`SELECT nextval('order_number_seq') as nextval`);
-        const orderNumber = `FEM-${seqResult.rows[0].nextval}`;
+        const orderNumber = `ARM-${seqResult.rows[0].nextval}`;
 
         const [order] = await tx.insert(orders).values({ ...orderValues, orderNumber }).returning();
         await tx.insert(orderItems).values(items.map((item) => ({ ...item, orderId: order.id })));

@@ -48,7 +48,7 @@ export function emailLayout(input: {
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden">
 
         <tr><td align="center" style="background:${BORGONHA};padding:26px 24px">
-          <div style="font-size:24px;letter-spacing:5px;color:#ffffff;font-weight:bold">FEMINNITA</div>
+          <div style="font-size:24px;letter-spacing:5px;color:#ffffff;font-weight:bold">ARMMÍS</div>
           <div style="font-size:11px;letter-spacing:2px;color:#f3d7da;margin-top:6px">PIJAMAS NO ATACADO</div>
         </td></tr>
 
@@ -73,7 +73,7 @@ export function emailLayout(input: {
       </table>
 
       <p style="margin:18px 0 0;font-size:11px;color:#a1a1aa">
-        Feminnita · Pijamas e moda íntima no atacado · Nova Friburgo, RJ
+        Armmís · Pijamas e moda íntima no atacado · Nova Friburgo, RJ
       </p>
 
     </td></tr>

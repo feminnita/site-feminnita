@@ -109,7 +109,7 @@ export async function createChargeForOrder(order: OrderForCharge, asaasCustomerI
         value: Number(order.total),
         dueDate: dueDateFor(order.paymentMethod),
         externalReference: order.id,
-        description: `Pedido ${order.orderNumber} — Feminnita`,
+        description: `Pedido ${order.orderNumber} — Armmís`,
         ...(installmentCount && { installmentCount, totalValue: Number(order.total) }),
         ...(isCard && {
             creditCard: order.creditCard,

@@ -222,13 +222,13 @@ export async function sendWelcome(data: { customerName: string; customerEmail: s
     try {
         await EmailClient.sendEmail({
             to: data.customerEmail,
-            subject: '💛 Bem-vinda à Feminnita!',
+            subject: '💛 Bem-vinda à Armmís!',
             html: emailLayout({
                 preheader: 'Sua conta está pronta. Pedido mínimo de R$ 199, no atacado.',
                 titulo: 'Que bom ter você com a gente',
                 corpo: `
       <p style="margin:0 0 6px">Oi, ${escapeHtml(data.customerName)}! 💛</p>
-      <p style="margin:0 0 18px">Sua conta na Feminnita está criada e pronta para usar.</p>
+      <p style="margin:0 0 18px">Sua conta na Armmís está criada e pronta para usar.</p>
 
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
              style="background:#FAF6F2;border-radius:12px">
@@ -259,7 +259,7 @@ export async function sendPasswordReset(data: { customerName: string; customerEm
             to: data.customerEmail,
             // Sem emoji no assunto: e-mail de senha precisa parecer oficial, não
             // promocional. Emoji aqui atrapalha a confiança e ajuda a cair no spam.
-            subject: 'Redefinir sua senha — Feminnita',
+            subject: 'Redefinir sua senha — Armmís',
             html: emailLayout({
                 preheader: 'Link para criar uma nova senha. Vale por 30 minutos.',
                 titulo: 'Criar uma nova senha',
