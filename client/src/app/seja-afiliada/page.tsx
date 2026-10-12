@@ -89,7 +89,7 @@ export default function SejaAfiliadaPage() {
                         <ol className="space-y-5">
                             {[
                                 ["Você se cadastra", "Leva um minuto. A gente olha seu perfil e responde por e-mail."],
-                                ["Recebe seu link", "Algo como feminnita.com.br/?ref=SEUNOME. É esse link que você divulga."],
+                                ["Recebe seu link", "Algo como armmis.com.br/?ref=SEUNOME. É esse link que você divulga."],
                                 ["Ganha por venda", "Toda compra feita por ele fica registrada para você, com a sua porcentagem."],
                             ].map(([titulo, texto], i) => (
                                 <li key={titulo} className="flex gap-4">

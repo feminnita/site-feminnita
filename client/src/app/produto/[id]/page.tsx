@@ -131,18 +131,18 @@ export default async function ProductPage({
                     <JsonLd data={productSchema(product)} />
                     <JsonLd
                         data={breadcrumbSchema([
-                            { name: "Home", url: "https://feminnita.com.br/" },
+                            { name: "Home", url: "https://www.armmis.com.br/" },
                             ...(showCategoryCrumb
                                 ? [
                                       {
                                           name: product.category as string,
-                                          url: `https://feminnita.com.br/categoria/${product.category}`,
+                                          url: `https://www.armmis.com.br/categoria/${product.category}`,
                                       },
                                   ]
                                 : []),
                             {
                                 name: product.name,
-                                url: `https://feminnita.com.br/produto/${id}`,
+                                url: `https://www.armmis.com.br/produto/${id}`,
                             },
                         ])}
                     />

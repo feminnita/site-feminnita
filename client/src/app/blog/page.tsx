@@ -16,7 +16,7 @@ export const metadata: Metadata = BLOG_NO_AR
           title: "Blog",
           description:
               "Conteúdo exclusivo para revendedoras de pijamas: treinamento, histórias e dicas para vender mais.",
-          alternates: { canonical: "https://feminnita.com.br/blog" },
+          alternates: { canonical: "https://www.armmis.com.br/blog" },
       }
     : {
           // noindex enquanto nao ha conteudo: pagina vazia indexada ensina ao

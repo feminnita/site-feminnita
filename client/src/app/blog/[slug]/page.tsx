@@ -10,7 +10,7 @@ import { BLOG_NO_AR } from "../../../lib/blog";
 
 export const dynamic = "force-dynamic";
 
-const SITE = "https://feminnita.com.br";
+const SITE = "https://www.armmis.com.br";
 
 export async function generateMetadata({
     params,
