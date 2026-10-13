@@ -40,6 +40,22 @@ export function toggleSelectedAt(items: CartItem[], index: number): CartItem[] {
     );
 }
 
+export function deselectVariants(
+    items: CartItem[],
+    variants: { productId: string; size: string; color: string | null }[],
+): CartItem[] {
+    return items.map((item) =>
+        variants.some(
+            (v) =>
+                v.productId === item.id &&
+                v.size === item.selectedSize &&
+                (v.color ?? "") === (item.selectedColor ?? ""),
+        )
+            ? { ...item, selected: false }
+            : item,
+    );
+}
+
 export function setAllSelected(items: CartItem[], selected: boolean): CartItem[] {
     return items.map((item) => ({ ...item, selected }));
 }

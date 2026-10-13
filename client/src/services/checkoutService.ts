@@ -200,6 +200,29 @@ export function mapOrderError(rawMessage: string): string {
     return found ? found[1] : "Erro ao processar o pedido. Tente novamente.";
 }
 
+export type PecaEsgotada = {
+    productId: string;
+    size: string;
+    color: string | null;
+    nome: string;
+    disponivel: number;
+};
+
+/**
+ * As pecas que o servidor recusou por estoque, ou null se o erro nao trouxe a
+ * lista (a corrida entre duas compras na mesma hora ainda chega so com o codigo).
+ */
+export function parseEsgotados(rawMessage: string): PecaEsgotada[] | null {
+    const m = rawMessage.match(/OUT_OF_STOCK:\s*(\[[\s\S]*\])\s*$/);
+    if (!m) return null;
+    try {
+        const lista = JSON.parse(m[1]);
+        return Array.isArray(lista) && lista.length > 0 ? lista : null;
+    } catch {
+        return null;
+    }
+}
+
 export function mapCouponError(rawMessage: string): string {
     const found = ERROR_MESSAGES.find(([code]) => rawMessage.includes(code));
     return found ? found[1] : "Não foi possível validar o cupom. Tente novamente.";

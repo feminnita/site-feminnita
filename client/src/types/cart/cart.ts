@@ -26,6 +26,7 @@ export type CartValue = {
     selectedCount: number;
     selectedSubtotal: number;
     removeSelected: () => void;
+    deselectVariants: (variants: { productId: string; size: string; color: string | null }[]) => void;
 }
 
 export type ServerCartItem = {

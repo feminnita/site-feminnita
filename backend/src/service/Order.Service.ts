@@ -42,6 +42,12 @@ export async function createOrder(input: CreateOrderInput) {
     const productById = new Map(dbProducts.map((p) => [p.id, p]));
 
     const resolvedItems = [];
+    // Confere TODAS as pecas antes de recusar. Parar na primeira fazia a
+    // revendedora de carrinho grande tirar uma, digitar o cartao de novo e
+    // bater na proxima — e a mensagem nao dizia qual era (13/10/2026: quatro
+    // tentativas no escuro entre o ARM-1097 e o ARM-1101). A lista vai em JSON
+    // para a tela de pagamento desmarcar as pecas certas e dizer o nome de cada.
+    const esgotados: { productId: string; size: string; color: string | null; nome: string; disponivel: number }[] = [];
     for (const item of input.items) {
         const product = productById.get(item.productId);
         if (!product || !product.active) {
@@ -55,7 +61,14 @@ export async function createOrder(input: CreateOrderInput) {
 
         const sku = await OrderRepository.findSkuById(skuId);
         if (!sku || sku.stockQty - sku.reservedQty < item.quantity) {
-            throw new Error(`OUT_OF_STOCK: ${item.productId}: ${item.size}:${item.color ?? ''}`);
+            esgotados.push({
+                productId: item.productId,
+                size: item.size,
+                color: item.color ?? null,
+                nome: product.name,
+                disponivel: sku ? Math.max(0, sku.stockQty - sku.reservedQty) : 0,
+            });
+            continue;
         }
 
         const unitPriceCents = OrderDomain.resolveUnitPriceCents(product);
@@ -70,6 +83,9 @@ export async function createOrder(input: CreateOrderInput) {
             unitPriceCents,
             totalPriceCents: unitPriceCents * item.quantity,
         });
+    }
+    if (esgotados.length > 0) {
+        throw new Error(`OUT_OF_STOCK: ${JSON.stringify(esgotados)}`);
     }
 
     const subtotalCents = OrderDomain.calculateSubtotalCents(resolvedItems);

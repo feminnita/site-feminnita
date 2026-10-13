@@ -12,8 +12,10 @@ import {
     createOrder,
     mapCouponError,
     mapOrderError,
+    parseEsgotados,
     previewCoupon,
     fetchAutomaticCoupon,
+    type PecaEsgotada,
 } from "../../services/checkoutService";
 import { quoteShipping } from "../../services/shippingService";
 import { registrarCarrinhoDeVisitante } from "../../services/cartLeadService";
@@ -127,11 +129,23 @@ function CouponBox({
  */
 const CUPOM_DE_SAIDA = "FICA6";
 
+function mensagemEsgotados(pecas: PecaEsgotada[]): string {
+    const lista = pecas
+        .map((p) => {
+            const variacao = [p.size, p.color].filter(Boolean).join(" · ");
+            const resto = p.disponivel > 0 ? `, restam só ${p.disponivel}` : "";
+            return `${p.nome} (${variacao}${resto})`;
+        })
+        .join("; ");
+    const uma = pecas.length === 1;
+    return `${uma ? "Esta peça esgotou" : "Estas peças esgotaram"} enquanto você comprava e ${uma ? "saiu" : "saíram"} do pedido: ${lista}. Confira o novo total e o frete e finalize de novo.${pecas.some((p) => p.disponivel > 0) ? " Onde restam peças, você pode voltar ao carrinho e diminuir a quantidade." : ""}`;
+}
+
 export default function CheckoutPage() {
     const router = useRouter();
 
     const { customer, loading: authLoading } = useAuth();
-    const { selectedItems, ready, removeSelected } = useCart();
+    const { selectedItems, ready, removeSelected, deselectVariants } = useCart();
     const { lookup, loading: cepLoading } = useCep();
     const { lookup: lookupCnpj, loading: cnpjLoading } = useCnpj();
 
@@ -610,10 +624,22 @@ export default function CheckoutPage() {
             router.push("/pedido-confirmado");
         } catch (err) {
             const reVersion = err instanceof ApiError ? parseReacceptVersion(err.message) : null;
+            const esgotados = err instanceof ApiError ? parseEsgotados(err.message) : null;
             if (reVersion !== null) {
                 setReacceptVersion(reVersion);
                 setReacceptChecked(false);
                 setError("");
+            } else if (esgotados) {
+                // Tira do pedido so o que esgotou (continua no carrinho, desmarcado)
+                // e diz o nome de cada peca. Antes era "um dos produtos", sem dizer
+                // qual — com 40 pecas no carrinho a cliente tentava no escuro.
+                deselectVariants(esgotados);
+                setCardDeclined(false);
+                setError(mensagemEsgotados(esgotados));
+                // O frete foi cotado com as pecas que sairam: cota de novo.
+                autoShippingDone.current = false;
+                // O aviso fica no topo; no celular ela esta la embaixo, no botao.
+                window.scrollTo({ top: 0, behavior: "smooth" });
             } else {
                 setCardDeclined(err instanceof ApiError && err.message.includes("CARD_DECLINED"));
                 setError(

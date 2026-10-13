@@ -5,6 +5,7 @@ import {
     addItem,
     cartCount,
     cartSubTotal,
+    deselectVariants,
     removeAt,
     removeSelected,
     selectedCount,
@@ -101,6 +102,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         selectedCount: selectedCount(items),
         selectedSubtotal: selectedSubTotal(items),
         removeSelected: () => persist(removeSelected(items)),
+        deselectVariants: (variants) => persist(deselectVariants(items, variants)),
     };
 
     return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
