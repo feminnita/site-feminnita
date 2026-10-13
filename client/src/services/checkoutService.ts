@@ -50,9 +50,14 @@ export async function createOrder(input: {
         } : undefined,
     };
 
+    // 150s, e nao os 35s das outras chamadas. O servidor confere peca por peca
+    // e depois cobra no Asaas: carrinho de 40+ pecas passa de 35s. A tela
+    // desistia, dizia "tente novamente" — e o servidor seguia e COBRAVA. Em
+    // 13/10/2026 uma cliente foi cobrada 3 vezes assim (ARM-1097/1099/1101).
     const data = (await apiPost<ApiOrderResponse>(
         "/api/store/orders",
         payload,
+        150000,
     )) as ApiOrderResponse;
 
     return {

@@ -10,7 +10,7 @@ export class ApiError extends Error {
 }
 
 
-async function send<T>(method: string, path: string, body?: unknown): Promise<T | null> {
+async function send<T>(method: string, path: string, body?: unknown, timeoutMs = 35000): Promise<T | null> {
 
   let response: Response;
   try {
@@ -22,7 +22,7 @@ async function send<T>(method: string, path: string, body?: unknown): Promise<T 
       // Sem timeout, um backend que não responde deixa a tela girando pra
       // sempre (ex.: "Finalizar Pedido"). 35s cobre o cold-start da Render e
       // ainda vem depois do timeout de 20s do Asaas no backend.
-      signal: AbortSignal.timeout(35000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (err) {
     if (err instanceof DOMException && err.name === "TimeoutError") {
@@ -56,8 +56,8 @@ export async function apiGet<T>(path: string): Promise<T | null> {
   }
 }
 
-export async function apiPost<T>(path: string, body?: unknown): Promise<T | null> {
-  return send<T>("POST", path, body);
+export async function apiPost<T>(path: string, body?: unknown, timeoutMs?: number): Promise<T | null> {
+  return send<T>("POST", path, body, timeoutMs);
 }
 
 export function apiPut<T>(path: string, body?: unknown): Promise<T | null> {

@@ -640,6 +640,14 @@ export default function CheckoutPage() {
                 autoShippingDone.current = false;
                 // O aviso fica no topo; no celular ela esta la embaixo, no botao.
                 window.scrollTo({ top: 0, behavior: "smooth" });
+            } else if (err instanceof ApiError && (err.status === 408 || err.status === 0)) {
+                // A resposta nao chegou, mas o servidor pode ter criado o pedido e
+                // cobrado. "Tente novamente" aqui cobrou a mesma cliente 3 vezes.
+                setCardDeclined(false);
+                setError(
+                    "Não recebemos a confirmação a tempo, mas o seu pedido pode ter sido feito e o pagamento aprovado. Antes de tentar de novo, confira seu e-mail (\"Recebemos seu pedido\" ou \"Pagamento confirmado\") ou fale com a gente no WhatsApp.",
+                );
+                window.scrollTo({ top: 0, behavior: "smooth" });
             } else {
                 setCardDeclined(err instanceof ApiError && err.message.includes("CARD_DECLINED"));
                 setError(
