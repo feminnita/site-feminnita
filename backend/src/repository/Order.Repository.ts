@@ -10,6 +10,29 @@ export function findCouponByCode(code: string) {
     return db.query.coupons.findFirst({ where: eq(coupons.code, code) });
 }
 
+/**
+ * Pedido da mesma pessoa feito ha pouco e ainda valido (nem cancelado, nem
+ * recusado). A pessoa e reconhecida pelo CPF, e nao pela conta: em 13/10/2026
+ * a mesma cliente comprou com dois e-mails e virou duas contas.
+ */
+export async function findPedidoRecenteDoCpf(cpf: string, minutos: number) {
+    const digitos = cpf.replace(/\D/g, '');
+    if (digitos.length < 11) return null;
+    const [pedido] = await db
+        .select({ orderNumber: orders.orderNumber, paymentMethod: orders.paymentMethod, paymentStatus: orders.paymentStatus })
+        .from(orders)
+        .innerJoin(customers, eq(customers.id, orders.customerId))
+        .where(and(
+            sql`regexp_replace(coalesce(${customers.cpf}, ''), '[^0-9]', '', 'g') = ${digitos}`,
+            sql`${orders.createdAt} > now() - make_interval(mins => ${minutos})`,
+            sql`${orders.status} <> 'cancelled'`,
+            sql`${orders.paymentStatus} <> 'failed'`,
+        ))
+        .orderBy(desc(orders.createdAt))
+        .limit(1);
+    return pedido ?? null;
+}
+
 export function findOrderByCustomerAndCoupon(customerId: string, couponId: string) {
     return db.query.orders.findFirst({
         where: and(eq(orders.customerId, customerId), eq(orders.couponId, couponId))

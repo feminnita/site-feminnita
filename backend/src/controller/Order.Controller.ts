@@ -51,6 +51,7 @@ export async function createOrder(req: Request, res: Response) {
             pickup: req.body.pickup === true,
             shippingServiceId: req.body.pickup === true ? undefined : Number(req.body.shippingServiceId),
             shippingAddress: req.body.shippingAddress,
+            confirmarNovoPedido: req.body.confirmarNovoPedido === true,
             remoteIp: req.ip,
         });
         res.status(201).json(order);

@@ -19,6 +19,7 @@ export async function createOrder(input: {
     shippingServiceId: number;
     pickup?: boolean;
     shippingAddress: ShippingAddress;
+    confirmarNovoPedido?: boolean;
 }): Promise<OrderPaymentResult> {
 
     const payload = {
@@ -35,6 +36,7 @@ export async function createOrder(input: {
         shippingServiceId: input.shippingServiceId,
         pickup: input.pickup || undefined,
         shippingAddress: input.shippingAddress,
+        confirmarNovoPedido: input.confirmarNovoPedido || undefined,
         // De onde veio a visita que virou este pedido — e o que permite dizer
         // depois qual campanha e qual arte geraram venda de verdade.
         origem: origemDaVisita(),
@@ -177,6 +179,7 @@ const ERROR_MESSAGES: [string, string][] = [
     ["PRODUCT_UNAVAILABLE", "Um dos produtos não está mais disponível."],
     ["SKU_NOT_FOUND", "Uma das variações escolhidas não está mais disponível."],
     ["OUT_OF_STOCK", "Um dos produtos ficou sem estoque. Revise o carrinho."],
+    ["DUPLICATE_RECENT_ORDER", "Você já fez um pedido há poucos minutos. Confira seu e-mail antes de tentar de novo."],
     ["COUPON_NOT_FOUND", "Cupom não encontrado. Confira o código."],
     ["COUPON_ALREADY_USED", "Você já usou este cupom em outro pedido."],
     ["COUPON_EXHAUSTED", "Este cupom esgotou."],
@@ -223,6 +226,24 @@ export function parseEsgotados(rawMessage: string): PecaEsgotada[] | null {
     try {
         const lista = JSON.parse(m[1]);
         return Array.isArray(lista) && lista.length > 0 ? lista : null;
+    } catch {
+        return null;
+    }
+}
+
+export type PedidoRecente = {
+    orderNumber: string;
+    paymentMethod: string | null;
+    paymentStatus: string | null;
+};
+
+/** O pedido que a mesma pessoa fez ha pouco, quando o servidor recusou por compra repetida. */
+export function parsePedidoRecente(rawMessage: string): PedidoRecente | null {
+    const m = rawMessage.match(/DUPLICATE_RECENT_ORDER:\s*(\{[\s\S]*\})\s*$/);
+    if (!m) return null;
+    try {
+        const p = JSON.parse(m[1]);
+        return p && typeof p.orderNumber === "string" ? p : null;
     } catch {
         return null;
     }

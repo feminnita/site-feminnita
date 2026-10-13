@@ -32,6 +32,21 @@ export async function createOrder(input: CreateOrderInput) {
         throw new Error('EMPTY_CART');
     }
 
+    // Trava de compra repetida. Em 13/10/2026 a mesma cliente pagou 3 vezes o
+    // mesmo carrinho no cartao (ARM-1097/1099/1101): a tela dizia "erro" e ela
+    // tentava de novo, ate com outro e-mail. Antes de qualquer coisa, se o
+    // mesmo CPF ja fez pedido valido nos ultimos 30 minutos, recusa e diz qual.
+    // Quem quer mesmo outro pedido confirma na tela (confirmarNovoPedido).
+    // Fica no comeco de proposito: o pedido anterior ja esta gravado enquanto
+    // o cartao dele ainda esta sendo cobrado.
+    if (!input.confirmarNovoPedido) {
+        const compradora = await OrderRepository.findCustomerForCharge(input.customerId);
+        const recente = compradora?.cpf ? await OrderRepository.findPedidoRecenteDoCpf(compradora.cpf, 30) : null;
+        if (recente) {
+            throw new Error(`DUPLICATE_RECENT_ORDER: ${JSON.stringify(recente)}`);
+        }
+    }
+
     // Clamp obrigatório: a loja só vende em até MAX_PARCELAS sem juros. Nunca confiar
     // no número de parcelas que vem do front — um front desatualizado (ou forjado)
     // poderia mandar 10x e o Asaas cobraria em 10x. Aqui o servidor garante o teto.

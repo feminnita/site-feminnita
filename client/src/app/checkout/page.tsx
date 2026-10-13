@@ -13,6 +13,8 @@ import {
     mapCouponError,
     mapOrderError,
     parseEsgotados,
+    parsePedidoRecente,
+    type PedidoRecente,
     previewCoupon,
     fetchAutomaticCoupon,
     type PecaEsgotada,
@@ -177,6 +179,11 @@ export default function CheckoutPage() {
     const beginTracked = useRef(false);
     const autoShippingDone = useRef(false);
     const submittingRef = useRef(false);
+    // Trava de compra repetida: o servidor achou um pedido da mesma pessoa (CPF)
+    // feito ha pouco. So passa se ela confirmar que quer outro.
+    const [pedidoRecente, setPedidoRecente] = useState<PedidoRecente | null>(null);
+    const confirmarNovoRef = useRef(false);
+    const formRef = useRef<HTMLFormElement>(null);
 
     const [form, setForm] = useState({
         name: "",
@@ -613,6 +620,7 @@ export default function CheckoutPage() {
                     city: f.city,
                     state: f.state,
                 },
+                confirmarNovoPedido: confirmarNovoRef.current,
             });
 
             // A conversão de venda é reportada SERVER-SIDE (Meta CAPI/GA4/TikTok)
@@ -625,10 +633,16 @@ export default function CheckoutPage() {
         } catch (err) {
             const reVersion = err instanceof ApiError ? parseReacceptVersion(err.message) : null;
             const esgotados = err instanceof ApiError ? parseEsgotados(err.message) : null;
+            const recente = err instanceof ApiError ? parsePedidoRecente(err.message) : null;
             if (reVersion !== null) {
                 setReacceptVersion(reVersion);
                 setReacceptChecked(false);
                 setError("");
+            } else if (recente) {
+                setPedidoRecente(recente);
+                setCardDeclined(false);
+                setError("");
+                window.scrollTo({ top: 0, behavior: "smooth" });
             } else if (esgotados) {
                 // Tira do pedido so o que esgotou (continua no carrinho, desmarcado)
                 // e diz o nome de cada peca. Antes era "um dos produtos", sem dizer
@@ -732,6 +746,44 @@ export default function CheckoutPage() {
                     </div>
                 )}
 
+                {pedidoRecente && (
+                    <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+                        <div className="flex items-start gap-2">
+                            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                            <p>
+                                Você já fez o pedido <strong>{pedidoRecente.orderNumber}</strong> há poucos minutos
+                                {pedidoRecente.paymentStatus === "paid"
+                                    ? ", e o pagamento foi aprovado"
+                                    : pedidoRecente.paymentMethod === "card"
+                                        ? ", e o pagamento no cartão pode já ter sido aprovado"
+                                        : ", e ele está aguardando pagamento"}
+                                . Confira seu e-mail antes de continuar: fazer outro pedido gera{" "}
+                                <strong>uma nova cobrança</strong>.
+                            </p>
+                        </div>
+                        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                            <button
+                                type="button"
+                                onClick={() => router.push("/")}
+                                className="flex-1 rounded-xl bg-[#000000] px-4 py-3 font-semibold text-white"
+                            >
+                                Não, já tenho meu pedido
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    confirmarNovoRef.current = true;
+                                    setPedidoRecente(null);
+                                    formRef.current?.requestSubmit();
+                                }}
+                                className="flex-1 rounded-xl border border-amber-400 bg-white px-4 py-3 font-semibold text-amber-900"
+                            >
+                                Sim, quero fazer outro pedido
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/*
                  * O mínimo dito na entrada, não na saída.
                  *
@@ -809,7 +861,7 @@ export default function CheckoutPage() {
                     )}
                 </div>
 
-                <form onSubmit={handleSubmit}>
+                <form ref={formRef} onSubmit={handleSubmit}>
                     <div className="grid gap-6 lg:grid-cols-5">
                         {/* Left: form */}
                         <div className="space-y-4 lg:col-span-3">

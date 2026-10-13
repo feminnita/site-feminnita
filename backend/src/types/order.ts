@@ -8,6 +8,8 @@ export type CreateOrderInput = {
     }[];
     paymentMethod: 'pix' | 'boleto' | 'card';
     installments?: number;
+    // A cliente viu o aviso de pedido recente e confirmou que quer outro.
+    confirmarNovoPedido?: boolean;
     creditCard?: {
         holderName: string;
         number: string;
