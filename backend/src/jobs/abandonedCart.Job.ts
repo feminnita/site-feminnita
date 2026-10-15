@@ -1,5 +1,6 @@
 import * as AbandonedCartRepository from '../repository/AbandonedCart.Repository';
 import * as EmailService from '../integrations/resend/Services';
+import * as CupomDoCarrinho from '../domain/CupomDoCarrinho';
 import { env } from '../config/env';
 
 // Lembrete automatico de carrinho abandonado.
@@ -30,11 +31,25 @@ export async function enviarLembretesDeCarrinho(): Promise<number> {
 
     let enviados = 0;
     for (const carrinho of abandonados) {
+        // Primeira compra ganha 5% (no lugar dos 3%) para voltar; quem ja e
+        // cliente recebe o lembrete sem desconto. Ver domain/CupomDoCarrinho.
+        let desconto: { codigo: string; percentual: number; ate: Date } | undefined;
+        if (carrinho.primeiraCompra) {
+            const codigo = CupomDoCarrinho.codigoDoCarrinho(carrinho.customerId);
+            const ate = await AbandonedCartRepository.criarCupomDoCarrinho(
+                codigo,
+                CupomDoCarrinho.PERCENTUAL,
+                CupomDoCarrinho.VALIDADE_HORAS,
+            );
+            if (ate) desconto = { codigo, percentual: CupomDoCarrinho.PERCENTUAL, ate };
+        }
+
         const foi = await EmailService.sendAbandonedCart({
             customerName: (carrinho.name || '').split(' ')[0] || 'tudo bem',
             customerEmail: carrinho.email,
             items: Array.isArray(carrinho.items) ? carrinho.items : [],
             cartUrl: `${env.clientUrl}/carrinho`,
+            desconto,
         });
 
         // Marca DEPOIS de mandar, e SO se mandou. O envio engolia o proprio erro

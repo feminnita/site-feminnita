@@ -4,6 +4,7 @@ import { env } from '../../config/env';
 import type { OrderEmailData } from './types';
 import * as SiteSettingsRepository from '../../repository/SiteSettings.Repository';
 import * as OrderRepository from '../../repository/Order.Repository';
+import { prazoPorExtenso } from '../../domain/CupomDoCarrinho';
 
 /**
  * Romaneio: a copia do que a cliente comprou, item a item.
@@ -279,17 +280,23 @@ export async function sendPasswordReset(data: { customerName: string; customerEm
 }
 
 // Lembrete de carrinho abandonado. Tom de recado, nao de cobranca: a pessoa nao
-// deve nada, so parou no meio. Por isso nao ha contagem regressiva nem desconto
-// de ultima hora — desconto para quem ja ia comprar so tira margem, e ensina a
-// cliente a esperar o proximo e-mail em vez de fechar o pedido.
+// deve nada, so parou no meio.
+//
+// Quem ja e cliente recebe so o recado: desconto para quem ja ia comprar so
+// tira margem. Quem NUNCA comprou recebe 5% (desde 15/10/2026, decisao da
+// Chris): sem desconto, de 29 lembretes so 1 voltou. O prazo do e-mail e o do
+// cupom no banco — o checkout recusa depois dele, entao a promessa e real.
 export async function sendAbandonedCart(data: {
     customerName: string;
     customerEmail: string;
     items: { name: string; size: string; color?: string; quantity: number }[];
     cartUrl: string;
+    desconto?: { codigo: string; percentual: number; ate: Date };
 }): Promise<boolean> {
     try {
         const pecas = data.items.reduce((t, i) => t + (i.quantity || 0), 0);
+        const d = data.desconto;
+        const prazo = d ? prazoPorExtenso(d.ate) : '';
 
         const linhas = data.items
             .slice(0, 8)
@@ -311,13 +318,28 @@ export async function sendAbandonedCart(data: {
                 ? `<tr><td colspan="2" style="padding:11px 0;font-size:13px;color:#71717a">e mais ${data.items.length - 8} item(ns)…</td></tr>`
                 : '';
 
+        const presente = d
+            ? `
+      <div style="background:#FAF6F2;border:1px dashed #8C2F39;border-radius:12px;padding:20px 16px;text-align:center;margin:0 0 22px">
+        <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8C2F39;font-weight:700">Presente de primeira compra</div>
+        <div style="font-size:40px;font-weight:800;color:#8C2F39;line-height:1.1;margin:6px 0">${d.percentual}% OFF</div>
+        <div style="font-size:15px;color:#3f3f46">+ 5% pagando no Pix = <strong>${d.percentual + 5}% de desconto nas peças</strong></div>
+        <div style="font-size:13px;color:#71717a;margin-top:12px;line-height:1.5">
+          Entra sozinho no checkout — é só finalizar.<br>
+          Vale até <strong style="color:#18181b">${prazo}</strong> · código <strong style="color:#18181b">${d.codigo}</strong>
+        </div>
+      </div>`
+            : '';
+
         const corpo = `
       <p style="margin:0 0 6px">Oi, ${escapeHtml(data.customerName)}! 💛</p>
       <p style="margin:0 0 20px">
         Você escolheu ${pecas === 1 ? 'uma peça' : `${pecas} peças`} e parou no meio do caminho.
-        Guardamos tudo para você — está aqui, do jeitinho que ficou:
+        ${d
+            ? 'Como é a sua primeira compra com a gente, separamos um desconto para você finalizar:'
+            : 'Guardamos tudo para você — está aqui, do jeitinho que ficou:'}
       </p>
-
+      ${presente}
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:4px">
         ${linhas}${aMais}
       </table>
@@ -328,13 +350,22 @@ export async function sendAbandonedCart(data: {
 
         await EmailClient.sendEmail({
             to: data.customerEmail,
-            subject: '🛍️ Suas peças ainda estão no carrinho',
+            subject: d
+                ? `💛 Seu carrinho ganhou ${d.percentual}% OFF (no Pix são ${d.percentual + 5}%)`
+                : '🛍️ Suas peças ainda estão no carrinho',
             html: emailLayout({
-                preheader: `${pecas === 1 ? 'Uma peça guardada' : `${pecas} peças guardadas`} esperando você finalizar.`,
-                titulo: 'Seu carrinho está te esperando',
+                preheader: d
+                    ? `Desconto de primeira compra para finalizar suas peças. Vale só até ${prazo}.`
+                    : `${pecas === 1 ? 'Uma peça guardada' : `${pecas} peças guardadas`} esperando você finalizar.`,
+                titulo: d ? `Ganhou ${d.percentual}% para finalizar` : 'Seu carrinho está te esperando',
                 corpo,
-                botao: { texto: 'Voltar para o carrinho', url: data.cartUrl },
-                rodapeExtra: 'Já finalizou? Pode ignorar este e-mail. 😊',
+                botao: {
+                    texto: d ? `Finalizar com ${d.percentual}% OFF` : 'Voltar para o carrinho',
+                    url: data.cartUrl,
+                },
+                rodapeExtra: d
+                    ? 'Desconto de primeira compra, válido uma vez, no pedido mínimo de R$ 199. Já finalizou? Pode ignorar este e-mail. 😊'
+                    : 'Já finalizou? Pode ignorar este e-mail. 😊',
             }),
         });
         return true;

@@ -131,6 +131,13 @@ function CouponBox({
  */
 const CUPOM_DE_SAIDA = "FICA6";
 
+/**
+ * Cupom pessoal de 5% do e-mail de carrinho abandonado (backend
+ * domain/CupomDoCarrinho). Quem chega com ele não vê a oferta de saída: o
+ * "mais 3%, agora são 6%" seria mentira sobre os 5% que ela já tem.
+ */
+const PREFIXO_CUPOM_DO_CARRINHO = "VOLTA-";
+
 function mensagemEsgotados(pecas: PecaEsgotada[]): string {
     const lista = pecas
         .map((p) => {
@@ -419,7 +426,11 @@ export default function CheckoutPage() {
             if (!cupom) return;
             setAppliedCoupon(cupom);
             setCouponCode(cupom.code);
-            toast.success(`Cupom ${cupom.code} aplicado: desconto de primeira compra.`);
+            toast.success(
+                cupom.code.startsWith(PREFIXO_CUPOM_DO_CARRINHO)
+                    ? "Seu desconto de 5% voltou com o carrinho! No Pix são 10%."
+                    : `Cupom ${cupom.code} aplicado: desconto de primeira compra.`,
+            );
         });
     }, [customer, subtotal, appliedCoupon, couponCode, form.email]);
 
@@ -701,6 +712,7 @@ export default function CheckoutPage() {
                     ready &&
                     selectedItems.length > 0 &&
                     appliedCoupon?.code !== CUPOM_DE_SAIDA &&
+                    !appliedCoupon?.code.startsWith(PREFIXO_CUPOM_DO_CARRINHO) &&
                     (!!customer || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
                 }
                 onAceitar={aceitarCupomDeSaida}

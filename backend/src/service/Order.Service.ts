@@ -9,6 +9,7 @@ import * as AffiliateRepository from '../repository/Affiliate.Repository';
 import * as SiteSettingsRepository from '../repository/SiteSettings.Repository';
 import * as AddressesRepository from '../repository/Addresses.Repository';
 import * as AuthRepository from '../repository/Auth.Repository';
+import * as CupomDoCarrinho from '../domain/CupomDoCarrinho';
 import type { CreateOrderInput } from '../types/order';
 
 /**
@@ -126,6 +127,9 @@ export async function createOrder(input: CreateOrderInput) {
         coupon = await OrderRepository.findCouponByCode(input.couponCode);
 
         if (!coupon) throw new Error('COUPON_NOT_FOUND');
+
+        // Cupom de carrinho abandonado e pessoal: so a dona usa.
+        if (!CupomDoCarrinho.podeUsar(coupon.code, input.customerId)) throw new Error('COUPON_NOT_YOURS');
 
         const alreadyUsed = await OrderRepository.findOrderByCustomerAndCoupon(input.customerId, coupon.id);
         if (alreadyUsed) throw new Error('COUPON_ALREADY_USED');
@@ -399,6 +403,8 @@ export async function previewCoupon(
         if (cliente) customerId = cliente.id;
     }
 
+    if (!CupomDoCarrinho.podeUsar(coupon.code, customerId)) throw new Error('COUPON_NOT_YOURS');
+
     if (customerId) {
         const alreadyUsed = await OrderRepository.findOrderByCustomerAndCoupon(customerId, coupon.id);
         if (alreadyUsed) throw new Error('COUPON_ALREADY_USED');
@@ -460,6 +466,14 @@ export async function automaticCoupon(
     if (customerId) {
         const jaComprou = await OrderRepository.findOrdersByCustomerId(customerId);
         if (jaComprou.length > 0) return null;
+
+        // Quem recebeu o lembrete de carrinho abandonado tem 5% no lugar dos
+        // 3%. Vencido ou ja usado, cai no cupom normal de primeira compra.
+        try {
+            return await previewCoupon(customerId, CupomDoCarrinho.codigoDoCarrinho(customerId), subtotal);
+        } catch {
+            // nao recebeu, venceu ou ja usou
+        }
     }
 
     try {

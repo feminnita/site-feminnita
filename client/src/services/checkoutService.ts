@@ -182,6 +182,8 @@ const ERROR_MESSAGES: [string, string][] = [
     ["DUPLICATE_RECENT_ORDER", "Você já fez um pedido há poucos minutos. Confira seu e-mail antes de tentar de novo."],
     ["COUPON_NOT_FOUND", "Cupom não encontrado. Confira o código."],
     ["COUPON_ALREADY_USED", "Você já usou este cupom em outro pedido."],
+    ["COUPON_FIRST_PURCHASE_ONLY", "Este cupom é só para a primeira compra."],
+    ["COUPON_NOT_YOURS", "Este cupom é pessoal. Use o mesmo e-mail que recebeu o desconto."],
     ["COUPON_EXHAUSTED", "Este cupom esgotou."],
     ["COUPON_MAX_USES_REACHED", "Este cupom esgotou."],
     ["COUPON_INACTIVE", "Este cupom não está mais ativo."],
