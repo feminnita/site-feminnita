@@ -141,7 +141,7 @@ export async function createOrder(input: CreateOrderInput) {
         // Aqui e a conferencia que MANDA: input.customerId ja foi resolvido
         // pelo e-mail, entao comprar sem conta nao escapa.
         if (coupon.firstPurchaseOnly) {
-            const jaComprou = await OrderRepository.findOrdersByCustomerId(input.customerId);
+            const jaComprou = await OrderRepository.findPaidOrdersByCustomerId(input.customerId);
             if (jaComprou.length > 0) throw new Error('COUPON_FIRST_PURCHASE_ONLY');
         }
 
@@ -410,7 +410,7 @@ export async function previewCoupon(
         if (alreadyUsed) throw new Error('COUPON_ALREADY_USED');
 
         if (coupon.firstPurchaseOnly) {
-            const jaComprou = await OrderRepository.findOrdersByCustomerId(customerId);
+            const jaComprou = await OrderRepository.findPaidOrdersByCustomerId(customerId);
             if (jaComprou.length > 0) throw new Error('COUPON_FIRST_PURCHASE_ONLY');
         }
     }
@@ -464,7 +464,7 @@ export async function automaticCoupon(
     }
 
     if (customerId) {
-        const jaComprou = await OrderRepository.findOrdersByCustomerId(customerId);
+        const jaComprou = await OrderRepository.findPaidOrdersByCustomerId(customerId);
         if (jaComprou.length > 0) return null;
 
         // Quem recebeu o lembrete de carrinho abandonado tem 5% no lugar dos

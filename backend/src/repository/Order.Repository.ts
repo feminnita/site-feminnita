@@ -33,9 +33,22 @@ export async function findPedidoRecenteDoCpf(cpf: string, minutos: number) {
     return pedido ?? null;
 }
 
+// "Comprou" = pagou. Pedido criado e não pago (Pix vencido, cartão recusado)
+// não é compra: contar ele tirava o desconto de quem tentou de novo — a Jullia,
+// em 15/10/2026, gerou o Pix com 3%, não pagou, voltou no cartão e pagou sem
+// desconto. Regra da Chris: "a primeira compra é a hora que paga".
+// Estornado e em disputa contam: a cliente comprou, só não ficou com a peça.
+const PAGO = ['paid', 'refunded', 'disputed'] as const;
+
 export function findOrderByCustomerAndCoupon(customerId: string, couponId: string) {
     return db.query.orders.findFirst({
-        where: and(eq(orders.customerId, customerId), eq(orders.couponId, couponId))
+        where: and(eq(orders.customerId, customerId), eq(orders.couponId, couponId), inArray(orders.paymentStatus, [...PAGO]))
+    });
+}
+
+export function findPaidOrdersByCustomerId(customerId: string) {
+    return db.query.orders.findMany({
+        where: and(eq(orders.customerId, customerId), inArray(orders.paymentStatus, [...PAGO])),
     });
 }
 

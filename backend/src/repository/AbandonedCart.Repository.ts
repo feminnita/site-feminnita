@@ -46,9 +46,11 @@ export async function encontrarAbandonados(horas: number, limite: number) {
                  from jsonb_array_elements(c.items) i
                )              as "items",
                c.updated_at   as "updatedAt",
-               -- Nunca fez pedido nenhum: e quem ganha os 5% do carrinho.
-               -- Mesma regra do cupom de primeira compra no checkout.
-               not exists (select 1 from orders o where o.customer_id = c.customer_id)
+               -- Nunca PAGOU um pedido: e quem ganha os 5% do carrinho. Pix
+               -- vencido ou cartao recusado nao e compra. Mesma regra do
+               -- cupom de primeira compra no checkout.
+               not exists (select 1 from orders o where o.customer_id = c.customer_id
+                             and o.payment_status in ('paid', 'refunded', 'disputed'))
                               as "primeiraCompra"
         from carts c
         join customers cl on cl.id = c.customer_id
@@ -76,13 +78,18 @@ export async function encontrarAbandonados(horas: number, limite: number) {
 // null quando ela ja teve o dela (cada cliente tem um so, para sempre: quem
 // abandona de novo recebe o lembrete sem desconto).
 //
-// Se o cupom ja existe, sem uso e com folga no prazo, devolve o mesmo: e o
-// caso do e-mail que o Resend recusou na rodada anterior — sem isto ela
-// receberia o lembrete de novo, mas sem o desconto que ja era dela.
+// Se o cupom ja existe e tem folga no prazo, devolve o mesmo: e o caso do
+// e-mail que o Resend recusou na rodada anterior — sem isto ela receberia o
+// lembrete de novo, mas sem o desconto que ja era dela.
+//
+// Sem limite de usos (max_uses null): o uso e contado quando o pedido NASCE,
+// e cartao recusado ou Pix nao pago matavam o cupom antes da cliente pagar.
+// O que segura o desconto e o resto: so a dona usa, so vale ate ela PAGAR a
+// primeira compra, e vence em 48h.
 export async function criarCupomDoCarrinho(codigo: string, percentual: number, horas: number) {
     const criado = await db.execute(sql`
         insert into coupons (code, type, value, max_uses, first_purchase_only, expires_at)
-        values (${codigo}, 'percent', ${percentual}, 1, true, now() + (${horas} || ' hours')::interval)
+        values (${codigo}, 'percent', ${percentual}, null, true, now() + (${horas} || ' hours')::interval)
         on conflict (code) do nothing
         returning expires_at as "expiresAt"
     `);
@@ -91,7 +98,7 @@ export async function criarCupomDoCarrinho(codigo: string, percentual: number, h
     if (!linha) {
         const existente = await db.execute(sql`
             select expires_at as "expiresAt" from coupons
-            where code = ${codigo} and active and used_count = 0
+            where code = ${codigo} and active
               and expires_at > now() + interval '6 hours'
         `);
         linha = existente.rows[0] as Linha;
