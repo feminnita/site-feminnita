@@ -33,6 +33,82 @@ export async function findPedidoRecenteDoCpf(cpf: string, minutos: number) {
     return pedido ?? null;
 }
 
+// ---------------------------------------------------------------------------
+// Motivo do cancelamento (coluna orders.cancel_reason)
+//
+// A coluna NAO esta no schema do drizzle de proposito. O drizzle lista todas
+// as colunas do schema em todo insert/select de orders: se o codigo subisse
+// antes da migracao, NENHUM pedido seria criado. Por SQL direto (como a
+// `reference` de products_skus), sem a coluna o pior caso e o motivo nao ser
+// gravado e o limite de recusas nao valer — a loja segue vendendo.
+// Migracao: backend/scripts/0028_motivo_do_cancelamento.sql
+// ---------------------------------------------------------------------------
+
+export const MOTIVO_CARTAO_RECUSADO = 'card_declined';
+
+/** Grava o motivo (e, se vier, a nota que o painel mostra). Nunca lanca. */
+export async function marcarMotivoDoCancelamento(orderId: string, motivo: string, nota?: string) {
+    if (nota) {
+        try {
+            await db.update(orders).set({ notes: nota, updatedAt: new Date() }).where(eq(orders.id, orderId));
+        } catch (erro) {
+            console.error(`Nao consegui gravar a nota do pedido ${orderId}:`, erro);
+        }
+    }
+    try {
+        await db.execute(sql`UPDATE orders SET cancel_reason = ${motivo} WHERE id = ${orderId}::uuid`);
+    } catch (erro) {
+        console.error(`Nao consegui gravar cancel_reason=${motivo} no pedido ${orderId} (migracao 0028 aplicada?):`, erro);
+    }
+}
+
+/**
+ * Quantas tentativas de cartao do CPF foram recusadas nos ultimos `minutos`.
+ * Se a coluna ainda nao existir, responde 0 (a loja segue como antes).
+ */
+export async function contarRecusasDeCartaoDoCpf(cpf: string, minutos: number): Promise<number> {
+    const digitos = cpf.replace(/\D/g, '');
+    if (digitos.length < 11) return 0;
+    try {
+        const { rows } = await db.execute(sql`
+            SELECT count(*)::int AS n
+              FROM orders o
+              JOIN customers c ON c.id = o.customer_id
+             WHERE regexp_replace(coalesce(c.cpf, ''), '[^0-9]', '', 'g') = ${digitos}
+               AND o.cancel_reason = ${MOTIVO_CARTAO_RECUSADO}
+               AND o.created_at > now() - make_interval(mins => ${minutos})
+        `);
+        return Number((rows[0] as { n?: number } | undefined)?.n ?? 0);
+    } catch (erro) {
+        console.error('Nao consegui contar as recusas de cartao (migracao 0028 aplicada?):', erro);
+        return 0;
+    }
+}
+
+/**
+ * Pix do mesmo CPF ainda aguardando pagamento, criados nas ultimas `horas`,
+ * menos o pedido que acabou de ser pago. "Aguardando" segundo o NOSSO banco;
+ * quem confirma que a cobranca ainda esta aberta e o Asaas, na hora.
+ */
+export async function findPixPendentesDoCpf(cpf: string, horas: number, excetoOrderId: string) {
+    const digitos = cpf.replace(/\D/g, '');
+    if (digitos.length < 11) return [];
+    return db
+        .select({ id: orders.id, orderNumber: orders.orderNumber, asaasPaymentId: orders.asaasPaymentId })
+        .from(orders)
+        .innerJoin(customers, eq(customers.id, orders.customerId))
+        .where(and(
+            sql`regexp_replace(coalesce(${customers.cpf}, ''), '[^0-9]', '', 'g') = ${digitos}`,
+            sql`${orders.createdAt} > now() - make_interval(hours => ${horas})`,
+            eq(orders.paymentMethod, 'pix'),
+            eq(orders.status, 'pending'),
+            eq(orders.paymentStatus, 'pending'),
+            sql`${orders.asaasPaymentId} IS NOT NULL`,
+            sql`${orders.id} <> ${excetoOrderId}::uuid`,
+        ))
+        .then((linhas) => linhas.filter((l): l is { id: string; orderNumber: string; asaasPaymentId: string } => !!l.asaasPaymentId));
+}
+
 // "Comprou" = pagou. Pedido criado e não pago (Pix vencido, cartão recusado)
 // não é compra: contar ele tirava o desconto de quem tentou de novo — a Jullia,
 // em 15/10/2026, gerou o Pix com 3%, não pagou, voltou no cartão e pagou sem

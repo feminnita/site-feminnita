@@ -15,6 +15,8 @@ export async function createOrder(input: {
     paymentMethod: "pix" | "boleto" | "card";
     installments: number;
     card?: CardInput;
+    // Cartao de outra pessoa: os dados do titular vao ao banco no lugar dos da conta.
+    titular?: TitularDoCartao;
     couponCode?: string;
     shippingServiceId: number;
     pickup?: boolean;
@@ -50,6 +52,7 @@ export async function createOrder(input: {
             expiryYear: parseCardExpiry(input.card.expiry).year,
             ccv: input.card.cvv,
         } : undefined,
+        titularDoCartao: input.paymentMethod === "card" && input.titular ? input.titular : undefined,
     };
 
     // 150s, e nao os 35s das outras chamadas. O servidor confere peca por peca
@@ -196,6 +199,11 @@ const ERROR_MESSAGES: [string, string][] = [
         "A opção de frete escolhida não está mais disponível. Recalcule o frete.",
     ],
     [
+        "CARD_RETRY_LIMIT",
+        "Seu cartão foi recusado 2 vezes nos últimos 30 minutos. Para sua segurança, novas tentativas no cartão ficam pausadas por meia hora. Finalize agora com Pix: é aprovado na hora e ainda tem desconto.",
+    ],
+    ["CARD_HOLDER_INVALID", "Confira os dados do titular do cartão."],
+    [
         "CARD_DECLINED",
         "Seu cartão não foi aprovado pelo banco. Confira os dados do cartão ou pague com Pix, que é aprovado na hora e ainda tem desconto.",
     ],
@@ -205,7 +213,28 @@ const ERROR_MESSAGES: [string, string][] = [
     ],
 ];
 
+export type TitularDoCartao = {
+    nome: string;
+    cpf: string;
+    cep: string;
+    numero: string;
+    telefone: string;
+};
+
+/**
+ * Erros do cartao chegam como "CODIGO: mensagem pronta para a cliente"
+ * (CARD_DECLINED_LIMIT, CARD_DECLINED_BANK, CARD_RETRY_LIMIT, CARD_HOLDER_INVALID...).
+ * O servidor ja escreve a mensagem em portugues; aqui so se separa as duas partes.
+ */
+export function erroDoCartao(rawMessage: string): { codigo: string; mensagem: string | null } | null {
+    const m = rawMessage.match(/(CARD_[A-Z_]+)(?::\s*([\s\S]+))?$/);
+    if (!m) return null;
+    return { codigo: m[1], mensagem: m[2]?.trim() || null };
+}
+
 export function mapOrderError(rawMessage: string): string {
+    const doCartao = erroDoCartao(rawMessage);
+    if (doCartao?.mensagem) return doCartao.mensagem;
     const found = ERROR_MESSAGES.find(([code]) => rawMessage.includes(code));
     return found ? found[1] : "Erro ao processar o pedido. Tente novamente.";
 }

@@ -10,6 +10,7 @@ import { fetchProfile, updateProfile } from "../../services/accountService";
 import { fetchAddresses } from "../../services/addressesService";
 import {
     createOrder,
+    erroDoCartao,
     mapCouponError,
     mapOrderError,
     parseEsgotados,
@@ -29,7 +30,7 @@ import {
     trackAddShippingInfo,
     trackBeginCheckout,
 } from "../../utils/analytics";
-import { isValidateCnpj, isValidateCpfCnpj } from "../../utils/checkout";
+import { isValidateCnpj, isValidateCpf, isValidateCpfCnpj } from "../../utils/checkout";
 import { PIX_DISCOUNT_RATE } from "../../utils/pricing";
 import type { AccountCustomer } from "../../types/account/account";
 import type { ShippingOption } from "../../types/checkout/checkout";
@@ -182,6 +183,13 @@ export default function CheckoutPage() {
     // Cartao recusado: a mensagem ganha o atalho "Pagar com Pix" (em vez de a
     // cliente insistir no mesmo cartao 3x seguidas).
     const [cardDeclined, setCardDeclined] = useState(false);
+    // Recusas nesta tela. Na segunda, o cartao sai de cena e fica so o Pix —
+    // a mesma regra que o servidor aplica (2 recusas do CPF em 30 minutos).
+    const [recusasDoCartao, setRecusasDoCartao] = useState(0);
+    // Motivo para mostrar so o Pix (null = todas as formas liberadas).
+    const [soPix, setSoPix] = useState<string | null>(null);
+    // Cartao de outra pessoa: o banco confere CPF e CEP do TITULAR.
+    const [cartaoDeOutraPessoa, setCartaoDeOutraPessoa] = useState(false);
     const [summaryOpen, setSummaryOpen] = useState(false);
     const beginTracked = useRef(false);
     const autoShippingDone = useRef(false);
@@ -211,6 +219,11 @@ export default function CheckoutPage() {
         card_expiry: "",
         card_cvv: "",
         card_name: "",
+        titular_nome: "",
+        titular_cpf: "",
+        titular_cep: "",
+        titular_numero: "",
+        titular_telefone: "",
     });
 
     const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
@@ -554,6 +567,28 @@ export default function CheckoutPage() {
                 setError("Preencha todos os dados do cartão.");
                 return;
             }
+            if (cartaoDeOutraPessoa) {
+                if (f.titular_nome.trim().length < 3) {
+                    setError("Informe o nome completo do titular do cartão.");
+                    return;
+                }
+                if (!isValidateCpf(f.titular_cpf.replace(/\D/g, ""))) {
+                    setError("CPF do titular do cartão inválido. Confira os números.");
+                    return;
+                }
+                if (f.titular_cep.replace(/\D/g, "").length !== 8) {
+                    setError("CEP do titular do cartão inválido. Use os 8 números.");
+                    return;
+                }
+                if (!f.titular_numero.trim()) {
+                    setError("Informe o número do endereço do titular do cartão.");
+                    return;
+                }
+                if (!/^\d{10,11}$/.test(f.titular_telefone.replace(/\D/g, ""))) {
+                    setError("Informe o telefone do titular do cartão com DDD.");
+                    return;
+                }
+            }
         }
 
         // Guard contra duplo-clique: ref é síncrono (antes do 1º await), então
@@ -619,6 +654,16 @@ export default function CheckoutPage() {
                             cvv: f.card_cvv,
                         }
                         : undefined,
+                titular:
+                    paymentMethod === "card" && cartaoDeOutraPessoa
+                        ? {
+                            nome: f.titular_nome.trim(),
+                            cpf: f.titular_cpf.replace(/\D/g, ""),
+                            cep: f.titular_cep.replace(/\D/g, ""),
+                            numero: f.titular_numero.trim(),
+                            telefone: f.titular_telefone.replace(/\D/g, ""),
+                        }
+                        : undefined,
                 couponCode: appliedCoupon?.code,
                 shippingServiceId: selectedShipping.id,
                 pickup: selectedShipping.pickup === true,
@@ -674,12 +719,27 @@ export default function CheckoutPage() {
                 );
                 window.scrollTo({ top: 0, behavior: "smooth" });
             } else {
-                setCardDeclined(err instanceof ApiError && err.message.includes("CARD_DECLINED"));
-                setError(
-                    err instanceof ApiError
-                        ? mapOrderError(err.message)
-                        : "Erro ao processar o pedido. Tente novamente.",
-                );
+                const doCartao = err instanceof ApiError ? erroDoCartao(err.message) : null;
+                const recusou = doCartao?.codigo.startsWith("CARD_DECLINED") ?? false;
+                const recusas = recusou ? recusasDoCartao + 1 : recusasDoCartao;
+                if (recusou) setRecusasDoCartao(recusas);
+
+                if (doCartao?.codigo === "CARD_RETRY_LIMIT" || recusas >= 2) {
+                    // Cartao fechado: o motivo aparece no lugar das formas de
+                    // pagamento e o Pix ja fica escolhido.
+                    setSoPix(mapOrderError("CARD_RETRY_LIMIT"));
+                    setPaymentMethod("pix");
+                    setCardDeclined(false);
+                    setError(recusou ? mapOrderError(err instanceof ApiError ? err.message : "") : "");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                } else {
+                    setCardDeclined(recusou);
+                    setError(
+                        err instanceof ApiError
+                            ? mapOrderError(err.message)
+                            : "Erro ao processar o pedido. Tente novamente.",
+                    );
+                }
             }
             setIsProcessing(false);
             submittingRef.current = false;
@@ -1097,6 +1157,13 @@ export default function CheckoutPage() {
                             <div className="rounded-xl border bg-white p-5">
                                 <h2 className="mb-4 font-semibold">3. Forma de pagamento</h2>
 
+                                {soPix && (
+                                    <div className="mb-3 flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+                                        <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                                        <p>{soPix}</p>
+                                    </div>
+                                )}
+
                                 {/* PIX destaque */}
                                 <label
                                     className={`mb-3 flex cursor-pointer items-center gap-4 rounded-xl border-2 p-4 transition-all ${paymentMethod === "pix"
@@ -1147,7 +1214,7 @@ export default function CheckoutPage() {
                                         title: "Boleto bancário",
                                         subtitle: "Vence em 3 dias úteis",
                                     },
-                                ].map(({ id, Icon, title, subtitle }) => (
+                                ].filter(() => !soPix).map(({ id, Icon, title, subtitle }) => (
                                     <label
                                         key={id}
                                         className={`mb-3 flex cursor-pointer items-center gap-4 rounded-xl border-2 p-4 transition-all ${paymentMethod === id
@@ -1177,7 +1244,7 @@ export default function CheckoutPage() {
                                 ))}
 
                                 {/* Campos cartão */}
-                                {paymentMethod === "card" && (
+                                {paymentMethod === "card" && !soPix && (
                                     <div className="mt-2 space-y-3">
                                         <input
                                             placeholder="Número do cartão *"
@@ -1247,6 +1314,92 @@ export default function CheckoutPage() {
                                                 </option>
                                             ))}
                                         </select>
+
+                                        {/*
+                                          O banco confere CPF e CEP de quem é DONO do cartão. Sem
+                                          isto, o cartão do marido ou da mãe ia com os dados da
+                                          conta e era recusado mesmo com limite.
+                                        */}
+                                        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 p-3 text-sm">
+                                            <input
+                                                type="checkbox"
+                                                checked={cartaoDeOutraPessoa}
+                                                onChange={(e) => setCartaoDeOutraPessoa(e.target.checked)}
+                                                className="mt-0.5 accent-[#000000]"
+                                            />
+                                            <span>
+                                                <span className="font-medium">O cartão é de outra pessoa</span>
+                                                <span className="block text-xs text-gray-500">
+                                                    Marque se o cartão não está no seu nome. O banco confere os dados do titular.
+                                                </span>
+                                            </span>
+                                        </label>
+
+                                        {cartaoDeOutraPessoa && (
+                                            <div className="space-y-3 rounded-xl bg-neutral-50 p-3">
+                                                <p className="text-xs text-gray-600">Dados de quem é dono(a) do cartão</p>
+                                                <input
+                                                    placeholder="Nome completo do titular *"
+                                                    value={form.titular_nome}
+                                                    onChange={(e) => set("titular_nome", e.target.value)}
+                                                    className={inputClass}
+                                                    autoComplete="off"
+                                                />
+                                                <input
+                                                    placeholder="CPF do titular *"
+                                                    value={form.titular_cpf}
+                                                    onChange={(e) =>
+                                                        set(
+                                                            "titular_cpf",
+                                                            e.target.value
+                                                                .replace(/\D/g, "")
+                                                                .slice(0, 11)
+                                                                .replace(/(\d{3})(\d)/, "$1.$2")
+                                                                .replace(/(\d{3})(\d)/, "$1.$2")
+                                                                .replace(/(\d{3})(\d{1,2})$/, "$1-$2"),
+                                                        )
+                                                    }
+                                                    className={inputClass}
+                                                    inputMode="numeric"
+                                                    autoComplete="off"
+                                                />
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <input
+                                                        placeholder="CEP do titular *"
+                                                        value={form.titular_cep}
+                                                        onChange={(e) =>
+                                                            set(
+                                                                "titular_cep",
+                                                                e.target.value
+                                                                    .replace(/\D/g, "")
+                                                                    .slice(0, 8)
+                                                                    .replace(/(\d{5})(\d)/, "$1-$2"),
+                                                            )
+                                                        }
+                                                        className={inputClass}
+                                                        inputMode="numeric"
+                                                        autoComplete="off"
+                                                    />
+                                                    <input
+                                                        placeholder="Número do endereço *"
+                                                        value={form.titular_numero}
+                                                        onChange={(e) => set("titular_numero", e.target.value.slice(0, 20))}
+                                                        className={inputClass}
+                                                        autoComplete="off"
+                                                    />
+                                                </div>
+                                                <input
+                                                    placeholder="Telefone do titular com DDD *"
+                                                    value={form.titular_telefone}
+                                                    onChange={(e) =>
+                                                        set("titular_telefone", e.target.value.replace(/\D/g, "").slice(0, 11))
+                                                    }
+                                                    className={inputClass}
+                                                    inputMode="tel"
+                                                    autoComplete="off"
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

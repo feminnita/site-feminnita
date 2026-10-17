@@ -214,6 +214,20 @@ const RESERVATION_TTL_MINUTES: Record<string, number> = {
 
 const DEFAULT_TTL_MINUTES = 60;
 
+/**
+ * Cancela um pedido que ainda nao foi pago, do mesmo jeito que a expiracao:
+ * so mexe se ele ainda esta pendente (o webhook de pagamento pode ter chegado
+ * no meio) e devolve a reserva de estoque uma vez so. Devolve se cancelou.
+ */
+export async function cancelarPedidoNaoPago(orderId: string): Promise<boolean> {
+    const cancelled = await OrdeRepository.cancelIfStillUnpaid(orderId);
+    if (!cancelled) return false;
+    await releaseReservationForOrder(orderId);
+    await CashbackService.estornarPorPedido(orderId)
+        .catch((e) => console.error('Falha ao estornar cashback:', e));
+    return true;
+}
+
 export async function expireStaleOrders() {
     const pendingOrders = await OrdeRepository.findUnpaidPendingOrders();
     const now = Date.now();

@@ -47,6 +47,7 @@ export async function createOrder(req: Request, res: Response) {
             installments: req.body.installments,
             origem: req.body.origem,
             creditCard: req.body.creditCard,
+            titularDoCartao: req.body.titularDoCartao,
             couponCode: req.body.couponCode,
             pickup: req.body.pickup === true,
             shippingServiceId: req.body.pickup === true ? undefined : Number(req.body.shippingServiceId),

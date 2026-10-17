@@ -17,6 +17,9 @@ export type CreateOrderInput = {
         expiryYear: string;
         ccv: string;
     };
+    // Cartao de outra pessoa: nome, CPF, CEP, numero e telefone do titular.
+    // Chega cru do navegador; o servico valida (CartaoDeCredito.validarTitular).
+    titularDoCartao?: unknown;
     remoteIp?: string;
     // De onde veio a visita (utm do anuncio, pagina de entrada, referencia).
     // Vem do navegador, entao e tratada como texto solto e limitada no service.
