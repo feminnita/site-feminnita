@@ -10,6 +10,9 @@ import * as SiteSettingsRepository from '../repository/SiteSettings.Repository';
 import * as AddressesRepository from '../repository/Addresses.Repository';
 import * as AuthRepository from '../repository/Auth.Repository';
 import * as CupomDoCarrinho from '../domain/CupomDoCarrinho';
+import * as CartaoDeCredito from '../domain/CartaoDeCredito';
+import { cancelarPixPendentesDoCpf } from '../domain/PixSubstituido';
+import * as AsaasClient from '../integrations/asass/Client';
 import type { CreateOrderInput } from '../types/order';
 
 /**
@@ -31,6 +34,19 @@ export const MAX_PARCELAS = 3;
 export async function createOrder(input: CreateOrderInput) {
     if (input.items.length === 0) {
         throw new Error('EMPTY_CART');
+    }
+
+    // Cartao de outra pessoa: valida antes de qualquer coisa, para dado errado
+    // do titular nao virar pedido cancelado nem tentativa recusada no banco.
+    const titular = input.paymentMethod === 'card' && input.titularDoCartao
+        ? CartaoDeCredito.validarTitular(input.titularDoCartao)
+        : null;
+
+    // Duas recusas do mesmo CPF em 30 minutos fecham o cartao: a tela passa a
+    // oferecer so o Pix. Vale mesmo com confirmarNovoPedido.
+    if (input.paymentMethod === 'card') {
+        const quemPaga = await OrderRepository.findCustomerForCharge(input.customerId);
+        await CartaoDeCredito.garantirLimiteDeRecusas(quemPaga?.cpf, OrderRepository.contarRecusasDeCartaoDoCpf);
     }
 
     // Trava de compra repetida. Em 13/10/2026 a mesma cliente pagou 3 vezes o
@@ -304,14 +320,11 @@ export async function createOrder(input: CreateOrderInput) {
                 paymentMethod: input.paymentMethod,
                 installments: input.installments,
                 creditCard: input.creditCard,
-                holderInfo: {
-                    name: customer.name,
-                    email: customer.email,
-                    cpfCnpj: customer.cpf,
-                    postalCode: shippingAddress.cep,
-                    addressNumber: shippingAddress.number,
-                    phone: customer.phone ?? undefined,
-                },
+                holderInfo: CartaoDeCredito.montarHolderInfo(
+                    { name: customer.name, email: customer.email, cpf: customer.cpf, phone: customer.phone },
+                    shippingAddress,
+                    titular,
+                ),
                 remoteIp: input.remoteIp,
             },
             { ...customer, cpf: customer.cpf },
@@ -326,6 +339,18 @@ export async function createOrder(input: CreateOrderInput) {
 
         if (input.paymentMethod === 'card' && payment.status === 'CONFIRMED') {
             await AdminOrderService.updateOrderStatus(order.id, { paymentStatus: 'paid', status: 'paid' });
+            // O Pix que ela deixou aberto antes nao pode mais ser pago. Nunca
+            // lanca: o pedido ja esta pago e isto e limpeza.
+            await cancelarPixPendentesDoCpf(customer.cpf, order, {
+                buscarPixPendentes: OrderRepository.findPixPendentesDoCpf,
+                statusNoAsaas: async (id) => (await AsaasClient.getPayment(id)).status,
+                cancelarNoAsaas: async (id) => {
+                    const r = await AsaasClient.cancelPayment(id);
+                    if (!r?.deleted) throw new Error(`Asaas nao cancelou a cobranca ${id}`);
+                },
+                cancelarPedido: AdminOrderService.cancelarPedidoNaoPago,
+                marcarMotivo: OrderRepository.marcarMotivoDoCancelamento,
+            }).catch((e) => console.error('Pix pendente: falha inesperada:', e));
         } else {
             await EmailService.sendOrderReceived({
                 customerName: customer.name,
@@ -352,10 +377,14 @@ export async function createOrder(input: CreateOrderInput) {
         const motivo = error instanceof Error ? error.message : String(error);
         await OrderRepository.cancelOrdeAndReleaseStock(order.id, `Cobranca falhou: ${motivo}`.slice(0, 1000));
         // Asaas respondeu 400 numa cobranca de cartao = o cartao nao passou (recusa do
-        // banco/antifraude ou dado do cartao invalido). A cliente precisa SABER disso e
-        // ver a saida pelo Pix — "tente de novo" a fazia insistir no mesmo cartao.
+        // banco/antifraude ou dado do cartao invalido). A cliente precisa SABER o
+        // motivo e ver a saida pelo Pix — "tente de novo" a fazia insistir no mesmo
+        // cartao. O pedido continua cancelado como sempre (o painel ja trata), mas
+        // leva o motivo 'card_declined': e por ele que se contam as recusas e que o
+        // painel pode separar tentativa recusada de pedido cancelado de verdade.
         if (input.paymentMethod === 'card' && motivo.startsWith('ASASS_ERROR 400')) {
-            throw new Error('CARD_DECLINED');
+            await OrderRepository.marcarMotivoDoCancelamento(order.id, OrderRepository.MOTIVO_CARTAO_RECUSADO);
+            throw CartaoDeCredito.erroDeRecusa(motivo);
         }
         throw new Error('PAYMENT_CREATION_FAILED');
     }

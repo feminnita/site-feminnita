@@ -1,0 +1,22 @@
+-- Motivo do cancelamento do pedido (checkout de cartao, 17/10/2026).
+--
+-- ADITIVA e idempotente: so cria uma coluna de texto que aceita nulo. Nao muda
+-- status, nao mexe em linha existente, nao tem default nem indice.
+--
+-- Valores gravados pela loja:
+--   'card_declined'           tentativa de cartao recusada pelo banco (o pedido
+--                             continua status=cancelled / payment_status=failed,
+--                             exatamente como antes)
+--   'substituido_por_cartao'  Pix pendente cancelado porque a mesma cliente
+--                             pagou no cartao
+--
+-- A coluna fica FORA do schema drizzle da loja e do painel de proposito (ver
+-- Order.Repository.ts). Consequencia: um `drizzle-kit push` de qualquer um dos
+-- dois projetos vai propor apagar esta coluna — nao aceite (o mesmo ja vale
+-- para cnpj, reference, colunas do Bling etc.).
+--
+-- Rodar UMA vez no banco de producao (Neon), antes ou depois de publicar o
+-- backend — o codigo funciona sem ela (so nao grava o motivo nem conta recusas):
+--   psql "$DATABASE_URL" -f backend/scripts/0028_motivo_do_cancelamento.sql
+
+ALTER TABLE "orders" ADD COLUMN IF NOT EXISTS "cancel_reason" text;
