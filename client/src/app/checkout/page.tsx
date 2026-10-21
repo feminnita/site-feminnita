@@ -190,6 +190,10 @@ export default function CheckoutPage() {
     const [soPix, setSoPix] = useState<string | null>(null);
     // Cartao de outra pessoa: o banco confere CPF e CEP do TITULAR.
     const [cartaoDeOutraPessoa, setCartaoDeOutraPessoa] = useState(false);
+    // "Pagar com Pix" depois da recusa gera o Pix na hora. So trocar a opcao
+    // marcada nao bastava: a cliente tinha de achar e apertar "Finalizar" de
+    // novo, e no celular desistia achando que o pedido tinha sumido (ARM-1172).
+    const pixDepoisDaRecusaRef = useRef(false);
     const [summaryOpen, setSummaryOpen] = useState(false);
     const beginTracked = useRef(false);
     const autoShippingDone = useRef(false);
@@ -505,6 +509,25 @@ export default function CheckoutPage() {
         );
     };
 
+    // Envia o mesmo formulario ja com o Pix escolhido. Roda depois do novo
+    // render, para o handleSubmit enxergar paymentMethod === "pix".
+    useEffect(() => {
+        if (paymentMethod !== "pix" || !pixDepoisDaRecusaRef.current) return;
+        pixDepoisDaRecusaRef.current = false;
+        formRef.current?.requestSubmit();
+    }, [paymentMethod]);
+
+    const pagarComPixAgora = () => {
+        setCardDeclined(false);
+        setError("");
+        if (paymentMethod === "pix") {
+            formRef.current?.requestSubmit();
+            return;
+        }
+        pixDepoisDaRecusaRef.current = true;
+        setPaymentMethod("pix");
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -729,7 +752,7 @@ export default function CheckoutPage() {
                     // pagamento e o Pix ja fica escolhido.
                     setSoPix(mapOrderError("CARD_RETRY_LIMIT"));
                     setPaymentMethod("pix");
-                    setCardDeclined(false);
+                    setCardDeclined(recusou);
                     setError(recusou ? mapOrderError(err instanceof ApiError ? err.message : "") : "");
                     window.scrollTo({ top: 0, behavior: "smooth" });
                 } else {
@@ -739,6 +762,9 @@ export default function CheckoutPage() {
                             ? mapOrderError(err.message)
                             : "Erro ao processar o pedido. Tente novamente.",
                     );
+                    // O aviso e o botao do Pix ficam no topo; no celular ela
+                    // esta la embaixo, no botao de finalizar, e nao via nada.
+                    if (recusou) window.scrollTo({ top: 0, behavior: "smooth" });
                 }
             }
             setIsProcessing(false);
@@ -803,17 +829,19 @@ export default function CheckoutPage() {
                             <p>{error}</p>
                         </div>
                         {cardDeclined && (
+                            <>
                             <button
                                 type="button"
-                                onClick={() => {
-                                    setPaymentMethod("pix");
-                                    setCardDeclined(false);
-                                    setError("");
-                                }}
-                                className="mt-3 w-full rounded-xl bg-[#000000] px-4 py-3 font-semibold text-white"
+                                disabled={isProcessing}
+                                onClick={pagarComPixAgora}
+                                className="mt-3 w-full rounded-xl bg-[#000000] px-4 py-3 font-semibold text-white disabled:opacity-60"
                             >
-                                Pagar com Pix
+                                Pagar com Pix agora
                             </button>
+                            <p className="mt-2 text-center text-xs text-red-700">
+                                Seu carrinho continua igual. O código do Pix aparece na próxima tela.
+                            </p>
+                            </>
                         )}
                     </div>
                 )}
