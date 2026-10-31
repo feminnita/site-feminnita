@@ -292,9 +292,13 @@ export async function sendAbandonedCart(data: {
     items: { name: string; size: string; color?: string; quantity: number }[];
     cartUrl: string;
     desconto?: { codigo: string; percentual: number; ate: Date };
+    // Gerou pedido e o pagamento nao foi concluido (cartao recusado, Pix ou
+    // boleto vencido): o texto fala disso em vez de "parou no meio do caminho".
+    pagamentoNaoConcluido?: boolean;
 }): Promise<boolean> {
     try {
         const pecas = data.items.reduce((t, i) => t + (i.quantity || 0), 0);
+        const naoPago = !!data.pagamentoNaoConcluido;
         const d = data.desconto;
         const prazo = d ? prazoPorExtenso(d.ate) : '';
 
@@ -334,7 +338,9 @@ export async function sendAbandonedCart(data: {
         const corpo = `
       <p style="margin:0 0 6px">Oi, ${escapeHtml(data.customerName)}! 💛</p>
       <p style="margin:0 0 20px">
-        Você escolheu ${pecas === 1 ? 'uma peça' : `${pecas} peças`} e parou no meio do caminho.
+        ${naoPago
+            ? 'O pagamento do seu pedido não foi concluído (o Pix ou o boleto venceu, ou o cartão não passou), mas as suas peças continuam guardadas.'
+            : `Você escolheu ${pecas === 1 ? 'uma peça' : `${pecas} peças`} e parou no meio do caminho.`}
         ${d
             ? 'Como é a sua primeira compra com a gente, separamos um desconto para você finalizar:'
             : 'Guardamos tudo para você — está aqui, do jeitinho que ficou:'}
@@ -352,7 +358,9 @@ export async function sendAbandonedCart(data: {
             to: data.customerEmail,
             subject: d
                 ? `💛 Seu carrinho ganhou ${d.percentual}% OFF (no Pix são ${d.percentual + 5}%)`
-                : '🛍️ Suas peças ainda estão no carrinho',
+                : naoPago
+                    ? '🛍️ Seu pagamento não foi concluído — suas peças continuam no carrinho'
+                    : '🛍️ Suas peças ainda estão no carrinho',
             html: emailLayout({
                 preheader: d
                     ? `Desconto de primeira compra para finalizar suas peças. Vale só até ${prazo}.`

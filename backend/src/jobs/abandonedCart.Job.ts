@@ -50,6 +50,7 @@ export async function enviarLembretesDeCarrinho(): Promise<number> {
             items: Array.isArray(carrinho.items) ? carrinho.items : [],
             cartUrl: `${env.clientUrl}/carrinho`,
             desconto,
+            pagamentoNaoConcluido: carrinho.pagamentoNaoConcluido,
         });
 
         // Marca DEPOIS de mandar, e SO se mandou. O envio engolia o proprio erro
