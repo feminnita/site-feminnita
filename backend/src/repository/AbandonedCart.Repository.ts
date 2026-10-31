@@ -9,6 +9,7 @@ export type CarrinhoAbandonado = {
     items: { name: string; size: string; color?: string; quantity: number }[];
     updatedAt: Date;
     primeiraCompra: boolean;
+    pagamentoNaoConcluido: boolean;
 };
 
 // Quem realmente abandonou o carrinho.
@@ -18,9 +19,14 @@ export type CarrinhoAbandonado = {
 //   - parado ha X horas: cobrar quem ainda esta comprando afasta;
 //   - carrinho com item: carrinho vazio nao e abandono;
 //   - lembrete ainda nao enviado: ninguem recebe duas vezes pelo mesmo carrinho;
-//   - SEM pedido depois do carrinho: o carrinho so e limpo pelo navegador, entao
-//     sobra carrinho de quem JA COMPROU — mandar "voce esqueceu algo" para quem
-//     acabou de pagar e o pior erro possivel deste e-mail;
+//   - SEM pedido PAGO (ou ainda em aberto) depois do carrinho: o carrinho so e
+//     limpo pelo navegador, entao sobra carrinho de quem JA COMPROU — mandar
+//     "voce esqueceu algo" para quem acabou de pagar e o pior erro possivel
+//     deste e-mail. Pedido com pagamento que FALHOU (cartao recusado, Pix ou
+//     boleto vencido) nao conta: ate 31/10/2026 qualquer pedido tirava a cliente
+//     do lembrete, e justo quem chegou a gerar pedido ficava sem aviso nenhum
+//     (ex.: Pix de R$ 252 de 28/10 que venceu). Pix pendente ha menos de 24h
+//     ainda pode ser pago, entao espera;
 //   - nao pediu para sair da lista: quem disse "nao me mande e-mail" vale para
 //     tudo, nao so para novidade.
 export async function encontrarAbandonados(horas: number, limite: number) {
@@ -51,10 +57,20 @@ export async function encontrarAbandonados(horas: number, limite: number) {
                -- cupom de primeira compra no checkout.
                not exists (select 1 from orders o where o.customer_id = c.customer_id
                              and o.payment_status in ('paid', 'refunded', 'disputed'))
-                              as "primeiraCompra"
+                              as "primeiraCompra",
+               -- Gerou pedido depois do carrinho e nao pagou (os pagos ja
+               -- ficaram de fora no where): o e-mail avisa que o pagamento
+               -- nao foi concluido.
+               exists (select 1 from orders o where o.customer_id = c.customer_id
+                         and o.created_at > c.updated_at)
+                              as "pagamentoNaoConcluido"
         from carts c
         join customers cl on cl.id = c.customer_id
         where c.updated_at < now() - (${horas} || ' hours')::interval
+          -- So carrinho dos ultimos 7 dias: quando o pedido nao pago passou a
+          -- contar (31/10/2026), 24 carrinhos de setembro/outubro entrariam de
+          -- uma vez falando de um pagamento de semanas atras.
+          and c.updated_at > now() - interval '7 days'
           and jsonb_array_length(c.items) > 0
           and c.abandoned_email_at is null
           and cl.email is not null
@@ -62,6 +78,8 @@ export async function encontrarAbandonados(horas: number, limite: number) {
               select 1 from orders o
               where o.customer_id = c.customer_id
                 and o.created_at > c.updated_at
+                and (o.payment_status in ('paid', 'refunded', 'disputed')
+                     or (o.payment_status = 'pending' and o.created_at > now() - interval '24 hours'))
           )
           and not exists (
               select 1 from newsletter_subscribers n
