@@ -32,8 +32,10 @@ import { CategoryDropdown, MobileCategoryAccordion } from "./CategoryNav";
 // BLOG so entra na faixa quando o blog estiver no ar (src/lib/blog.ts). Link
 // para pagina que ainda nao existe de verdade e promessa quebrada logo na
 // estreia — melhor nao oferecer do que oferecer vazio.
+// 07/11 Chris: BLUSAS ganha aba própria no topo (no celular ficava escondida dentro de Feminino).
 const MARKER_TABS: { href: string; label: string }[] = [
   { href: "/lancamentos", label: "LANÇAMENTOS" },
+  { href: "/categoria/blusa", label: "BLUSAS" },
   { href: "/mais-vendidos", label: "MAIS VENDIDOS" },
   { href: "/outlet", label: "OUTLET" },
   ...(BLOG_NO_AR ? [{ href: "/blog", label: "BLOG" }] : []),
@@ -305,10 +307,10 @@ export function Header() {
       </div>
 
       {/* Faixa dos MARCADORES — segunda barra própria, largura total, centralizada e
-          destacada dos menus de categoria. Só no desktop (mobile usa o menu lateral).
-          Vitrines por marcador (não categorias): fixas, sempre visíveis. */}
-      <div className="hidden border-t border-gray-200 bg-[#000000]/[0.06] lg:block">
-        <nav className="container mx-auto flex items-center justify-center gap-10 px-4 py-2.5 text-xs font-semibold uppercase tracking-widest">
+          destacada dos menus de categoria. Fixas, sempre visíveis — também no celular
+          (07/11), onde a faixa rola de lado se não couber. */}
+      <div className="border-t border-gray-200 bg-[#000000]/[0.06]">
+        <nav className="container mx-auto flex items-center justify-start gap-6 overflow-x-auto whitespace-nowrap px-4 py-2.5 text-xs font-semibold uppercase tracking-widest sm:justify-center lg:gap-10">
           {MARKER_TABS.map((link) => (
             <Link
               key={link.href}
