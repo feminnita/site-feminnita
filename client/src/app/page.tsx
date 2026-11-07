@@ -32,10 +32,13 @@ async function getHomeProducts() {
   // Cada fileira sai de um MARCADOR (flag) do produto: is_new / is_bestseller /
   // is_outlet. As categorias homônimas foram desativadas — a fileira nasce e some
   // sozinha conforme a cliente marca a flag, sem depender de home_section_categories.
+  // 07/11 Chris: "a vitrine toda até embaixo, só blusa" — as fileiras da home só
+  // mostram produtos da categoria blusa. As páginas /lancamentos, /mais-vendidos e
+  // /outlet do menu continuam com todos os marcados.
   const fromFlag = async (
     flag: "is_new" | "is_bestseller" | "is_outlet",
   ): Promise<StoreProduct[]> => {
-    const products = await fetchProducts({ flag, limit: 30 });
+    const products = await fetchProducts({ flag, category_slug: "blusa", limit: 30 });
     // Era 5 (o que cabia numa linha da grade). Agora a fileira rola, então cabe
     // tudo o que estiver marcado — teto de 20 pra a home não ficar pesada.
     return products.filter(hasPhoto).slice(0, 20);
