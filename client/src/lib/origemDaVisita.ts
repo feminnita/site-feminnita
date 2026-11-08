@@ -23,6 +23,9 @@ export type OrigemDaVisita = {
     // Não são guardados aqui — os cookies já duram sozinhos.
     fbp?: string;
     fbc?: string;
+    // Cookies do Google Analytics, lidos no checkout (ver cookiesDoGoogle).
+    gaClientId?: string;
+    gaSessionId?: string;
     em?: number;
 };
 
@@ -103,9 +106,41 @@ function cookiesDaMeta(): { fbp?: string; fbc?: string } {
     return { fbp: achar("_fbp"), fbc: achar("_fbc") };
 }
 
+/**
+ * Visitante e sessão do Google Analytics. A compra é enviada ao GA4 pelo
+ * servidor só quando o pagamento confirma; sem estes dois, o servidor tinha de
+ * inventar um visitante a partir do pedido, e o GA4 mostrava a venda como
+ * "(not set)" — sem saber de qual anúncio ela veio (54 de 55 vendas em 30 dias,
+ * medido 08/11).
+ *
+ * `_ga` = GA1.1.<numero>.<data>  -> visitante = "<numero>.<data>"
+ * `_ga_<ID>` = GS1.1.<sessao>.… ou GS2.1.s<sessao>$o…  -> sessão = "<sessao>"
+ */
+function cookiesDoGoogle(): { gaClientId?: string; gaSessionId?: string } {
+    if (typeof document === "undefined") return {};
+    const partes = document.cookie.split("; ");
+    const valor = (nome: string) =>
+        partes.find((p) => p.startsWith(`${nome}=`))?.slice(nome.length + 1);
+
+    const ga = valor("_ga")?.split(".");
+    const gaClientId = ga && ga.length >= 4 ? `${ga[ga.length - 2]}.${ga[ga.length - 1]}` : undefined;
+
+    const idStream = (process.env.NEXT_PUBLIC_GA4_ID ?? "").replace(/^G-/, "");
+    const sessao =
+        (idStream && valor(`_ga_${idStream}`)) ||
+        partes.find((p) => p.startsWith("_ga_"))?.split("=")[1];
+    const s = sessao?.split(".")[2]?.replace(/^s/, "").split("$")[0];
+    const gaSessionId = s && /^\d+$/.test(s) ? s : undefined;
+
+    return {
+        gaClientId: gaClientId && /^\d+\.\d+$/.test(gaClientId) ? gaClientId : undefined,
+        gaSessionId,
+    };
+}
+
 // Usada no checkout, para mandar junto com o pedido.
 export function origemDaVisita(): OrigemDaVisita {
-    const cookies = cookiesDaMeta();
+    const cookies = { ...cookiesDaMeta(), ...cookiesDoGoogle() };
     const o = ler();
     // Sem origem guardada os cookies ainda valem: quem chegou sem utm mas com
     // clique de anúncio continua sendo reconhecido pela Meta.
