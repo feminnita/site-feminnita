@@ -28,6 +28,10 @@ type PurchaseInput = {
     // faz o evento ser aceito e nunca casar — falha silenciosa, a pior de todas.
     fbp?: string | null;
     fbc?: string | null;
+    // Cookies do Google Analytics do navegador de quem comprou. Com eles o GA4
+    // liga a venda a visita e ao anuncio; sem eles a venda vira "(not set)".
+    gaClientId?: string | null;
+    gaSessionId?: string | null;
     items: Array<{
         productId: string | null;
         productName: string;
@@ -150,7 +154,12 @@ async function sendGA4(input: PurchaseInput): Promise<void> {
     await postJson(
         `https://www.google-analytics.com/mp/collect?measurement_id=${encodeURIComponent(measurementId)}&api_secret=${encodeURIComponent(apiSecret)}`,
         {
-            client_id: ga4ClientId(input.orderId),
+            // Visitante real (cookie _ga) quando veio no pedido; senao, o
+            // derivado do pedido, que conta a venda mas nao sabe a origem.
+            client_id:
+                input.gaClientId && /^\d+\.\d+$/.test(input.gaClientId)
+                    ? input.gaClientId
+                    : ga4ClientId(input.orderId),
             events: [
                 {
                     name: 'purchase',
@@ -166,7 +175,10 @@ async function sendGA4(input: PurchaseInput): Promise<void> {
                         // O Google nao devolve erro nenhum nesse caso, entao o
                         // sintoma e exatamente "nao registra compra" sem pista.
                         engagement_time_msec: 1,
-                        session_id: ga4SessionId(input.orderId),
+                        session_id:
+                            input.gaSessionId && /^\d+$/.test(input.gaSessionId)
+                                ? input.gaSessionId
+                                : ga4SessionId(input.orderId),
                         transaction_id: input.orderNumber,
                         currency: input.currency,
                         value: input.value,

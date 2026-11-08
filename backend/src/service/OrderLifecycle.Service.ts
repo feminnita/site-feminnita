@@ -83,6 +83,8 @@ async function reportPurchaseConversion(order: {
     // pagamento, o navegador que tinha os cookies ja nao esta mais na jogada.
     fbp?: string | null;
     fbc?: string | null;
+    gaClientId?: string | null;
+    gaSessionId?: string | null;
 }) {
     const items = await OrdeRepository.findItemsByOrderId(order.id);
     const customer = order.customerId
@@ -102,6 +104,8 @@ async function reportPurchaseConversion(order: {
         name: customer?.name ?? null,
         fbp: order.fbp ?? null,
         fbc: order.fbc ?? null,
+        gaClientId: order.gaClientId ?? null,
+        gaSessionId: order.gaSessionId ?? null,
         items: items.map((i) => ({
             productId: i.productId,
             productName: i.productName,

@@ -36,6 +36,9 @@ export type CreateOrderInput = {
         // quem viu o anuncio.
         fbp?: string;
         fbc?: string;
+        // Cookies do Google Analytics: visitante e sessão de quem comprou.
+        gaClientId?: string;
+        gaSessionId?: string;
     };
     // Codigo do link ?ref=CODIGO que trouxe a visita. Chega do navegador;
     // o servidor confere no banco se existe e se esta aprovada.

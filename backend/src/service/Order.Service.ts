@@ -675,5 +675,7 @@ function limitarOrigem(o: unknown) {
         referrer: texto(origem.referrer),
         fbp: texto(origem.fbp),
         fbc: texto(origem.fbc),
+        gaClientId: texto(origem.gaClientId),
+        gaSessionId: texto(origem.gaSessionId),
     };
 }

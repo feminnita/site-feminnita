@@ -64,6 +64,12 @@ export const orders = pgTable('orders', {
     // `_fbp` identifica o navegador; `_fbc`, o clique no anuncio.
     fbp: text('fbp'),
     fbc: text('fbc'),
+    // Cookies do Google Analytics capturados no checkout, pelo mesmo motivo:
+    // a compra vai ao GA4 na confirmacao do pagamento. Com eles o GA4 liga a
+    // venda a visita (e ao anuncio) em vez de mostrar "(not set)".
+    // Criadas por _cria_colunas_ga.mjs ANTES do deploy.
+    gaClientId: text('ga_client_id'),
+    gaSessionId: text('ga_session_id'),
 
     // Afiliada que trouxe este pedido, quando veio de ?ref=CODIGO.
     // Sem FK de proposito: apagar uma afiliada nao pode apagar nem alterar
