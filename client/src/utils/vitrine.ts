@@ -46,11 +46,11 @@ export function abrirCoresEmCards(produtos: StoreProduct[]): CardDeVitrine[] {
             continue;
         }
 
-        // O produto inteiro abre a fila. E o unico card com as fotos do
-        // ensaio — e portanto o unico que se mexe no hover, porque as cores
-        // tem uma foto so cada. Sem ele, a vitrine inteira ficava parada.
-        cards.push({ chave: produto.id, produto });
-
+        // 09/11 (Chris): "a ideia é aparecer mais de uma estampa do mesmo modelo
+        // e não a mesma estampa". O card do produto inteiro abria a fila com a
+        // capa, que é a foto de uma das cores — a mesma estampa aparecia duas
+        // vezes lado a lado (60500: capa poá preto + card Poá Preto). Quando o
+        // produto abre em cores, cada card é uma estampa e mais nada.
         for (const cor of comFoto) {
             cards.push({
                 chave: `${produto.id}:${cor}`,
