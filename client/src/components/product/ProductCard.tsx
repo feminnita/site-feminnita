@@ -102,19 +102,15 @@ export function ProductCard({
     // identicos na tela. Pulando as capas alheias, o hover mostra uma pose do
     // ensaio em vez de clonar o vizinho.
     //
-    // Card parado foi decisao dela, com o porque na mesa: card imovel ao lado de
-    // card que se mexe parece defeito, e movimento vale mais que a pureza da
-    // estampa. Quando a segunda foto da cor existir, ela vence sozinha.
+    // 09/11 (Chris): o card de uma cor so troca no hover para OUTRA FOTO DA
+    // MESMA ESTAMPA. A foto do ensaio e a capa do produto (60500: poá preto) e
+    // fazia todo card de cor virar a mesma estampa quando o mouse passava — "do
+    // que adianta aparecer a mesma estampa na vitrine". Sem segunda foto da
+    // cor, o card fica parado na estampa dele. Card sem cor segue com o ensaio.
     const fotosDaCor = selectedColor ? colorPhotos(product, selectedColor) : [];
-    const capasDasCores = new Set(
-        Object.values(product.colorImages ?? {}).map((fotos) => fotos?.[0]),
-    );
-    const doEnsaio = (product.images ?? []).filter((i) => i !== fotosDaCor[0]);
     const secondary = showVariants
         ? selectedColor
-            ? fotosDaCor[1] ??
-              doEnsaio.find((i) => !capasDasCores.has(i)) ??
-              doEnsaio[0]
+            ? fotosDaCor[1]
             : product.images?.[1]
         : undefined;
 
