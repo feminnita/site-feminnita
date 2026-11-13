@@ -36,6 +36,12 @@ export async function createOrder(input: CreateOrderInput) {
         throw new Error('EMPTY_CART');
     }
 
+    // Cliente bloqueada pela loja (clientes_bloqueados, por CPF) nao fecha pedido.
+    const quemCompra = await OrderRepository.findCustomerForCharge(input.customerId);
+    if (quemCompra?.cpf && await OrderRepository.cpfBloqueado(quemCompra.cpf)) {
+        throw new Error('CUSTOMER_BLOCKED');
+    }
+
     // Cartao de outra pessoa: valida antes de qualquer coisa, para dado errado
     // do titular nao virar pedido cancelado nem tentativa recusada no banco.
     const titular = input.paymentMethod === 'card' && input.titularDoCartao

@@ -193,6 +193,7 @@ const ERROR_MESSAGES: [string, string][] = [
     ["COUPON_EXPIRED", "Este cupom expirou."],
     ["COUPON_MIN_ORDER", "O pedido não atinge o valor mínimo deste cupom."],
     ["CPF_REQUIRED", "Informe um CPF válido para continuar."],
+    ["CUSTOMER_BLOCKED", "Não foi possível concluir a compra. Fale com o nosso atendimento."],
     ["SHIPPING_CEP_REQUIRED", "Informe o CEP de entrega."],
     [
         "SHIPPING_OPTION_UNAVAILABLE",
