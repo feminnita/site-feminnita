@@ -94,6 +94,10 @@ const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID;
 const TIKTOK_PIXEL_ID = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID;
 const GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
 const HOTJAR_ID = process.env.NEXT_PUBLIC_HOTJAR_ID;
+// Microsoft Clarity (mapa de calor e gravação de sessão, gratuito). Projeto "Feminnita" da conta da Chris.
+// 15/11/2026: o funil do Meta mostrou que 8 em cada 10 pessoas que põem no carrinho não começam a pagar,
+// e o site estava sem nenhum mapa de calor no ar para ver onde elas desistem.
+const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID || "xzbajvok21";
 
 export default function RootLayout({
   children,
@@ -157,6 +161,11 @@ export default function RootLayout({
         {HOTJAR_ID && (
           <Script id="hotjar" strategy="afterInteractive">
             {`(function(h,o,t,j,a,r){h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};h._hjSettings={hjid:${HOTJAR_ID},hjsv:6};a=o.getElementsByTagName('head')[0];r=o.createElement('script');r.async=1;r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;a.appendChild(r);})(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');`}
+          </Script>
+        )}
+        {CLARITY_ID && (
+          <Script id="clarity" strategy="afterInteractive">
+            {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","${CLARITY_ID}");`}
           </Script>
         )}
       </head>
