@@ -65,7 +65,11 @@ export function findSkuVariantsByProductIds(productIds: string[]) {
         .select({ productId: productsSkus.productId, size: productsSkus.size, color: productsColors.name, stockQty: productsSkus.stockQty, reservedQty: productsSkus.reservedQty, minStock: productsSkus.minStock })
         .from(productsSkus)
         .leftJoin(productsColors, eq(productsSkus.colorId, productsColors.id))
-        .where(inArray(productsSkus.productId, productIds));
+        // Variacao DESATIVADA no painel nao aparece na loja. A lixeira do painel
+        // desativa (em vez de apagar) a variacao que ja teve pedido, e a loja
+        // continuava mostrando a cor como "esgotada" na pagina do produto.
+        // Caso real 16/11: 10 cores zeradas do 59000.
+        .where(and(inArray(productsSkus.productId, productIds), sql`${productsSkus.active} is distinct from false`));
 }
 
 export function findColorImagesByProductIds(productIds: string[]) {
