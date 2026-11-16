@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, numeric, timestamp, unique, bigint } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, numeric, timestamp, unique, bigint, boolean } from 'drizzle-orm/pg-core';
 import { products } from './products';
 import { productsColors } from './product-colors';
 
@@ -14,6 +14,9 @@ export const productsSkus = pgTable('products_skus', {
     // Margem de seguranca por variacao, definida no painel. A coluna ja existia
     // no banco (o painel a grava); a loja e que a ignorava e vendia ate zerar.
     minStock: integer('min_stock').notNull().default(0),
+    // false = a Chris tirou a variacao pela lixeira do painel e ela tinha pedido
+    // (por isso nao foi apagada). Coluna ja existe no banco; null conta como ativa.
+    active: boolean('active'),
     price: numeric('price', { precision: 10, scale: 2 }),
     salePrice: numeric('sale_price', { precision: 10, scale: 2 }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
