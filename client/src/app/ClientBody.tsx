@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { Toaster } from "sonner";
 import { WhatsAppButton } from "../components/common/WhatsAppButton";
-import { NewsletterPopup } from "../components/common/NewsletterPopup";
 import { MinOrderBar, MinOrderBottomSpacer } from "../components/common/MinOrderBar";
 import { Footer } from "../components/layout/Footer";
 import { AuthProvider } from "../hooks/count/useAuth";
@@ -51,7 +50,10 @@ export default function ClientBody({
                         <Footer />
                         <MinOrderBottomSpacer />
                         <WhatsAppButton />
-                        <NewsletterPopup />
+                        {/* O pop-up do cupom (NewsletterPopup) saiu em 17/11/2026 por ordem da
+                            Chris: abria aos 12s cobrindo a tela inteira e, na pagina da 59000,
+                            19 de 117 toques eram so para fechar. O componente segue no
+                            repositorio, desligado. */}
                         <Toaster position="top-center" richColors closeButton duration={3000} />
                     </div>
                 </CartProvider>
