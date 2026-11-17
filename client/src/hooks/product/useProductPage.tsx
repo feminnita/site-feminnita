@@ -19,12 +19,12 @@ import { recordCartColor, recordColorClick } from "@/src/lib/colorAffinity";
 import { registrar } from "@/src/lib/eventos";
 import type { SkuStock, StoreProduct } from "@/src/types/product/products";
 
-export function useProductPage(idOverride?: string) {
+export function useProductPage(idOverride?: string, initialProduct: StoreProduct | null = null) {
     const params = useParams();
     const cart = useCart();
     const swatches = useColorSwatches();
 
-    const [product, setProduct] = useState<StoreProduct | null>(null);
+    const [product, setProduct] = useState<StoreProduct | null>(initialProduct);
     const [loadingProduct, setLoadingProduct] = useState(false);
     const [skus, setSkus] = useState<SkuStock[]>([]);
     const [selectedImage, setSelectedImage] = useState(0);
@@ -40,6 +40,13 @@ export function useProductPage(idOverride?: string) {
         const idOrSlug =
             idOverride ?? (Array.isArray(params.id) ? params.id[0] : params.id);
         if (!idOrSlug) return;
+        // O servidor ja mandou este produto junto com a pagina: nao busca de novo.
+        if (
+            initialProduct &&
+            (initialProduct.slug === idOrSlug || String(initialProduct.id) === idOrSlug)
+        ) {
+            return;
+        }
         setLoadingProduct(true);
         fetchProduct(idOrSlug).then((p) => {
             setProduct(p);

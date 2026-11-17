@@ -20,9 +20,17 @@ import { SizeSelector } from "../../../components/product/SizeSelector";
 import { SizeChartTrigger } from "../../../components/product/SizeChartTrigger";
 import { StickyMobileCta } from "../../../components/product/StickMobileCta";
 import { useProductPage } from "../../../hooks/product/useProductPage";
+import type { StoreProduct } from "../../../types/product/products";
 import { toEmbedUrl } from "../../../utils/product";
+import { effectivePrice } from "../../../utils/pricing";
 
-export default function ProductPageClient({ id }: { id: string }) {
+export default function ProductPageClient({
+    id,
+    initialProduct = null,
+}: {
+    id: string;
+    initialProduct?: StoreProduct | null;
+}) {
     const {
         product,
         loadingProduct,
@@ -46,7 +54,7 @@ export default function ProductPageClient({ id }: { id: string }) {
         displayImages,
         handleAddToCart,
         skus,
-    } = useProductPage(id);
+    } = useProductPage(id, initialProduct);
 
     if (loadingProduct) {
         return (
@@ -91,7 +99,15 @@ export default function ProductPageClient({ id }: { id: string }) {
                 <StickyMobileCta
                     visible={stickyVisible}
                     productName={product.name}
-                    price={product.price}
+                    // Preco COM a promocao, o mesmo do bloco de preco. Antes ia o
+                    // preco cheio: a barra fixa do celular mostrava R$ 79,99 numa
+                    // blusa anunciada a R$ 19,99.
+                    price={effectivePrice(
+                        product.price,
+                        product.salePrice,
+                        product.saleStart,
+                        product.saleEnd,
+                    )}
                     onAddToCart={handleAddToCart}
                     disabled={!selectedSize}
                 />
