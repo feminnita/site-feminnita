@@ -149,6 +149,15 @@ export function useProductPage(idOverride?: string) {
     const handleAddToCart = () => {
         if (!product) return;
         if (!selectedSize) {
+            // O botao NAO fica mais desligado sem tamanho. No celular o botao fixo
+            // "Escolha o tamanho" e a unica coisa clicavel na primeira tela, e os
+            // tamanhos ficam uma tela e meia abaixo: a cliente tocava, nada
+            // acontecia e ela ia embora (Clarity, 14-16/11: 52 visitas na 59000,
+            // 8 toques no botao morto, nenhum carrinho). Agora o toque leva ate
+            // os tamanhos.
+            document
+                .getElementById("seletor-tamanho")
+                ?.scrollIntoView({ behavior: "smooth", block: "center" });
             toast.warning("Selecione um tamanho");
             return;
         }

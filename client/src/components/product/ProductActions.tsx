@@ -17,9 +17,7 @@ export function ProductActions({
             <div ref={ctaRef} className="flex gap-4">
                 <button
                     onClick={onAddToCart}
-                    disabled={disabled}
-                    title={disabled ? "Selecione um tamanho" : undefined}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#000000] py-4 font-semibold text-[#F5F5F5] transition-colors hover:bg-[#262626] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 disabled:hover:bg-gray-300"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#000000] py-4 font-semibold text-[#F5F5F5] transition-colors hover:bg-[#262626]"
                 >
                     <ShoppingCart size={20} />
                     {disabled ? "Selecione um tamanho" : "Adicionar ao Carrinho"}
