@@ -12,9 +12,16 @@ export function StickyMobileCta({
 }: StickyMobileCtaProps) {
     return (
         <div
-            className={`fixed bottom-0 left-0 right-0 z-40 border-t bg-white px-4 py-3 shadow-lg transition-transform duration-300 md:hidden ${visible ? "translate-y-0" : "translate-y-full"
+            // Fica EM CIMA da barra do pedido minimo quando ela existe (a altura
+            // vem de --barra-minimo-h, publicada pela MinOrderBar); sem ela, no
+            // rodape. Escondida, some de vez: so descer nao basta, porque cairia
+            // justamente sobre a barra do minimo.
+            className={`fixed left-0 right-0 z-40 border-t bg-white px-4 py-3 shadow-lg transition-transform duration-300 md:hidden ${visible ? "translate-y-0" : "pointer-events-none translate-y-full opacity-0"
                 }`}
-            style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+            style={{
+                bottom: "var(--barra-minimo-h, 0px)",
+                paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))",
+            }}
         >
             <div className="flex items-center gap-3">
                 <div className="min-w-0 flex-1">

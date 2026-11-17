@@ -286,9 +286,13 @@ export default function CheckoutPage() {
     );
     const abaixoDoMinimo = ready && subtotal > 0 && subtotal < MIN_ORDER;
     const shippingCost = selectedShipping?.price || 0;
-    const discount = Number(
-        (paymentMethod === "pix" ? subtotal * PIX_DISCOUNT_RATE : 0).toFixed(2),
-    );
+    // Em centavos, igual ao servidor (calculatePixDiscountCents). Em reais, 10
+    // pecas de R$ 19,99 somam 199,8999... e o desconto saia R$ 9,99 na tela
+    // enquanto o servidor cobrava com R$ 10,00: 1 centavo de diferenca.
+    const discount =
+        paymentMethod === "pix"
+            ? Math.round(Math.round(subtotal * 100) * PIX_DISCOUNT_RATE) / 100
+            : 0;
     const couponDiscount = appliedCoupon?.discount ?? 0;
     const total = Number(
         (subtotal + shippingCost - discount - couponDiscount).toFixed(2),
@@ -529,6 +533,16 @@ export default function CheckoutPage() {
         setPaymentMethod("pix");
     };
 
+    // Erro de validacao do formulario: a caixa vermelha fica no TOPO da pagina, e
+    // a cliente esta no rodape, com o dedo no botao Finalizar. Sem subir a tela
+    // ela nao via nada acontecer (CPF com um digito errado, WhatsApp sem DDD) e
+    // achava que o botao nao funcionava. Agora sobe a tela e mostra um aviso.
+    const avisarErro = (msg: string) => {
+        setError(msg);
+        toast.error(msg);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -552,11 +566,11 @@ export default function CheckoutPage() {
 
         if (!customer) {
             if (!f.name.trim() || !f.email.trim()) {
-                setError("Preencha seu nome e e-mail para continuar.");
+                avisarErro("Preencha seu nome e e-mail para continuar.");
                 return;
             }
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) {
-                setError("Confira o e-mail digitado.");
+                avisarErro("Confira o e-mail digitado.");
                 return;
             }
         }
@@ -564,21 +578,21 @@ export default function CheckoutPage() {
         // O minimo tambem e conferido no servidor — e la que a regra vale de
         // verdade. Aqui e so para a cliente saber ANTES de preencher tudo.
         if (subtotal < MIN_ORDER) {
-            setError(
+            avisarErro(
                 `O pedido mínimo é de ${formatBRL(MIN_ORDER)}. Faltam ${formatBRL(MIN_ORDER - subtotal)}.`,
             );
             return;
         }
         if (!selectedShipping) {
-            setError("Selecione uma opção de frete.");
+            avisarErro("Selecione uma opção de frete.");
             return;
         }
         if (!isValidateCpfCnpj(f.cpf)) {
-            setError("CPF ou CNPJ inválido. Confira os números digitados.");
+            avisarErro("CPF ou CNPJ inválido. Confira os números digitados.");
             return;
         }
         if (!f.phone.replace(/\D/g, "").match(/^\d{10,11}$/)) {
-            setError("Informe um WhatsApp válido com DDD.");
+            avisarErro("Informe um WhatsApp válido com DDD.");
             return;
         }
         if (paymentMethod === "card") {
@@ -588,28 +602,28 @@ export default function CheckoutPage() {
                 f.card_expiry.length < 5 ||
                 !f.card_cvv
             ) {
-                setError("Preencha todos os dados do cartão.");
+                avisarErro("Preencha todos os dados do cartão.");
                 return;
             }
             if (cartaoDeOutraPessoa) {
                 if (f.titular_nome.trim().length < 3) {
-                    setError("Informe o nome completo do titular do cartão.");
+                    avisarErro("Informe o nome completo do titular do cartão.");
                     return;
                 }
                 if (!isValidateCpf(f.titular_cpf.replace(/\D/g, ""))) {
-                    setError("CPF do titular do cartão inválido. Confira os números.");
+                    avisarErro("CPF do titular do cartão inválido. Confira os números.");
                     return;
                 }
                 if (f.titular_cep.replace(/\D/g, "").length !== 8) {
-                    setError("CEP do titular do cartão inválido. Use os 8 números.");
+                    avisarErro("CEP do titular do cartão inválido. Use os 8 números.");
                     return;
                 }
                 if (!f.titular_numero.trim()) {
-                    setError("Informe o número do endereço do titular do cartão.");
+                    avisarErro("Informe o número do endereço do titular do cartão.");
                     return;
                 }
                 if (!/^\d{10,11}$/.test(f.titular_telefone.replace(/\D/g, ""))) {
-                    setError("Informe o telefone do titular do cartão com DDD.");
+                    avisarErro("Informe o telefone do titular do cartão com DDD.");
                     return;
                 }
             }
@@ -622,7 +636,7 @@ export default function CheckoutPage() {
 
         // Se o termo foi atualizado, o backend exige reaceite aqui antes do pedido.
         if (reacceptVersion !== null && !reacceptChecked) {
-            setError("É necessário aceitar o Termo de Revenda atualizado para continuar.");
+            avisarErro("É necessário aceitar o Termo de Revenda atualizado para continuar.");
             return;
         }
 
@@ -1536,7 +1550,7 @@ export default function CheckoutPage() {
                                 ) : (
                                     <button
                                         type="submit"
-                                        disabled={isProcessing || !selectedShipping || subtotal < MIN_ORDER}
+                                        disabled={isProcessing}
                                         className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#000000] py-4 font-semibold text-white transition-colors hover:bg-[#262626] disabled:opacity-50"
                                     >
                                         {isProcessing ? (
@@ -1573,7 +1587,7 @@ export default function CheckoutPage() {
                         ) : (
                             <button
                                 type="submit"
-                                disabled={isProcessing || !selectedShipping || subtotal < MIN_ORDER}
+                                disabled={isProcessing}
                                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#000000] py-4 font-semibold text-white transition-transform active:scale-[0.98] disabled:opacity-50"
                             >
                                 {isProcessing ? (
