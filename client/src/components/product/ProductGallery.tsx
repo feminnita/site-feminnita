@@ -64,6 +64,29 @@ export function ProductGallery({
     embedUrl,
 }: ProductGalleryProps) {
     const [zoomOrigin, setZoomOrigin] = useState("50% 50%");
+
+    // Celular: a foto grande nao respondia ao dedo. No Clarity (16-17/11) o toque
+    // nela era o "clique sem resposta" mais comum da pagina, e para trocar de
+    // foto so havia as miniaturas. Agora deslizar para o lado troca a foto, e um
+    // toque simples passa para a proxima.
+    const toqueInicio = useRef<{ x: number; y: number } | null>(null);
+    const aoTocar = (e: React.TouchEvent) => {
+        const t = e.touches[0];
+        toqueInicio.current = { x: t.clientX, y: t.clientY };
+    };
+    const aoSoltar = (e: React.TouchEvent) => {
+        const ini = toqueInicio.current;
+        toqueInicio.current = null;
+        if (!ini || showVideo || images.length < 2) return;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - ini.x;
+        const dy = t.clientY - ini.y;
+        const toqueSimples = Math.abs(dx) < 10 && Math.abs(dy) < 10;
+        const deslizou = Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy);
+        if (!toqueSimples && !deslizou) return;
+        const passo = deslizou && dx > 0 ? -1 : 1;
+        onSelectImage((selectedImage + passo + images.length) % images.length);
+    };
     const [zooming, setZooming] = useState(false);
     const [canHover, setCanHover] = useState(false);
 
@@ -214,6 +237,8 @@ export function ProductGallery({
                 onMouseMove={handleMouseMove}
                 onMouseEnter={() => canHover && !showVideo && setZooming(true)}
                 onMouseLeave={() => setZooming(false)}
+                onTouchStart={aoTocar}
+                onTouchEnd={aoSoltar}
             >
                 {showVideo && videoUrl && isFileVideo ? (
                     <InlineVideo

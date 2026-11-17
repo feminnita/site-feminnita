@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "../../hooks/cart/useCart";
@@ -76,13 +77,31 @@ export function MinOrderStatus({
 export function MinOrderBar() {
     const { subtotal } = useCart();
     const visible = useMinOrderVisible();
+    const ref = useRef<HTMLDivElement>(null);
+
+    // Publica a altura desta barra para a barra de comprar do produto
+    // (StickyMobileCta) se apoiar em cima dela. As duas ficavam no mesmo rodape
+    // do celular, e a de comprar cobria o contador do pedido minimo.
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const root = document.documentElement;
+        const medir = () => root.style.setProperty("--barra-minimo-h", `${el.offsetHeight}px`);
+        medir();
+        const ro = new ResizeObserver(medir);
+        ro.observe(el);
+        return () => {
+            ro.disconnect();
+            root.style.removeProperty("--barra-minimo-h");
+        };
+    }, [visible]);
 
     if (!visible) return null;
 
     const reached = subtotal >= MIN_ORDER;
 
     return (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.08)] md:sticky md:top-0 md:bottom-auto md:h-12 md:border-b md:border-t-0 md:shadow-sm">
+        <div ref={ref} className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.08)] md:sticky md:top-0 md:bottom-auto md:h-12 md:border-b md:border-t-0 md:shadow-sm">
             <div className="container mx-auto flex items-center justify-between gap-3 px-4 py-2.5 md:h-full md:py-0">
                 <MinOrderStatus subtotal={subtotal} className="min-w-0 flex-1" />
 
