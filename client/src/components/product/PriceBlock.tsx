@@ -1,5 +1,6 @@
 import { effectivePrice, hasActiveSale, pixFromPrice } from "../../utils/pricing";
 import type { PriceBlockProps } from "../../types/product/products";
+import { MIN_ORDER, formatBRL } from "../../lib/minOrder";
 
 export function PriceBlock({
     price,
@@ -32,6 +33,15 @@ export function PriceBlock({
             <p className="mt-1 text-gray-600">
                 ou {installments}x de R$ {installmentValue.toFixed(2).replace(".", ",")}{" "}
                 sem juros
+            </p>
+            {/* O minimo do atacado aparece aqui, junto do preco. Quem chega pelo
+                anuncio cai direto nesta pagina e so descobria os R$ 199 no
+                checkout: em 16-17/11, 2 das 3 clientes que desistiram no checkout
+                tinham R$ 19,99 e R$ 79,96 no carrinho. */}
+            <p className="mt-2 text-sm text-gray-600">
+                Venda no atacado: pedido mínimo de{" "}
+                <strong className="text-[#000000]">{formatBRL(MIN_ORDER)}</strong>, somando
+                todas as peças do carrinho.
             </p>
         </div>
     );
