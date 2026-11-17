@@ -20,9 +20,16 @@ import { SizeSelector } from "../../../components/product/SizeSelector";
 import { SizeChartTrigger } from "../../../components/product/SizeChartTrigger";
 import { StickyMobileCta } from "../../../components/product/StickMobileCta";
 import { useProductPage } from "../../../hooks/product/useProductPage";
+import type { StoreProduct } from "../../../types/product/products";
 import { toEmbedUrl } from "../../../utils/product";
 
-export default function ProductPageClient({ id }: { id: string }) {
+export default function ProductPageClient({
+    id,
+    initialProduct = null,
+}: {
+    id: string;
+    initialProduct?: StoreProduct | null;
+}) {
     const {
         product,
         loadingProduct,
@@ -46,7 +53,7 @@ export default function ProductPageClient({ id }: { id: string }) {
         displayImages,
         handleAddToCart,
         skus,
-    } = useProductPage(id);
+    } = useProductPage(id, initialProduct);
 
     if (loadingProduct) {
         return (

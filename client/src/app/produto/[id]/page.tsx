@@ -148,7 +148,11 @@ export default async function ProductPage({
                     />
                 </>
             )}
-            <ProductPageClient id={id} />
+            {/* O produto ja buscado aqui vai junto para a pagina. Antes ela chegava
+                vazia (so o circulo girando) e o celular buscava o produto de novo
+                para so entao pedir a foto: no Clarity de 16/11 a foto principal
+                levava 6,6 s para aparecer. Assim a foto ja vem no HTML. */}
+            <ProductPageClient id={id} initialProduct={product} />
         </>
     );
 }
