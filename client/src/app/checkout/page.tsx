@@ -284,6 +284,7 @@ export default function CheckoutPage() {
         (sum, item) => sum + item.price * item.quantity,
         0,
     );
+    const abaixoDoMinimo = ready && subtotal > 0 && subtotal < MIN_ORDER;
     const shippingCost = selectedShipping?.price || 0;
     const discount = Number(
         (paymentMethod === "pix" ? subtotal * PIX_DISCOUNT_RATE : 0).toFixed(2),
@@ -1521,21 +1522,34 @@ export default function CheckoutPage() {
                                     </div>
                                 </div>
 
-                                <button
-                                    type="submit"
-                                    disabled={isProcessing || !selectedShipping || subtotal < MIN_ORDER}
-                                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#000000] py-4 font-semibold text-white transition-colors hover:bg-[#262626] disabled:opacity-50"
-                                >
-                                    {isProcessing ? (
-                                        <>
-                                            <Loader2 size={18} className="animate-spin" /> Processando...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Lock size={15} /> Finalizar Pedido
-                                        </>
-                                    )}
-                                </button>
+                                {/* Abaixo do minimo o botao NAO fica mais desligado: a cliente preenchia o
+                                    cadastro inteiro, tocava em Finalizar, nada acontecia e ela saia
+                                    (gravacao do Clarity de 16/11, 1 regata no carrinho). Agora o botao
+                                    diz quanto falta e leva de volta a loja. */}
+                                {abaixoDoMinimo ? (
+                                    <Link
+                                        href="/"
+                                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#000000] px-3 py-4 text-center font-semibold text-white transition-colors hover:bg-[#262626]"
+                                    >
+                                        Faltam {formatBRL(MIN_ORDER - subtotal)} para o mínimo · Adicionar peças
+                                    </Link>
+                                ) : (
+                                    <button
+                                        type="submit"
+                                        disabled={isProcessing || !selectedShipping || subtotal < MIN_ORDER}
+                                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#000000] py-4 font-semibold text-white transition-colors hover:bg-[#262626] disabled:opacity-50"
+                                    >
+                                        {isProcessing ? (
+                                            <>
+                                                <Loader2 size={18} className="animate-spin" /> Processando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Lock size={15} /> Finalizar Pedido
+                                            </>
+                                        )}
+                                    </button>
+                                )}
 
                                 <p className="flex items-center justify-center gap-1 text-center text-xs text-gray-400">
                                     <Lock size={10} /> Pagamento 100% seguro e criptografado
@@ -1549,23 +1563,32 @@ export default function CheckoutPage() {
                         className="fixed bottom-0 left-0 right-0 z-40 border-t bg-white p-4 shadow-lg lg:hidden"
                         style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
                     >
-                        <button
-                            type="submit"
-                            disabled={isProcessing || !selectedShipping || subtotal < MIN_ORDER}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#000000] py-4 font-semibold text-white transition-transform active:scale-[0.98] disabled:opacity-50"
-                        >
-                            {isProcessing ? (
-                                <>
-                                    <Loader2 size={18} className="animate-spin" /> Processando...
-                                </>
-                            ) : (
-                                <>
-                                    <Lock size={15} /> Finalizar — R${" "}
-                                    {total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                                </>
-                            )}
-                        </button>
-                        {!selectedShipping && (
+                        {abaixoDoMinimo ? (
+                            <Link
+                                href="/"
+                                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#000000] px-3 py-4 text-center font-semibold text-white transition-transform active:scale-[0.98]"
+                            >
+                                Faltam {formatBRL(MIN_ORDER - subtotal)} para o mínimo · Adicionar peças
+                            </Link>
+                        ) : (
+                            <button
+                                type="submit"
+                                disabled={isProcessing || !selectedShipping || subtotal < MIN_ORDER}
+                                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#000000] py-4 font-semibold text-white transition-transform active:scale-[0.98] disabled:opacity-50"
+                            >
+                                {isProcessing ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" /> Processando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Lock size={15} /> Finalizar — R${" "}
+                                        {total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                    </>
+                                )}
+                            </button>
+                        )}
+                        {!selectedShipping && !abaixoDoMinimo && (
                             <p className="mt-1 text-center text-xs text-amber-600">
                                 Digite o CEP para calcular o frete
                             </p>
