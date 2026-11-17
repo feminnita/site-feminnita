@@ -22,6 +22,7 @@ import { StickyMobileCta } from "../../../components/product/StickMobileCta";
 import { useProductPage } from "../../../hooks/product/useProductPage";
 import type { StoreProduct } from "../../../types/product/products";
 import { toEmbedUrl } from "../../../utils/product";
+import { effectivePrice } from "../../../utils/pricing";
 
 export default function ProductPageClient({
     id,
@@ -98,7 +99,15 @@ export default function ProductPageClient({
                 <StickyMobileCta
                     visible={stickyVisible}
                     productName={product.name}
-                    price={product.price}
+                    // Preco COM a promocao, o mesmo do bloco de preco. Antes ia o
+                    // preco cheio: a barra fixa do celular mostrava R$ 79,99 numa
+                    // blusa anunciada a R$ 19,99.
+                    price={effectivePrice(
+                        product.price,
+                        product.salePrice,
+                        product.saleStart,
+                        product.saleEnd,
+                    )}
                     onAddToCart={handleAddToCart}
                     disabled={!selectedSize}
                 />
