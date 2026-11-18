@@ -11,6 +11,24 @@ export function findCouponByCode(code: string) {
 }
 
 /**
+ * CPF na lista de bloqueio da loja (tabela clientes_bloqueados, criada direto no
+ * banco em 13/11/2026: cliente do ARM-1183 abriu chargeback de pedido entregue).
+ * Pelo CPF, e nao pela conta: ela tinha duas contas com o mesmo CPF.
+ * Se a consulta falhar, deixa passar: o bloqueio nunca pode parar a loja.
+ */
+export async function cpfBloqueado(cpf: string): Promise<boolean> {
+    const digitos = cpf.replace(/\D/g, '');
+    if (digitos.length < 11) return false;
+    try {
+        const { rows } = await db.execute(sql`SELECT 1 FROM clientes_bloqueados WHERE cpf = ${digitos} LIMIT 1`);
+        return rows.length > 0;
+    } catch (erro) {
+        console.error('Nao consegui consultar clientes_bloqueados:', erro);
+        return false;
+    }
+}
+
+/**
  * Pedido da mesma pessoa feito ha pouco e ainda valido (nem cancelado, nem
  * recusado). A pessoa e reconhecida pelo CPF, e nao pela conta: em 13/10/2026
  * a mesma cliente comprou com dois e-mails e virou duas contas.
