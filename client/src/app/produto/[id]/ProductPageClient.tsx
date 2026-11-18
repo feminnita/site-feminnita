@@ -174,6 +174,18 @@ export default function ProductPageClient({
                             </div>
                         ) : (
                             <>
+                                {/* Cor ANTES do tamanho (18/11). Embaixo do botão de
+                                    comprar a cliente escolhia o tamanho, apertava
+                                    Adicionar e levava a 1ª cor (Branco) sem ver as
+                                    outras: o anúncio era da regata azul. A grade já
+                                    mostra só 8 e abre o resto em "Ver todas as cores". */}
+                                <ColorSelector
+                                    colors={availableColors}
+                                    selectedColor={selectedColor}
+                                    onSelect={selectColor}
+                                    colorImages={product.colorImages}
+                                />
+
                                 <div id="seletor-tamanho">
                                     <div className="mb-2 flex items-center justify-end">
                                         <SizeChartTrigger
@@ -203,16 +215,6 @@ export default function ProductPageClient({
                                 />
                             </>
                         )}
-
-                        {/* Grade de estampas ABAIXO do botão de comprar: com até 41 cores,
-                            fica no fim da coluna pra não empurrar tamanho/comprar pra baixo.
-                            Clicar troca a foto grande (getDisplayImages). */}
-                        <ColorSelector
-                            colors={availableColors}
-                            selectedColor={selectedColor}
-                            onSelect={selectColor}
-                            colorImages={product.colorImages}
-                        />
 
                         <ProductBenefits />
 

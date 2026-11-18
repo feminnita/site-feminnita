@@ -1,11 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { X } from "lucide-react";
 import type { ColorSelectorProps } from "@/src/types/product/products";
 import { normalizeColorKey } from "@/src/utils/product";
 
 const VISIBLE_LIMIT = 8;
+
+// Miniatura de 72px carregava a FOTO ORIGINAL do R2 (PNG de ~2 MB). Na regata
+// eram 8 miniaturas = ~16 MB dos 22 MB da página, e no 4G do Instagram o
+// Clarity mediu 5,4 s até a página aparecer (18/11). Pelo next/image a foto
+// passa pelo otimizador do Vercel (avif/webp no tamanho da miniatura) e o
+// original no R2 continua intacto. Endereço fora da lista do next.config
+// (remotePatterns) continua no <img> comum, para não quebrar a página.
+const HOSTS_OTIMIZADOS = [
+    "pub-3c261fc069aa46e795f1276f1f25ed51.r2.dev",
+    "res.cloudinary.com",
+    "ctvitzzddrumphhhreht.supabase.co",
+];
+function podeOtimizar(src: string): boolean {
+    try {
+        const u = new URL(src);
+        return u.protocol === "https:" && HOSTS_OTIMIZADOS.includes(u.hostname);
+    } catch {
+        return false;
+    }
+}
 
 // Cascata da miniatura — 2 NÍVEIS SÓ (a dona vetou o retalho de tecido na loja):
 // 1) colorImages[cor] → FOTO DA MODELO vestindo a estampa (clicar troca a foto grande)
@@ -66,12 +87,22 @@ function EstampaThumb({ color, photo, isSelected, onSelect }: ThumbProps) {
                         : "border-gray-200 group-hover:border-gray-400"
                     }`}
             >
-                <img
-                    src={photo}
-                    alt={color}
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                />
+                {podeOtimizar(photo) ? (
+                    <Image
+                        src={photo}
+                        alt={color}
+                        fill
+                        sizes="72px"
+                        className="object-cover"
+                    />
+                ) : (
+                    <img
+                        src={photo}
+                        alt={color}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                    />
+                )}
             </span>
             <span
                 className={`line-clamp-2 w-full text-[11px] leading-tight ${isSelected ? "font-semibold text-[#000000]" : "text-gray-600"
@@ -130,7 +161,7 @@ export function ColorSelector({
     return (
         <div>
             <label className="mb-3 block text-sm font-medium">
-                Estampa:{" "}
+                Cor:{" "}
                 <span className="font-normal text-gray-600">{selectedColor}</span>
             </label>
 
@@ -157,7 +188,7 @@ export function ColorSelector({
                     onClick={openAll}
                     className="mt-3 w-full rounded-md border border-gray-300 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-[#000000] hover:text-[#000000]"
                 >
-                    Ver todas as estampas ({colors.length})
+                    Ver todas as cores ({colors.length})
                 </button>
             )}
 
@@ -176,7 +207,7 @@ export function ColorSelector({
                 <div className="fixed inset-0 z-50 flex flex-col bg-white md:hidden">
                     <div className="flex items-center justify-between border-b px-4 py-3">
                         <h2 className="text-base font-medium">
-                            Estampas ({colors.length})
+                            Cores ({colors.length})
                         </h2>
                         <button
                             type="button"
