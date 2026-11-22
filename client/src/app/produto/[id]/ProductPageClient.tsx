@@ -156,6 +156,7 @@ export default function ProductPageClient({
                             salePrice={product.salePrice}
                             saleStart={product.saleStart}
                             saleEnd={product.saleEnd}
+                            promo={product.promo}
                             installments={product.installments}
                             installmentPrice={product.installmentPrice}
                         />
