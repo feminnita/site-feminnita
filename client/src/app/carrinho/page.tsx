@@ -3,12 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from 'sonner';
 import { useCart } from "../../hooks/cart/useCart";
-import { fetchProductStock } from "../../services/productsService";
+import { fetchProductStock, fetchProducts } from "../../services/productsService";
+import { ProductCard } from "../../components/product/ProductCard";
+import { PromoTag } from "../../components/product/PriceBlock";
+import { ReposicaoTag } from "../../components/product/ReposicaoTag";
+import { effectivePrice } from "../../utils/pricing";
 import { isSelected } from "../../utils/cart";
 import { PIX_DISCOUNT_RATE } from "../../utils/pricing";
 import { MinOrderStatus } from "../../components/common/MinOrderBar";
 import type { CartItem } from "../../types/cart/cart";
-import type { SkuStock } from "../../types/product/products";
+import type { SkuStock, StoreProduct } from "../../types/product/products";
 import { AlertCircle, ShoppingBag, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -26,6 +30,26 @@ export default function CartPage() {
     } = useCart();
 
     const [stockMap, setStockMap] = useState<Record<string, SkuStock[]>>({});
+
+    // 22/11 Chris: no carrinho, mostrar as etiquetas (promoção especial / reposição)
+    // e sugerir os produtos que estão com etiqueta hoje ("você já viu?").
+    const [catalogo, setCatalogo] = useState<StoreProduct[]>([]);
+    useEffect(() => {
+        let vivo = true;
+        fetchProducts().then((l) => { if (vivo) setCatalogo(l); }).catch(() => { });
+        return () => { vivo = false; };
+    }, []);
+    const porId = useMemo(() => new Map(catalogo.map((p) => [p.id, p])), [catalogo]);
+    const ofertas = useMemo(() => {
+        const noCarrinho = new Set(items.map((i: CartItem) => i.id));
+        const comEtiqueta = catalogo.filter((p) => (p.promo || p.reposicao) && !noCarrinho.has(p.id));
+        // promoção especial primeiro (é a que tem prazo), depois reposição
+        return [...comEtiqueta.filter((p) => p.promo), ...comEtiqueta.filter((p) => !p.promo)].slice(0, 4);
+    }, [catalogo, items]);
+    const pctDe = (p: StoreProduct) => {
+        const ef = effectivePrice(p.price, p.salePrice, p.saleStart, p.saleEnd);
+        return p.price > 0 ? Math.round((1 - ef / p.price) * 100) : 0;
+    };
 
     const productIds = useMemo(
         () => [...new Set(items.map((i: any) => i.id))].sort().join(","),
@@ -191,6 +215,21 @@ export default function CartPage() {
                                         <p className="font-semibold">
                                             R$ {item.price.toFixed(2).replace(".", ",")}
                                         </p>
+                                        {(() => {
+                                            const prod = porId.get(item.id);
+                                            if (!prod?.promo && !prod?.reposicao) return null;
+                                            return (
+                                                <div className="flex flex-wrap items-center gap-2 pt-1">
+                                                    {prod.promo && <PromoTag selo={prod.promo.selo} pct={pctDe(prod)} compacta />}
+                                                    {prod.promo?.fim && (
+                                                        <span className="text-xs font-medium text-red-600">
+                                                            Aproveite: termina {new Date(new Date(prod.promo.fim).getTime() - 60_000).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" })}
+                                                        </span>
+                                                    )}
+                                                    {prod.reposicao && <ReposicaoTag compacta />}
+                                                </div>
+                                            );
+                                        })()}
                                         {issue && (
                                             <p className="flex items-center gap-1.5 text-xs font-medium text-red-600">
                                                 <AlertCircle size={13} />
@@ -231,6 +270,20 @@ export default function CartPage() {
                                 </div>
                             );
                         })}
+
+                        {ofertas.length > 0 && (
+                            <section className="mt-8 rounded-lg border bg-white p-4 sm:p-6">
+                                <h2 className="text-xl font-medium">Você já viu? ✨ Ofertas especiais de hoje</h2>
+                                <p className="mt-1 text-sm text-gray-600">
+                                    Produtos com preço especial ou que acabaram de chegar. Aproveite para completar o seu pedido.
+                                </p>
+                                <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+                                    {ofertas.map((p) => (
+                                        <ProductCard key={p.id} product={p} />
+                                    ))}
+                                </div>
+                            </section>
+                        )}
                     </div>
 
                     {/* Order Summary */}
