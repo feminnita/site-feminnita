@@ -155,9 +155,9 @@ export function ProductCard({
                     )}
 
                     {/* Promoção especial com data (Black Friday, lançamento...): a etiqueta
-                        dela no lugar do selo "Oferta" de sempre. */}
+                        dela no lugar do selo "Oferta" de sempre. 22/11 Chris: no rodapé da foto. */}
                     {product.promo ? (
-                        <span className="absolute left-3 top-3">
+                        <span className="absolute bottom-3 left-3">
                             <PromoTag
                                 selo={product.promo.selo}
                                 pct={product.price > 0 ? Math.round((1 - effective / product.price) * 100) : 0}
