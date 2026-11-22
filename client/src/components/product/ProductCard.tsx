@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { QuickBuyPanel } from "./QuickBuyPanel";
+import { PromoTag } from "./PriceBlock";
 import { effectivePrice, hasActiveSale, pixFromPrice } from "@/src/utils/pricing";
 import { normalizeColorKey } from "@/src/utils/product";
 import { sortSizes } from "@/src/utils/sizes";
@@ -152,7 +153,17 @@ export function ProductCard({
                         </div>
                     )}
 
-                    {onSale && (
+                    {/* Promoção especial com data (Black Friday, lançamento...): a etiqueta
+                        dela no lugar do selo "Oferta" de sempre. */}
+                    {product.promo ? (
+                        <span className="absolute left-3 top-3">
+                            <PromoTag
+                                selo={product.promo.selo}
+                                pct={product.price > 0 ? Math.round((1 - effective / product.price) * 100) : 0}
+                                compacta
+                            />
+                        </span>
+                    ) : onSale && (
                         <span className="absolute left-3 top-3 rounded-full bg-[#000000] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
                             Oferta
                         </span>

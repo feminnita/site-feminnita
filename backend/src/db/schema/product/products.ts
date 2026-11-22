@@ -38,4 +38,9 @@ export const products = pgTable('products', {
   blingId: bigint('bling_id', { mode: 'number' }),
   videoUrl: text('video_url'),
   colorImages: jsonb('color_images').$type<Record<string, unknown>>().default({}),
+  // Promoção especial com data (22/11, Chris): o painel põe o preço especial no
+  // ar (sale_price) e liga promo_prog_aplicada; a loja só mostra a etiqueta.
+  promoProgAplicada: boolean('promo_prog_aplicada').notNull().default(false),
+  promoProgFim: timestamp('promo_prog_fim', { withTimezone: true }),
+  promoProgSelo: text('promo_prog_selo'),
 });
