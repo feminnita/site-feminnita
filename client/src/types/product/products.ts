@@ -35,6 +35,8 @@ export type StoreProduct = {
   saleEnd: string | null;
   // Etiqueta da promoção especial (Black Friday, lançamento...) — só vem enquanto está no ar.
   promo?: { selo: string; fim: string | null } | null;
+  // "Chegou reposição": só vem enquanto vale.
+  reposicao?: { ate: string; cores: string[] } | null;
   installments: number;
   installmentPrice: number;
   images: string[];

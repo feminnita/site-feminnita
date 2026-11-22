@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { QuickBuyPanel } from "./QuickBuyPanel";
 import { PromoTag } from "./PriceBlock";
+import { ReposicaoTag } from "./ReposicaoTag";
 import { effectivePrice, hasActiveSale, pixFromPrice } from "@/src/utils/pricing";
 import { normalizeColorKey } from "@/src/utils/product";
 import { sortSizes } from "@/src/utils/sizes";
@@ -260,6 +261,12 @@ export function ProductCard({
                     </p>
                 )}
 
+                {/* "Chegou reposição" (22/11, Chris): versão menor, junto do preço, abaixo da foto */}
+                {product.reposicao && (
+                    <div className="pt-0.5">
+                        <ReposicaoTag compacta />
+                    </div>
+                )}
                 <div className="flex flex-wrap items-baseline gap-x-2 pt-0.5">
                     <p className="text-base font-semibold text-gray-900">
                         R$ {effective.toFixed(2).replace(".", ",")}

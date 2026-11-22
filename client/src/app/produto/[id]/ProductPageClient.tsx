@@ -11,6 +11,7 @@ import { ProductReviews } from "../../../components/product/ProductReviews";
 import { RelatedSections } from "../../../components/product/RelatedSections";
 import { ColorSelector } from "../../../components/product/ColorSelector";
 import { PriceBlock } from "../../../components/product/PriceBlock";
+import { ReposicaoTag } from "@/src/components/product/ReposicaoTag";
 import { ProductActions } from "../../../components/product/ProductActions";
 import { ProductBenefits } from "../../../components/product/ProductBenefits";
 import { ProductDescription } from "../../../components/product/ProductDescription";
@@ -149,6 +150,11 @@ export default function ProductPageClient({
                         <div>
                             <p className="text-sm uppercase text-gray-500">{product.code}</p>
                             <h1 className="mt-2 text-3xl font-light">{product.name}</h1>
+                            {product.reposicao && (
+                                <div className="mt-3">
+                                    <ReposicaoTag cores={product.reposicao.cores} />
+                                </div>
+                            )}
                         </div>
 
                         <PriceBlock
