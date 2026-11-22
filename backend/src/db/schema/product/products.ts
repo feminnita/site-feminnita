@@ -43,4 +43,7 @@ export const products = pgTable('products', {
   promoProgAplicada: boolean('promo_prog_aplicada').notNull().default(false),
   promoProgFim: timestamp('promo_prog_fim', { withTimezone: true }),
   promoProgSelo: text('promo_prog_selo'),
+  // Etiqueta "Chegou reposição" (22/11): o painel liga por cor e ela vale até reposicao_ate.
+  reposicaoAte: timestamp('reposicao_ate', { withTimezone: true }),
+  reposicaoCores: text('reposicao_cores').array().notNull().default([]),
 });

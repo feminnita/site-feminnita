@@ -78,6 +78,9 @@ function mapProduct(row: ProductRow, variants: VariantRow[], colorImageRows: Col
         promo: p.promoProgAplicada
             ? { selo: (p.promoProgSelo || '').trim() || 'Oferta especial', fim: p.promoProgFim ? new Date(p.promoProgFim).toISOString() : null }
             : null,
+        reposicao: p.reposicaoAte && new Date(p.reposicaoAte).getTime() > Date.now()
+            ? { ate: new Date(p.reposicaoAte).toISOString(), cores: Array.isArray(p.reposicaoCores) ? p.reposicaoCores : [] }
+            : null,
         installments, installmentPrice: +(price / installments).toFixed(2),
         images: Array.isArray(p.images) ? p.images : [],
         colorImages, videoUrl: p.videoUrl ?? null,
