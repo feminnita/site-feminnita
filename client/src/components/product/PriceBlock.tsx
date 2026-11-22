@@ -1,6 +1,7 @@
 import { effectivePrice, hasActiveSale, pixFromPrice } from "../../utils/pricing";
 import type { PriceBlockProps } from "../../types/product/products";
 import { MIN_ORDER, formatBRL } from "../../lib/minOrder";
+import { ContagemRegressiva } from "./ContagemRegressiva";
 import { Kaushan_Script } from "next/font/google";
 
 const pincel = Kaushan_Script({ subsets: ["latin"], weight: ["400"], display: "swap" });
@@ -79,6 +80,7 @@ export function PriceBlock({
         <div className="border-b border-t py-4">
             {/* Etiqueta da promoção especial (22/11, Chris: "tipo isso onde fica o preço") */}
             {promo && <PromoTag selo={promo.selo} fim={promo.fim} pct={pct} />}
+            {promo?.fim && <ContagemRegressiva fim={promo.fim} />}
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <span className="text-3xl font-bold sm:text-4xl">
                     R$ {effective.toFixed(2).replace(".", ",")}
