@@ -11,6 +11,8 @@ export type Slide =
         textPositionMobile?: string | null;
         textThemeMobile?: string | null;
         focal?: string | null;
+        // 27/11: link do banner inteiro (o "Link do botão" do painel), mesmo sem texto de botão
+        href?: string | null;
         cta?: {
             text: string;
             href: string;
@@ -27,6 +29,8 @@ export type Slide =
         textPositionMobile?: string | null;
         textThemeMobile?: string | null;
         focal?: string | null;
+        // 27/11: link do banner inteiro (o "Link do botão" do painel), mesmo sem texto de botão
+        href?: string | null;
         cta?: {
             text: string;
             href: string;

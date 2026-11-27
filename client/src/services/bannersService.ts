@@ -27,6 +27,9 @@ function mapSlideRow(row: HeroSlideRow): Slide {
   const textPositionMobile = row.textPositionMobile ?? null;
   const textThemeMobile = row.textThemeMobile ?? null;
   const focal = row.focal ?? "center";
+  // 27/11 Chris: banner com o botão desenhado na arte — o "Link do botão" deixa a imagem toda
+  // clicável, mesmo com o "Texto do botão" vazio (aí não aparece botão por cima da arte).
+  const href = row.ctaHref?.trim() || null;
 
   if (row.type === "video") {
     return {
@@ -40,6 +43,7 @@ function mapSlideRow(row: HeroSlideRow): Slide {
       textPositionMobile,
       textThemeMobile,
       focal,
+      href,
       cta,
     };
   }
@@ -56,6 +60,7 @@ function mapSlideRow(row: HeroSlideRow): Slide {
     textPositionMobile,
     textThemeMobile,
     focal,
+    href,
     cta,
   };
 }
