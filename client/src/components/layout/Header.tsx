@@ -7,6 +7,7 @@ import {
   Menu,
   Search,
   ShoppingCart,
+  Tag,
   User,
   X,
 } from "lucide-react";
@@ -21,6 +22,7 @@ import { fetchCategories } from "../../services/categoriesService";
 import { recordSearch } from "../../lib/colorAffinity";
 import { buildTree, cleanCategoryTree } from "../../utils/categories";
 import { BLOG_NO_AR } from "../../lib/blog";
+import { blackFridayNoAr } from "../../lib/blackFriday";
 import type { CategoryNode } from "../../types/categories/categories";
 import { CategoryDropdown, MobileCategoryAccordion } from "./CategoryNav";
 
@@ -260,6 +262,16 @@ export function Header() {
 
             {/* Marcadores: grupo próprio com divisória, separados das categorias */}
             <div className="mt-1 border-t pt-2">
+              {blackFridayNoAr() && (
+                <Link
+                  href="/black-friday"
+                  onClick={() => setMenuOpen(false)}
+                  className="my-1 inline-flex items-center gap-1.5 rounded-full bg-black px-4 py-2 text-sm font-bold uppercase tracking-wide text-white"
+                >
+                  <Tag size={14} />
+                  Black Friday
+                </Link>
+              )}
               {MARKER_TABS.map((link) => (
                 <Link
                   key={link.href}
@@ -311,6 +323,16 @@ export function Header() {
           (07/11), onde a faixa rola de lado se não couber. */}
       <div className="border-t border-gray-200 bg-[#000000]/[0.06]">
         <nav className="container mx-auto flex items-center justify-start gap-6 overflow-x-auto whitespace-nowrap px-4 py-2.5 text-xs font-semibold uppercase tracking-widest sm:justify-center lg:gap-10">
+          {/* 27/11 Chris: botão preto da Black Friday, primeiro da faixa, até o fim da promoção */}
+          {blackFridayNoAr() && (
+            <Link
+              href="/black-friday"
+              className="inline-flex items-center gap-1.5 rounded-full bg-black px-4 py-1.5 font-bold text-white shadow-sm transition-colors hover:bg-[#262626]"
+            >
+              <Tag size={14} />
+              BLACK FRIDAY
+            </Link>
+          )}
           {MARKER_TABS.map((link) => (
             <Link
               key={link.href}
