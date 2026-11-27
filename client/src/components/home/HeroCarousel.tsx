@@ -36,7 +36,8 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
 
     // avanço automático — NÃO dá play no mount (péssimo p/ LCP)
     useEffect(() => {
-        if (slides.length === 0) return;
+        // 27/11 Chris: com um banner só ele fica PARADO (sem "trocar" para ele mesmo e piscar)
+        if (slides.length <= 1) return;
         const slide = slides[current];
 
         timerRef.current = setTimeout(
@@ -245,6 +246,8 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
                 </>
             )}
 
+            {slides.length > 1 && (
+            <>
             <button
                 onClick={prev}
                 className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/20 p-2 text-white transition-colors hover:bg-white/50"
@@ -271,6 +274,8 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
                     />
                 ))}
             </div>
+            </>
+            )}
         </section>
     );
 }
