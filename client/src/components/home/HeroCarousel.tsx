@@ -195,7 +195,13 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
                 className={`transition-opacity duration-500 ${isTransitioning ? "opacity-0" : "opacity-100"
                     }`}
             >
-                {renderMedia()}
+                {slide.href ? (
+                    <a href={slide.href} aria-label={slide.type === "image" ? slide.alt || "Ver mais" : "Ver mais"} className="block">
+                        {renderMedia()}
+                    </a>
+                ) : (
+                    renderMedia()
+                )}
             </div>
 
             {(slide.title || slide.subtitle || slide.cta) && (
